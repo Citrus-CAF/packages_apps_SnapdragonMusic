@@ -361,7 +361,12 @@ public class MediaPlaybackService extends Service {
                             Log.e(LOGTAG, "Unknown audio focus change code");
                     }
                     break;
-
+                case ERROR:
+                        //Called from onError when current clip is played in
+                        //repeat only mode.
+                        Log.e(LOGTAG," ERROR: Pause the clip");
+                        pause();
+                    break;
                 default:
                     break;
             }
@@ -2603,7 +2608,12 @@ public class MediaPlaybackService extends Service {
                     mHandler.sendMessageDelayed(mHandler.obtainMessage(SERVER_DIED), 2000);
                     return true;
                 default:
-                    Log.d("MultiPlayer", "Error: " + what + "," + extra);
+                    Log.e("MultiPlayer", "Error: " + what + "," + extra);
+                    if (mRepeatMode == REPEAT_CURRENT) {
+                        Log.e("MultiPlayer", "Error:Repeat track-sendMessage");
+                        mHandler.sendMessageDelayed(mHandler.obtainMessage(ERROR),0);
+                        return true;
+                    }
                     break;
                 }
                 return false;
@@ -2690,7 +2700,7 @@ public class MediaPlaybackService extends Service {
      */
     static class ServiceStub extends IMediaPlaybackService.Stub {
         WeakReference<MediaPlaybackService> mService;
-        
+
         ServiceStub(MediaPlaybackService service) {
             mService = new WeakReference<MediaPlaybackService>(service);
         }
