@@ -201,6 +201,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mShuffleButton.setOnClickListener(mShuffleListener);
         mRepeatButton = ((ImageButton) findViewById(R.id.repeat));
         mRepeatButton.setOnClickListener(mRepeatListener);
+        mSoundEffectButton = ((ImageButton) findViewById(R.id.sound_effect));
+        mSoundEffectButton.setOnClickListener(mSoundEffectListener);
 
         SeekBar seeker = (SeekBar) mProgress;
         seeker.setOnSeekBarChangeListener(mSeekListener);
