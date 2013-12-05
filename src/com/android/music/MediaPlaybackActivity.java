@@ -81,6 +81,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private RepeatingImageButton mNextButton;
     private ImageButton mRepeatButton;
     private ImageButton mShuffleButton;
+    private ImageButton mSoundEffectButton;
     private ImageButton mQueueButton;
     private Worker mAlbumArtWorker;
     private AlbumArtHandler mAlbumArtHandler;
@@ -146,6 +147,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mShuffleButton.setOnClickListener(mShuffleListener);
         mRepeatButton = ((ImageButton) findViewById(R.id.repeat));
         mRepeatButton.setOnClickListener(mRepeatListener);
+        mSoundEffectButton = ((ImageButton) findViewById(R.id.sound_effect));
+        mSoundEffectButton.setOnClickListener(mSoundEffectListener);
         
         if (mProgress instanceof SeekBar) {
             SeekBar seeker = (SeekBar) mProgress;
@@ -465,6 +468,12 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         }
     };
 
+    private View.OnClickListener mSoundEffectListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            startSoundEffectActivity();
+        }
+    };
+
     private View.OnClickListener mPauseListener = new View.OnClickListener() {
         public void onClick(View v) {
             doPauseResume();
@@ -695,18 +704,24 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                     return true;
                 }
 
-                case EFFECTS_PANEL: {
-                    Intent i = new Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL);
-                    i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, mService.getAudioSessionId());
-                    startActivityForResult(i, EFFECTS_PANEL);
+                case EFFECTS_PANEL:
+                    startSoundEffectActivity();
                     return true;
-                }
             }
         } catch (RemoteException ex) {
         }
         return super.onOptionsItemSelected(item);
     }
-    
+
+    private void startSoundEffectActivity() {
+        Intent i = new Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL);
+        try {
+            i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, mService.getAudioSessionId());
+        } catch (RemoteException ex) {
+        }
+        startActivityForResult(i, EFFECTS_PANEL);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if (resultCode != RESULT_OK) {
