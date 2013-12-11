@@ -19,11 +19,14 @@ package com.android.music;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.database.ContentObserver;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LevelListDrawable;
+import android.os.Handler;
+import android.provider.MediaStore;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -476,4 +479,23 @@ public class TouchInterceptor extends ListView {
     public interface RemoveListener {
         void remove(int which);
     }
+
+    /**
+     *  Register the new playlist observer to monitor the database change
+     */
+    void registerContentObserver(Context context) {
+        context.getContentResolver().registerContentObserver(
+                MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, true, mContentObserver);
+    }
+
+    void unregisterContentObserver(Context context) {
+        context.getContentResolver().unregisterContentObserver(mContentObserver);
+    }
+
+    private final ContentObserver mContentObserver = new ContentObserver(new Handler()) {
+        @Override
+        public void onChange(boolean selfChange) {
+            super.onChange(selfChange);
+        }
+    };
 }
