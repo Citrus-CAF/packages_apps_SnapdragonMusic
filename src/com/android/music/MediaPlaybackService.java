@@ -995,6 +995,13 @@ public class MediaPlaybackService extends Service {
                         mMediaMountedCount++;
                         mCardId = MusicUtils.getCardId(MediaPlaybackService.this);
                         reloadQueue();
+                        if (mIsSupposedToBePlaying) {
+                            stopForeground(false);
+                            seek(0);
+                        } else {
+                            stopForeground(true);
+                            seek(0);
+                        }
                         mQueueIsSaveable = true;
                         notifyChange(QUEUE_CHANGED);
                         notifyChange(META_CHANGED);
@@ -1113,6 +1120,11 @@ public class MediaPlaybackService extends Service {
             mRemoteControlClient.setPlaybackState((isPlaying() ?
                     RemoteControlClient.PLAYSTATE_PLAYING : RemoteControlClient.PLAYSTATE_PAUSED),
                     position() , RemoteControlClient.PLAYBACK_SPEED_1X);
+            if (mPlayer.mCurrentMediaPlayer.isPlaying()) {
+                 mIsSupposedToBePlaying = true;
+            } else {
+                 mIsSupposedToBePlaying = false;
+            }
         } else if (what.equals(META_CHANGED)) {
             RemoteControlClient.MetadataEditor ed = mRemoteControlClient.editMetadata(true);
             ed.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, getTrackName());
@@ -1585,6 +1597,7 @@ public class MediaPlaybackService extends Service {
         if (remove_status_icon) {
             mIsSupposedToBePlaying = false;
         }
+        notifyChange(PLAYSTATE_CHANGED);
     }
 
     /**
