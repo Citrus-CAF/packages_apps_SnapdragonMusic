@@ -107,6 +107,14 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
     }
 
     @Override
+    public void onResume() {
+        if (mCursor != null && mCursor.getCount() > 0) {
+            setTitle(R.string.videos_title);
+        }
+        super.onResume();
+    }
+
+    @Override
     public void onDestroy() {
         if (mCursor != null) {
             mCursor.close();
