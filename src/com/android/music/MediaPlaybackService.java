@@ -415,6 +415,8 @@ public class MediaPlaybackService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        // add for clear the notification when the service restart
+        stopForeground(true);
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         ComponentName rec = new ComponentName(getPackageName(),
