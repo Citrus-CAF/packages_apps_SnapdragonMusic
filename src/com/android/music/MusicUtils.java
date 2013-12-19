@@ -73,6 +73,13 @@ public class MusicUtils {
 
     private static final String TAG = "MusicUtils";
 
+    public static boolean mPlayAllFromMenu = false;
+
+    public final static int RINGTONE_SUB_0 = 0;
+    public final static int RINGTONE_SUB_1 = 1;
+
+    public static long mPlayListId;
+
     public interface Defs {
         public final static int OPEN_URL = 0;
         public final static int ADD_TO_PLAYLIST = 1;
@@ -793,6 +800,7 @@ public class MusicUtils {
     }
 
     public static void playAll(Context context, Cursor cursor) {
+        mPlayAllFromMenu = true;
         playAll(context, cursor, 0, false);
     }
     
@@ -821,7 +829,18 @@ public class MusicUtils {
         try {
             if (force_shuffle) {
                 sService.setShuffleMode(MediaPlaybackService.SHUFFLE_NORMAL);
+
+                //If the repeat mode is REPEAT_CURRENT, we should change mode to REPEAT_ALL
+                if (sService.getRepeatMode() == MediaPlaybackService.REPEAT_CURRENT) {
+                    sService.setRepeatMode(MediaPlaybackService.REPEAT_ALL);
+                }
             }
+
+            if (mPlayAllFromMenu){
+                sService.setShuffleMode(MediaPlaybackService.SHUFFLE_NONE);
+                mPlayAllFromMenu = false;
+            }
+
             long curid = sService.getAudioId();
             int curpos = sService.getQueuePosition();
             if (position != -1 && curpos == position && curid == list[position]) {
