@@ -646,6 +646,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 case PARTY_SHUFFLE:
                     MusicUtils.togglePartyShuffle();
                     setShuffleButtonImage();
+                    setRepeatButtonImage();
                     break;
                     
                 case NEW_PLAYLIST: {
