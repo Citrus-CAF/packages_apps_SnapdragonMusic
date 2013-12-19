@@ -642,7 +642,7 @@ public class MusicPicker extends ListActivity
             try {
                 mMediaPlayer.setDataSource(this, mSelectedUri);
                 mMediaPlayer.setOnCompletionListener(this);
-                mMediaPlayer.setAudioStreamType(AudioManager.STREAM_RING);
+                mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 mMediaPlayer.prepare();
                 mMediaPlayer.start();
                 mPlayingId = newId;
