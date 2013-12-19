@@ -1493,7 +1493,10 @@ public class TrackBrowserActivity extends ListActivity
 
             String name = cursor.getString(mArtistIdx);
             if (name == null || name.equals(MediaStore.UNKNOWN_STRING)) {
-                builder.append(mUnknownArtist);
+                // Reload the "unknown_artist_name" string in order to
+                // avoid that this string doesn't change when user
+                // changes the system language setting.
+                builder.append(context.getString(R.string.unknown_artist_name));
             } else {
                 builder.append(name);
             }
