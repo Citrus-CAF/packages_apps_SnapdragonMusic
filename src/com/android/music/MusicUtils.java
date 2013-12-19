@@ -455,6 +455,24 @@ public class MusicUtils {
         context.getContentResolver().delete(uri, null, null);
         return;
     }
+
+    public static void deleteTrack(MediaPlaybackService mpbService, long mid, long artIndex) {
+        if (mpbService == null) {
+            return;
+        }
+        try {
+             mpbService.removeTrack(mid);
+             if (sArtCache != null) {
+                 synchronized(sArtCache) {
+                     sArtCache.remove(artIndex);
+                 }
+             }
+             mpbService.getApplicationContext().getContentResolver().notifyChange(Uri.parse("content://media"), null);
+        } catch (Exception e) {
+            Log.e("MusicUtils", "Error occur when deleting music");
+        }
+    }
+
     
     public static void deleteTracks(Context context, long [] list) {
         
