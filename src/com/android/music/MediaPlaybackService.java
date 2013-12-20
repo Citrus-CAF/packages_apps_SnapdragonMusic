@@ -1603,8 +1603,13 @@ public class MediaPlaybackService extends Service {
      */
     private int getNextPosition(boolean force) {
         if (mRepeatMode == REPEAT_CURRENT) {
-            if (mPlayPos < 0) return 0;
-            return mPlayPos;
+            if (!force) {
+                return mPlayPos;
+            } else if ((mPlayPos < 0)||(mPlayPos >= mPlayListLen - 1)) {
+                return 0;
+            } else {
+                return mPlayPos + 1;
+            }
         } else if (mShuffleMode == SHUFFLE_NORMAL) {
             // Pick random next track from the not-yet-played ones
             // TODO: make it work right after adding/removing items in the queue.
