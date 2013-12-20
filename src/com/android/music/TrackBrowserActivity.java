@@ -917,7 +917,7 @@ public class TrackBrowserActivity extends ListActivity
         menu.add(0, SHUFFLE_ALL, 0, R.string.shuffle_all).setIcon(R.drawable.ic_menu_shuffle);
         if (mPlaylist != null) {
             menu.add(0, SAVE_AS_PLAYLIST, 0, R.string.save_as_playlist).setIcon(android.R.drawable.ic_menu_save);
-            if (mPlaylist.equals("nowplaying")) {
+            if (!mPlaylist.equals("recentlyadded")) {
                 menu.add(0, CLEAR_PLAYLIST, 0, R.string.clear_playlist).setIcon(R.drawable.ic_menu_clear_playlist);
             }
         }
@@ -965,8 +965,14 @@ public class TrackBrowserActivity extends ListActivity
                 return true;
                 
             case CLEAR_PLAYLIST:
-                // We only clear the current playlist
-                MusicUtils.clearQueue();
+                if (mPlaylist.equals("nowplaying")) {
+                    // We only clear the current playlist
+                    MusicUtils.clearQueue();
+                } else {
+                    Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external",
+                            Long.valueOf(mPlaylist));
+                    getContentResolver().delete(uri, null, null);
+                }
                 return true;
         }
         return super.onOptionsItemSelected(item);
