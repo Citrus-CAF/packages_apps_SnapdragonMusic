@@ -101,6 +101,7 @@ public class TrackBrowserActivity extends ListActivity
     private static int mLastListPosFine = -1;
     private boolean mUseLastListPos = false;
     private ServiceToken mToken;
+    private SubMenu sub = null;
 
     public TrackBrowserActivity()
     {
@@ -653,9 +654,17 @@ public class TrackBrowserActivity extends ListActivity
     }
 
     @Override
+    public void onUserLeaveHint() {
+        if (sub != null) {
+            sub.close();
+        }
+        super.onUserLeaveHint();
+    }
+
+    @Override
     public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfoIn) {
         menu.add(0, PLAY_SELECTION, 0, R.string.play_selection);
-        SubMenu sub = menu.addSubMenu(0, ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
+        sub = menu.addSubMenu(0, ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
         MusicUtils.makePlaylistMenu(this, sub);
         if (mEditMode) {
             menu.add(0, REMOVE, 0, R.string.remove_from_playlist);
