@@ -135,6 +135,7 @@
     <string name="videobrowserlabel" msgid="8522326678447494657">"视频"</string>
     <string name="mediapickerlabel" msgid="4549836003229914299">"音乐"</string>
     <string name="playback_failed" msgid="3811851150820251398">"该播放器不支持这种音频文件类型。"</string>
+    <string name="open_failed">"抱歉，无法打开文件"</string>
     <string name="cancel" msgid="886559484711947520">"取消"</string>
     <string name="remove_from_playlist" msgid="2548577514849026354">"从播放列表中移除"</string>
     <string name="streamloadingtext" msgid="8842426517396356215">"正在连接<xliff:g id="HOST">%s</xliff:g>..."</string>
