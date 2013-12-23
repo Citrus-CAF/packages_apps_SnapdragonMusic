@@ -289,6 +289,14 @@ public class MediaPlaybackService extends Service {
                     break;
                 case TRACK_WENT_TO_NEXT:
                     mPlayPos = mNextPlayPos;
+                    if (mPlayPos < 0) {
+                        gotoIdleState();
+                        if (mIsSupposedToBePlaying) {
+                            mIsSupposedToBePlaying = false;
+                            notifyChange(PLAYSTATE_CHANGED);
+                        }
+                        break;
+                    }
                     if (mCursor != null) {
                         mCursor.close();
                         mCursor = null;

@@ -356,6 +356,13 @@ public class TrackBrowserActivity extends ListActivity
         outcicle.putString("genre", mGenre);
         outcicle.putBoolean("editmode", mEditMode);
         super.onSaveInstanceState(outcicle);
+        //workaround to fix the illegal state exception.Put sth in outState after
+        //super.onSaveInstanceState(outcicle), it will set mStateSaved(in
+        //fragment manager) to false.
+        if (outcicle.isEmpty()) {
+            Log.d(LOGTAG, "Workaround fix");
+            outcicle.putBoolean("bug:fix", true);
+        }
     }
     
     public void init(Cursor newCursor, boolean isLimited) {
@@ -792,7 +799,7 @@ public class TrackBrowserActivity extends ListActivity
     }
 
     private void removeItem() {
-        int curcount = mTrackCursor.getCount();
+        int curcount = mTrackCursor != null ? mTrackCursor.getCount() : 0;
         int curpos = mTrackList.getSelectedItemPosition();
         if (curcount == 0 || curpos < 0) {
             return;
@@ -835,7 +842,7 @@ public class TrackBrowserActivity extends ListActivity
     }
     
     private void moveItem(boolean up) {
-        int curcount = mTrackCursor.getCount(); 
+        int curcount = mTrackCursor != null ? mTrackCursor.getCount() : 0;
         int curpos = mTrackList.getSelectedItemPosition();
         if ( (up && curpos < 1) || (!up  && curpos >= curcount - 1)) {
             return;
@@ -883,7 +890,7 @@ public class TrackBrowserActivity extends ListActivity
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id)
     {
-        if (mTrackCursor.getCount() == 0) {
+        if ((mTrackCursor == null) || (mTrackCursor.getCount() == 0)) {
             return;
         }
         // When selecting a track from the queue, just jump there instead of

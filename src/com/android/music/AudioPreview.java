@@ -392,6 +392,13 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // Null pointer check here is to avoid monkey test failure.
+        // Key down event will be received even when acitivity is
+        // about to finish.
+        if (mPlayer == null) {
+            return true;
+        }
+
         switch (keyCode) {
             case KeyEvent.KEYCODE_HEADSETHOOK:
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
