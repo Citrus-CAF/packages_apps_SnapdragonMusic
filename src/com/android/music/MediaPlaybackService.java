@@ -1604,6 +1604,10 @@ public class MediaPlaybackService extends Service {
                 }
                 Integer pos = mHistory.remove(histsize - 1);
                 mPlayPos = pos.intValue();
+                if (mPlayPos >= mPlayList.length) {
+                    mPlayPos = mRand.nextInt(mPlayListLen);
+                    mHistory.clear();
+                }
             } else {
                 if (mPlayPos > 0) {
                     mPlayPos--;
