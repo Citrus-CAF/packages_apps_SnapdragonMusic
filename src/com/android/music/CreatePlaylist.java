@@ -25,6 +25,7 @@ import android.database.Cursor;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -129,6 +130,9 @@ public class CreatePlaylist extends Activity
     @Override
     public void onResume() {
         super.onResume();
+        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            finish();
+        }
     }
 
     private String makePlaylistName() {
