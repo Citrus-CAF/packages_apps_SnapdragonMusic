@@ -31,6 +31,7 @@
         android:layout_weight="1"
         android:textSize="18sp"
         android:drawSelectorOnTop="false"
-        android:fastScrollEnabled="true" /> 
+        android:fastScrollEnabled="true" />
 
+    <include layout="@layout/nowplaying" />
 </LinearLayout>
