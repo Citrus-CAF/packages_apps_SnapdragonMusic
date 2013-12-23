@@ -166,7 +166,8 @@ implements MusicUtils.Defs, ServiceConnection
                 getQueryCursor(mAdapter.getQueryHandler(), null);
             } else {
                 mTrackList.setFilterText(mFilterString);
-                mFilterString = null;
+                //It has no influence if it isn't set to be null
+                //mFilterString = null;
             }
         } else {
             mAdapter.setActivity(this);
@@ -196,6 +197,15 @@ implements MusicUtils.Defs, ServiceConnection
         super.onPause();
     }
 
+    @Override
+    public void onResume() {
+        //When back to QueryBrowserActivity, we should update the cursor
+        //and listview according to mFilterString.
+        if (mAdapter != null) {
+            getQueryCursor(mAdapter.getQueryHandler(), mFilterString);
+        }
+        super.onResume();
+    }
     @Override
     public void onDestroy() {
         MusicUtils.unbindFromService(mToken);
