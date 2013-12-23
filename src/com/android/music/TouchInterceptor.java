@@ -118,6 +118,12 @@ public class TouchInterceptor extends ListView {
                 case MotionEvent.ACTION_DOWN:
                     int x = (int) ev.getX();
                     int y = (int) ev.getY();
+
+                    // force children to be recreated
+                    try {
+                        layoutChildren();
+                    } catch (IllegalStateException ex) {
+                    }
                     int itemnum = pointToPosition(x, y);
                     if (itemnum == AdapterView.INVALID_POSITION) {
                         break;
