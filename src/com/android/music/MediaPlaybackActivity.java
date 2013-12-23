@@ -420,7 +420,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         public void onProgressChanged(SeekBar bar, int progress, boolean fromuser) {
             if (!fromuser || (mService == null)) return;
             long now = SystemClock.elapsedRealtime();
-            if ((now - mLastSeekEventTime) > 250) {
+            if ((now - mLastSeekEventTime) > 10) {
                 mLastSeekEventTime = now;
                 mPosOverride = mDuration * progress / 1000;
                 try {
