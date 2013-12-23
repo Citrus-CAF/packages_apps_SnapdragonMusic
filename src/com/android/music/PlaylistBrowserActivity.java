@@ -215,6 +215,11 @@ public class PlaylistBrowserActivity extends ListActivity
 
         MusicUtils.setSpinnerState(this);
         MusicUtils.updateNowPlaying(PlaylistBrowserActivity.this);
+        //When system language is changed, the name of "Recently added" is also changed
+        //at the same time. So we should update the cursor to refresh the listview.
+        if (mAdapter != null) {
+            getPlaylistCursor(mAdapter.getQueryHandler(), null);
+        }
     }
     @Override
     public void onPause() {
