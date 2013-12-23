@@ -311,5 +311,9 @@
 
     <!-- Menu text for the item controlling the audio effects panel [CHAR LIMIT=15] -->
     <string name="effectspanel">Sound effects</string>
+
+    <string name="duplicate_playlist_name_alert">There is already a playlist named \"<xliff:g id="name">%s</xliff:g>\". Please select a different name.</string>
+    <string name="button_ok">Ok</string>
+
 </resources>
 

@@ -17,8 +17,13 @@
 package com.android.music;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.os.Bundle;
@@ -55,6 +60,7 @@ public class RenamePlaylist extends Activity
         mPrompt = (TextView)findViewById(R.id.prompt);
         mPlaylist = (EditText)findViewById(R.id.playlist);
         mSaveButton = (Button) findViewById(R.id.create);
+        mSaveButton.setText(R.string.button_ok);
         mSaveButton.setOnClickListener(mOpenClicked);
 
         ((Button)findViewById(R.id.cancel)).setOnClickListener(new View.OnClickListener() {
@@ -108,12 +114,6 @@ public class RenamePlaylist extends Activity
             mSaveButton.setEnabled(false);
         } else {
             mSaveButton.setEnabled(true);
-            if (idForplaylist(typedname) >= 0
-                    && ! mOriginalName.equals(typedname)) {
-                mSaveButton.setText(R.string.create_playlist_overwrite_text);
-            } else {
-                mSaveButton.setText(R.string.create_playlist_create_text);
-            }
         }
 
     }
@@ -168,18 +168,32 @@ public class RenamePlaylist extends Activity
         public void onClick(View v) {
             String name = mPlaylist.getText().toString();
             if (name != null && name.length() > 0) {
-                ContentResolver resolver = getContentResolver();
-                ContentValues values = new ContentValues(1);
-                values.put(MediaStore.Audio.Playlists.NAME, name);
-                resolver.update(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
-                        values,
-                        MediaStore.Audio.Playlists._ID + "=?",
-                        new String[] { Long.valueOf(mRenameId).toString()});
-                
-                setResult(RESULT_OK);
-                Toast.makeText(RenamePlaylist.this, R.string.playlist_renamed_message, Toast.LENGTH_SHORT).show();
-                finish();
+                if (idForplaylist(name) >= 0) {
+                    new AlertDialog.Builder(RenamePlaylist.this).setMessage(
+                            getString(R.string.duplicate_playlist_name_alert, name))
+                            .setPositiveButton(getString(R.string.button_ok), new CancelListener())
+                            .show();
+                } else {
+                    ContentResolver resolver = getContentResolver();
+                    ContentValues values = new ContentValues(1);
+                    values.put(MediaStore.Audio.Playlists.NAME, name);
+                    resolver.update(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, values,
+                            MediaStore.Audio.Playlists._ID + "=?", new String[] {
+                                Long.valueOf(mRenameId).toString()
+                            });
+
+                    setResult(RESULT_OK);
+                    Toast.makeText(RenamePlaylist.this, R.string.playlist_renamed_message,
+                            Toast.LENGTH_SHORT).show();
+                    finish();
+                }
             }
         }
     };
+
+    private class CancelListener implements OnClickListener {
+        public void onClick(DialogInterface dialog, int whichButton) {
+            dialog.dismiss();
+        }
+    }
 }

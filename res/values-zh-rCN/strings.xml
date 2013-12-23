@@ -153,4 +153,6 @@
     <string name="fast_scroll_alphabet" msgid="5548732936480723311">" ABCDEFGHIJKLMNOPQRSTUVWXYZ"</string>
     <string name="widget_initial_text" msgid="3166878738860903586">"触摸可选择音乐。"</string>
     <string name="effectspanel" msgid="8804547581593509614">"音效"</string>
+    <string name="duplicate_playlist_name_alert">已存在名为\"<xliff:g id="name">%s</xliff:g>\"的播放列表，请选择其他名称。</string>
+    <string name="button_ok">确定</string>
 </resources>
