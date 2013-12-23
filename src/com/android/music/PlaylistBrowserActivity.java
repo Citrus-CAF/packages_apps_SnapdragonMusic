@@ -285,6 +285,8 @@ public class PlaylistBrowserActivity extends ListActivity
         switch (item.getItemId()) {
             case PARTY_SHUFFLE:
                 MusicUtils.togglePartyShuffle();
+                AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
                 break;
         }
         return super.onOptionsItemSelected(item);

@@ -432,6 +432,8 @@ public class AlbumBrowserActivity extends ListActivity
         switch (item.getItemId()) {
             case PARTY_SHUFFLE:
                 MusicUtils.togglePartyShuffle();
+                AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
                 break;
 
             case SHUFFLE_ALL:
