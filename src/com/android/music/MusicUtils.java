@@ -1199,10 +1199,8 @@ public class MusicUtils {
         final TabWidget ll = (TabWidget) a.findViewById(R.id.buttonbar);
 
         activateTab(a, id);
-        if (id != R.id.nowplayingtab) {
-            ll.setCurrentTab((Integer) v.getTag());
-            setIntPref(a, "activetab", id);
-        }
+        ll.setCurrentTab((Integer) v.getTag());
+        setIntPref(a, "activetab", id);
     }
     
     static void activateTab(Activity a, int id) {
@@ -1220,9 +1218,6 @@ public class MusicUtils {
             case R.id.playlisttab:
                 intent.setDataAndType(Uri.EMPTY, MediaStore.Audio.Playlists.CONTENT_TYPE);
                 break;
-            case R.id.nowplayingtab:
-                intent = new Intent(a, MediaPlaybackActivity.class);
-                a.startActivity(intent);
                 // fall through and return
             default:
                 return;
