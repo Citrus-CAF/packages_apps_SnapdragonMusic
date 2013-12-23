@@ -17,6 +17,10 @@
 package com.android.music;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.view.View;
@@ -56,7 +60,30 @@ public class DeleteItems extends Activity
         mItemList = b.getLongArray("items");
         
         mPrompt.setText(desc);
+
+        // Register broadcast receiver can monitor system language change.
+        IntentFilter filter = new IntentFilter(Intent.ACTION_LOCALE_CHANGED);
+        registerReceiver(mLanguageChangeReceiver, filter);
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Unregister broadcast receiver can monitor system language change.
+        unregisterReceiver(mLanguageChangeReceiver);
+    }
+
+    // Broadcast receiver monitor system language change, if language changed
+    // will finsh current activity, same as system alter dialog.
+    private BroadcastReceiver mLanguageChangeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(Intent.ACTION_LOCALE_CHANGED)) {
+                finish();
+            }
+        }
+    };
     
     private View.OnClickListener mButtonClicked = new View.OnClickListener() {
         public void onClick(View v) {
