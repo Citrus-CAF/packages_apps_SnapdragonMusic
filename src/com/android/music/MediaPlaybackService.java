@@ -1645,6 +1645,9 @@ public class MediaPlaybackService extends Service {
             if (numUnplayed <=0) {
                 // everything's already been played
                 if (mRepeatMode == REPEAT_ALL || force) {
+                    if(numTracks <= 0) {
+                        return -1;
+                    }
                     //pick from full set
                     numUnplayed = numTracks;
                     for (int i=0;i < numTracks; i++) {
