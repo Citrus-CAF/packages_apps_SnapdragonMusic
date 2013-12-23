@@ -2480,6 +2480,9 @@ public class MediaPlaybackService extends Service {
         }
 
         public void setNextDataSource(String path) {
+            if (mIsInitialized == false) {
+                return;
+            }
             mCurrentMediaPlayer.setNextMediaPlayer(null);
             if (mNextMediaPlayer != null) {
                 mNextMediaPlayer.release();
@@ -2557,6 +2560,9 @@ public class MediaPlaybackService extends Service {
                 case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
                     mIsInitialized = false;
                     mCurrentMediaPlayer.release();
+                    if (mNextMediaPlayer != null) {
+                        mNextMediaPlayer.release();
+                    }
                     // Creating a new MediaPlayer and settings its wakemode does not
                     // require the media service, so it's OK to do this now, while the
                     // service is still being restarted
