@@ -128,21 +128,24 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.android.music.ArtistAlbumBrowserActivity" android:exported="false" >
+        <activity android:name="com.android.music.ArtistAlbumBrowserActivity" android:exported="false"
+                android:configChanges="orientation|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.PICK" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="vnd.android.cursor.dir/artistalbum"/>
             </intent-filter>
         </activity>
-        <activity android:name="com.android.music.AlbumBrowserActivity" android:exported="false" >
+        <activity android:name="com.android.music.AlbumBrowserActivity" android:exported="false"
+                android:configChanges="orientation|keyboardHidden" >
             <intent-filter>
                 <action android:name="android.intent.action.PICK" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="vnd.android.cursor.dir/album"/>
             </intent-filter>
         </activity>
-        <activity android:name="com.android.music.NowPlayingActivity" android:exported="false" >
+        <activity android:name="com.android.music.NowPlayingActivity" android:exported="false"
+                android:configChanges="orientation|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.PICK" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -174,7 +177,8 @@
         </activity>
         <activity android:name="com.android.music.PlaylistBrowserActivity"
                 android:label="@string/musicbrowserlabel" 
-                android:exported="true" >
+                android:exported="true"
+                android:configChanges="orientation|keyboardHidden|screenSize" >
             <intent-filter>
                 <action android:name="android.intent.action.PICK" />
                 <category android:name="android.intent.category.DEFAULT" />
