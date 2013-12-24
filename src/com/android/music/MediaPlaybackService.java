@@ -332,8 +332,10 @@ public class MediaPlaybackService extends Service {
                             pause();
                             break;
                         case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                            mMediaplayerHandler.removeMessages(FADEUP);
-                            mMediaplayerHandler.sendEmptyMessage(FADEDOWN);
+                            if(isPlaying()) {
+                                mPausedByTransientLossOfFocus = true;
+                            }
+                            pause();
                             break;
                         case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                             Log.v(LOGTAG, "AudioFocus: received AUDIOFOCUS_LOSS_TRANSIENT");
