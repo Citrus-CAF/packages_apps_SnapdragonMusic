@@ -1400,9 +1400,9 @@ public class TrackBrowserActivity extends ListActivity
                     String selection, String[] selectionArgs,
                     String orderBy, boolean async) {
                 if (async) {
-                    // Get 100 results first, which is enough to allow the user to start scrolling,
+                    // Get 500 results first, which is enough to allow the user to start scrolling,
                     // while still being very fast.
-                    Uri limituri = uri.buildUpon().appendQueryParameter("limit", "100").build();
+                    Uri limituri = uri.buildUpon().appendQueryParameter("limit", "500").build();
                     QueryArgs args = new QueryArgs();
                     args.uri = uri;
                     args.projection = projection;
