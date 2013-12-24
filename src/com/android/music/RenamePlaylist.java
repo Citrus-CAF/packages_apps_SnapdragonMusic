@@ -168,7 +168,7 @@ public class RenamePlaylist extends Activity
         public void onClick(View v) {
             String name = mPlaylist.getText().toString();
             if (name != null && name.length() > 0) {
-                if (idForplaylist(name) >= 0) {
+                if ((idForplaylist(name) >= 0) && (!mOriginalName.equals(name))) {
                     new AlertDialog.Builder(RenamePlaylist.this).setMessage(
                             getString(R.string.duplicate_playlist_name_alert, name))
                             .setPositiveButton(getString(R.string.button_ok), new CancelListener())
