@@ -375,7 +375,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         // database, and we could open it in the full music app instead.
         // Ideally, we would hand off the currently running mediaplayer
         // to the music UI, which can probably be done via a public static
-        menu.add(0, OPEN_IN_MUSIC, 0, "open in music");
+        menu.add(0, OPEN_IN_MUSIC, 0, R.string.open_in_music);
         return true;
     }
 

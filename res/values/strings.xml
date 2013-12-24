@@ -67,6 +67,8 @@
     <string name="shuffle_all">Shuffle all</string>
     <!-- Menu item to play back all the songs in the currently showing list in list order -->
     <string name="play_all">Play all</string>
+    <!-- Menu item to play song in music -->
+    <string name="open_in_music">Open in music</string>
 
     <!-- Delete confirmation dialog when deleting an entire artist -->
     <string name="delete_artist_desc">Permanently delete all songs by <xliff:g id="artist">%s</xliff:g> from the SD card?</string>

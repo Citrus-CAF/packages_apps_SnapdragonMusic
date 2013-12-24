@@ -36,6 +36,7 @@
     <string name="delete_item" msgid="3363330144534750601">"删除"</string>
     <string name="shuffle_all" msgid="1388193611787878773">"全部随机播放"</string>
     <string name="play_all" msgid="6309622568869321842">"全部播放"</string>
+    <string name="open_in_music">"使用音乐播放器播放"</string>
     <string name="delete_artist_desc" msgid="8665759524898379194">"要从 SD 卡中永久删除<xliff:g id="ARTIST">%s</xliff:g>的所有歌曲吗？"</string>
     <string name="delete_artist_desc_nosdcard" msgid="5729059309796497914">"要从 USB 存储设备中永久删除<xliff:g id="ARTIST">%s</xliff:g>的所有歌曲吗？"</string>
     <string name="delete_album_desc" msgid="8172412873562794429">"要从 SD 卡中永久删除整张“<xliff:g id="ALBUM">%s</xliff:g>”专辑吗？"</string>
