@@ -70,6 +70,8 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     private AudioManager mAudioManager;
     private boolean mPausedByTransientLossOfFocus;
 
+    private int mSeekStopPosition;
+
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
@@ -337,9 +339,10 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
             if (mPlayer == null) {
                 return;
             }
-            mPlayer.seekTo(progress);
+            mSeekStopPosition = progress;
         }
         public void onStopTrackingTouch(SeekBar bar) {
+            mPlayer.seekTo(mSeekStopPosition);
             mSeeking = false;
         }
     };
