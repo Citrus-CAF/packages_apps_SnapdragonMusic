@@ -68,6 +68,9 @@
     <string name="delete_playlist_menu" msgid="8998637685583495247">"刪除"</string>
     <string name="edit_playlist_menu" msgid="571618502105370684">"編輯"</string>
     <string name="rename_playlist_menu" msgid="3133463747389494668">"重新命名"</string>
+    <string name="delete_playlist_message">"要刪除「<xliff:g id="name">%s</xliff:g>」嗎？"</string>
+    <string name="delete_playlist_button_ok">"確定"</string>
+    <string name="delete_playlist_button_cancel">"取消"</string>
     <string name="playlist_deleted_message" msgid="9008053828193961455">"播放清單已刪除。"</string>
     <string name="playlist_renamed_message" msgid="7187580192703005990">"已重新命名播放清單。"</string>
     <string name="recentlyadded" msgid="110978416756366953">"最近新增的樂曲"</string>

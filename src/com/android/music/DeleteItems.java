@@ -28,12 +28,16 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
+import android.view.KeyEvent;
+import android.net.Uri;
+import android.widget.Toast;
 
 public class DeleteItems extends Activity
 {
     private TextView mPrompt;
     private Button mButton;
     private long [] mItemList;
+    private Uri mPlaylistUri;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -42,7 +46,7 @@ public class DeleteItems extends Activity
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.confirm_delete);
-        getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT,
+        getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT,
                                     WindowManager.LayoutParams.WRAP_CONTENT);
 
         mPrompt = (TextView)findViewById(R.id.prompt);
@@ -57,8 +61,10 @@ public class DeleteItems extends Activity
 
         Bundle b = getIntent().getExtras();
         String desc = b.getString("description");
-        mItemList = b.getLongArray("items");
-        
+        mPlaylistUri = b.getParcelable("Playlist");
+        if (mPlaylistUri == null) {
+            mItemList = b.getLongArray("items");
+        }
         mPrompt.setText(desc);
 
         // Register broadcast receiver can monitor system language change.
@@ -87,8 +93,16 @@ public class DeleteItems extends Activity
     
     private View.OnClickListener mButtonClicked = new View.OnClickListener() {
         public void onClick(View v) {
-            // delete the selected item(s)
-            MusicUtils.deleteTracks(DeleteItems.this, mItemList);
+            // delete the selected Playlist
+            if (mPlaylistUri != null) {
+                getContentResolver().delete(mPlaylistUri, null, null);
+                Toast.makeText(DeleteItems.this,
+                        R.string.playlist_deleted_message,
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                // delete the selected item(s)
+                MusicUtils.deleteTracks(DeleteItems.this, mItemList);
+            }
             finish();
         }
     };

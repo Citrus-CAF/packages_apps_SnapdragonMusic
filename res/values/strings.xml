@@ -140,6 +140,13 @@
     <string name="edit_playlist_menu">Edit</string>
     <!-- Playlist context menu item to rename the selected playlist-->
     <string name="rename_playlist_menu">Rename</string>
+    <!-- Dialog box message shown when clearing all playlists-->
+    <string name="clear_all_playlists_message">Do you want to clear all playlists?</string>
+    <!-- Dialog box message shown when deleting a playlist-->
+    <string name="delete_playlist_message">Do you want to delete \"<xliff:g id="name">%s</xliff:g>\"?</string>
+    <!-- Dialog box button -->
+    <string name="delete_playlist_button_ok">OK</string>
+    <string name="delete_playlist_button_cancel">Cancel</string>
     <!-- Transient popup message shown after deleting a playlist -->
     <string name="playlist_deleted_message">Playlist deleted.</string>
     <!-- Transient popup message shown after renaming a playlist -->

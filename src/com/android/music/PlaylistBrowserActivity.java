@@ -18,6 +18,7 @@ package com.android.music;
 
 import com.android.music.MusicUtils.ServiceToken;
 
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.AsyncQueryHandler;
 import android.content.BroadcastReceiver;
@@ -25,6 +26,7 @@ import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -355,6 +357,7 @@ public class PlaylistBrowserActivity extends ListActivity
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo mi = (AdapterContextMenuInfo) item.getMenuInfo();
+        Intent intent = new Intent();
         switch (item.getItemId()) {
             case PLAY_SELECTION:
                 if (mi.id == RECENTLY_ADDED_PLAYLIST) {
@@ -366,17 +369,23 @@ public class PlaylistBrowserActivity extends ListActivity
                 }
                 break;
             case DELETE_PLAYLIST:
-                Uri uri = ContentUris.withAppendedId(
-                        MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, mi.id);
-                getContentResolver().delete(uri, null, null);
-                Toast.makeText(this, R.string.playlist_deleted_message, Toast.LENGTH_SHORT).show();
-                if (mPlaylistCursor.getCount() == 0) {
-                    setTitle(R.string.no_playlists_title);
-                }
+                // it may not convenient to users when delete new or exist
+                // playlist without any notification.
+                // show a dialog to confirm deleting this playlist.
+                // get playlist name
+                String name = mPlaylistCursor.getString(mPlaylistCursor.getColumnIndexOrThrow(
+                        MediaStore.Audio.Playlists.NAME));
+                String desc = getString(R.string.delete_playlist_message, name);
+                Uri uri = ContentUris.withAppendedId(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, mi.id);
+                Bundle b = new Bundle();
+                b.putString("description", desc);
+                b.putParcelable("Playlist", uri);
+                intent.setClass(this, DeleteItems.class);
+                intent.putExtras(b);
+                startActivityForResult(intent, -1);
                 break;
             case EDIT_PLAYLIST:
                 if (mi.id == RECENTLY_ADDED_PLAYLIST) {
-                    Intent intent = new Intent();
                     intent.setClass(this, WeekSelector.class);
                     startActivityForResult(intent, CHANGE_WEEKS);
                     return true;
@@ -385,7 +394,6 @@ public class PlaylistBrowserActivity extends ListActivity
                 }
                 break;
             case RENAME_PLAYLIST:
-                Intent intent = new Intent();
                 intent.setClass(this, RenamePlaylist.class);
                 intent.putExtra("rename", mi.id);
                 startActivityForResult(intent, RENAME_PLAYLIST);
