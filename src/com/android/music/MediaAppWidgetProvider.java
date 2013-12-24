@@ -35,9 +35,10 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
     static final String TAG = "MusicAppWidgetProvider";
     
     public static final String CMDAPPWIDGETUPDATE = "appwidgetupdate";
+    private static final String UPDATE_WIDGET_ACTION = "com.android.music.updatewidget";
 
     private static MediaAppWidgetProvider sInstance;
-    
+
     private static boolean mPauseState = false;
     private static boolean mNoneedperformUpdate = false;
 
@@ -49,7 +50,27 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
     }
 
     @Override
+    public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
+        if (action.equals(UPDATE_WIDGET_ACTION) && hasInstances(context)) {
+            //receive from MediaPlaybackService onDestroy
+            final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.album_appwidget);
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, this.getClass()));
+            views.setImageViewResource(R.id.control_play, R.drawable.ic_appwidget_music_play);
+            /* everytime pushUpdate(updateAppWidget) should do linkButtons, otherwise the buttons will not work */
+            linkButtons(context, views, false /* not playing */);
+            pushUpdate(context, appWidgetIds, views);
+            //this time the service is died,when service reactivate no need call performUpdate
+            //otherwise title will be falsh
+            mNoneedperformUpdate = true;
+        }
+        super.onReceive(context, intent);
+    }
+
+    @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        mNoneedperformUpdate = false;
         defaultAppWidget(context, appWidgetIds);
         
         // Send broadcast intent to any running MediaPlaybackService so it can
@@ -117,6 +138,11 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
      * Update all active widget instances by pushing changes 
      */
     void performUpdate(MediaPlaybackService service, int[] appWidgetIds) {
+        if (mNoneedperformUpdate) {
+            //this time no need performUpdate,otherwise title will be flash
+            mNoneedperformUpdate = false;
+            return;
+        }
         final Resources res = service.getResources();
         final RemoteViews views = new RemoteViews(service.getPackageName(), R.layout.album_appwidget);
         
