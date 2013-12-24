@@ -73,6 +73,7 @@ public class CreatePlaylist extends Activity
         mPlaylist.setText(defaultname);
         mPlaylist.setSelection(defaultname.length());
         mPlaylist.addTextChangedListener(mTextWatcher);
+        setSaveButton();
     }
     
     TextWatcher mTextWatcher = new TextWatcher() {
@@ -80,24 +81,29 @@ public class CreatePlaylist extends Activity
             // don't care about this one
         }
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            String newText = mPlaylist.getText().toString();
-            if (newText.trim().length() == 0) {
-                mSaveButton.setEnabled(false);
-            } else {
-                mSaveButton.setEnabled(true);
-                // check if playlist with current name exists already, and warn the user if so.
-                if (idForplaylist(newText) >= 0) {
-                    mSaveButton.setText(R.string.create_playlist_overwrite_text);
-                } else {
-                    mSaveButton.setText(R.string.create_playlist_create_text);
-                }
-            }
+            // check if playlist with current name exists already, and warn the user if so.
+            setSaveButton();
         };
         public void afterTextChanged(Editable s) {
             // don't care about this one
         }
     };
-    
+
+    private void setSaveButton() {
+        String newText = mPlaylist.getText().toString();
+        if (newText.trim().length() == 0) {
+            mSaveButton.setEnabled(false);
+        } else {
+            mSaveButton.setEnabled(true);
+            // check if playlist with current name exists already, and warn the user if so.
+            if (idForplaylist(newText) >= 0) {
+                mSaveButton.setText(R.string.create_playlist_overwrite_text);
+            } else {
+                mSaveButton.setText(R.string.create_playlist_create_text);
+            }
+        }
+    }
+
     private int idForplaylist(String name) {
         Cursor c = MusicUtils.query(this, MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
                 new String[] { MediaStore.Audio.Playlists._ID },
