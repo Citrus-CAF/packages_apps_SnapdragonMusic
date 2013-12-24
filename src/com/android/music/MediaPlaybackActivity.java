@@ -433,7 +433,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         }
         public void onStopTrackingTouch(SeekBar bar) {
             try {
-                mService.seek(mPosOverride);
+                if (null != mService) {
+                    mService.seek(mPosOverride);
+                }
             } catch (RemoteException ex) {
             }
             mPosOverride = -1;
