@@ -50,6 +50,7 @@
             />
             <TextView
                 android:id="@+id/artist"
+                android:textColor="@drawable/nowplaying_artist_selector"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:singleLine="true"
                 android:ellipsize="end"
