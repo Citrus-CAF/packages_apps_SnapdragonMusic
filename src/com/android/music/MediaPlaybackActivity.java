@@ -473,8 +473,15 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         public void onClick(View v) {
             if (mService == null) return;
             try {
+                int shuffle = mService.getShuffleMode();
+                int histSize = mService.getHistSize();
                 if (mService.position() < 2000) {
-                    mService.prev();
+                    if ((shuffle == MediaPlaybackService.SHUFFLE_NORMAL) && (histSize == 0 || histSize == 1)) {
+                        mService.seek(0);
+                        mService.play();
+                    } else {
+                        mService.prev();
+                    }
                 } else {
                     mService.seek(0);
                     mService.play();

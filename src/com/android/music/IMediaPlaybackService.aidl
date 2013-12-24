@@ -52,5 +52,6 @@ interface IMediaPlaybackService
     int getRepeatMode();
     int getMediaMountedCount();
     int getAudioSessionId();
+    int getHistSize();
 }
 
