@@ -226,7 +226,7 @@
     <!-- Time span edit options that appear when editing system playlist "Recently added" -->
     <!-- Used to indicate the number of weeks the "recently added" playlist covers in a selector widget -->
     <string-array name="weeklist">
-        <item>"1 week"</item>
+        <item>"1 week  "</item>
         <item>"2 weeks"</item>
         <item>"3 weeks"</item>
         <item>"4 weeks"</item>
