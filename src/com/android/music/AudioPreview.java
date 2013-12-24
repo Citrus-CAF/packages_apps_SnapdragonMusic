@@ -49,6 +49,9 @@ import android.widget.TextView;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Toast;
 import android.view.KeyEvent;
+import android.content.BroadcastReceiver;
+import android.content.Intent;
+import android.content.IntentFilter;
 
 import java.io.IOException;
 
@@ -71,6 +74,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     private static final int OPEN_IN_MUSIC = 1;
     private AudioManager mAudioManager;
     private boolean mPausedByTransientLossOfFocus;
+    private BroadcastReceiver mAudioTrackListener;
 
     private int mSeekStopPosition;
 
@@ -200,10 +204,39 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        IntentFilter f = new IntentFilter();
+        f.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+        mAudioTrackListener = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(action)) {
+                    if (mPlayer != null && mPlayer.isPlaying()) {
+                        mPlayer.pause();
+                        updatePlayPause();
+                    }
+                 }
+             }
+        };
+        registerReceiver(mAudioTrackListener, f);
+    }
+
+    @Override
     public Object onRetainNonConfigurationInstance() {
         PreviewPlayer player = mPlayer;
         mPlayer = null;
         return player;
+    }
+
+     @Override
+    protected void onStop() {
+        super.onStop();
+        if(mAudioTrackListener != null) {
+        unregisterReceiver(mAudioTrackListener);
+        mAudioTrackListener = null;
+        }
     }
 
     @Override
