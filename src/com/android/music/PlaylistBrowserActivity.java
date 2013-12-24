@@ -612,6 +612,11 @@ public class PlaylistBrowserActivity extends ListActivity
             TextView tv = (TextView) view.findViewById(R.id.line1);
             
             String name = cursor.getString(mTitleIdx);
+
+            if (name.equals("My recordings")) {
+                name =  mActivity.getResources().getString(R.string.audio_db_playlist_name);
+            }
+
             tv.setText(name);
             
             long id = cursor.getLong(mIdIdx);

@@ -67,7 +67,6 @@
     <string name="no_videos_title" msgid="6218814130364793104">"无视频"</string>
     <string name="no_playlists_title" msgid="4456351945617594418">"无播放列表"</string>
     <string name="delete_playlist_menu" msgid="8998637685583495247">"删除"</string>
-    <string name="edit_playlist_menu" msgid="571618502105370684">"编辑"</string>
     <string name="rename_playlist_menu" msgid="3133463747389494668">"重命名"</string>
     <string name="playlist_deleted_message" msgid="9008053828193961455">"播放列表已删除。"</string>
     <string name="playlist_renamed_message" msgid="7187580192703005990">"播放列表已重命名。"</string>
@@ -75,6 +74,7 @@
     <string name="recentlyadded_title" msgid="3153322287249901914">"新增歌曲"</string>
     <string name="podcasts_listitem" msgid="8657809279717670634">"播客"</string>
     <string name="podcasts_title" msgid="4928414142496858304">"播客"</string>
+    <string name="audio_db_playlist_name" msgid="5592939050047058162">"我的录音"</string>
     <string name="sdcard_missing_title" msgid="9008284946643270850">"无 SD 卡"</string>
     <string name="sdcard_missing_title_nosdcard" msgid="7984839174824243958">"无 USB 存储设备"</string>
     <string name="sdcard_missing_message" msgid="2100061456003981823">"手机中未插入 SD 卡。"</string>

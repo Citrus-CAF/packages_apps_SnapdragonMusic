@@ -150,6 +150,8 @@
     <string name="podcasts_listitem">Podcasts</string>
     <!-- The name of the pseudo-playlist that holds all the podcasts, shown in title bar of songs list -->
     <string name="podcasts_title">Podcasts</string>
+    <!-- all recordings will show up in the media database in a playlist with thiis name -->
+    <string name="audio_db_playlist_name">My recordings</string>
     <!-- Title of screen when no sd card is present -->
     <string name="sdcard_missing_title">No SD card</string>
     <!-- Title of screen when no sd card is present -->
