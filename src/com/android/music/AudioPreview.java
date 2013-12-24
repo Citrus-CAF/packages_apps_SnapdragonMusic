@@ -31,6 +31,7 @@ import android.media.MediaPlayer.OnPreparedListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.text.TextUtils;
@@ -354,7 +355,8 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     }
 
     public void onCompletion(MediaPlayer mp) {
-        mSeekBar.setProgress(mDuration);
+        // Leave 100ms for mediaplayer to change state.
+        SystemClock.sleep(100);
         updatePlayPause();
     }
 
