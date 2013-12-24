@@ -39,6 +39,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.KeyEvent;
+import android.content.Intent;
+import android.net.Uri;
 
 public class RenamePlaylist extends Activity
 {
@@ -201,7 +203,22 @@ public class RenamePlaylist extends Activity
                                 Long.valueOf(mRenameId).toString()
                             });
 
+                    final Intent shortcut = new Intent();
+                    shortcut.setAction(Intent.ACTION_VIEW);
+                    shortcut.setDataAndType(Uri.EMPTY, "vnd.android.cursor.dir/playlist");
+                    shortcut.putExtra("playlist", String.valueOf(mRenameId));
+
+                    final Intent intent = new Intent();
+                    intent.setAction("com.android.launcher.action.UPDATE_SHORTCUT");
+                    intent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcut);
+                    intent.putExtra("com.android.launcher.extra.shortcut.NEWNAME", name);
+                    intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, mOriginalName);
+                    intent.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE,
+                            Intent.ShortcutIconResource.fromContext(RenamePlaylist.this,
+                                    R.drawable.ic_launcher_shortcut_music_playlist));
+
                     setResult(RESULT_OK);
+                    sendBroadcast(intent);
                     Toast.makeText(RenamePlaylist.this, R.string.playlist_renamed_message,
                             Toast.LENGTH_SHORT).show();
                     finish();
