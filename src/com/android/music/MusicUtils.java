@@ -379,9 +379,18 @@ public class MusicUtils {
         }
         return sEmptyList;
     }
-    
+
+    public static void setPlayListId(long plid) {
+        mPlayListId = plid;
+    }
+
+    public static long getPlayListId() {
+        return mPlayListId;
+    }
+
     public static void playPlaylist(Context context, long plid) {
         long [] list = getSongListForPlaylist(context, plid);
+        mPlayListId = plid;
         if (list != null) {
             playAll(context, list, -1, false);
         }

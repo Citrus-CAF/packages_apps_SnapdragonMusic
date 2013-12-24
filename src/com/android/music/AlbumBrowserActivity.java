@@ -308,6 +308,7 @@ public class AlbumBrowserActivity extends ListActivity
             case QUEUE: {
                 long [] list = MusicUtils.getSongListForAlbum(this, Long.parseLong(mCurrentAlbumId));
                 MusicUtils.addToCurrentPlaylist(this, list);
+                MusicUtils.addToPlaylist(this, list, MusicUtils.getPlayListId());
                 return true;
             }
 

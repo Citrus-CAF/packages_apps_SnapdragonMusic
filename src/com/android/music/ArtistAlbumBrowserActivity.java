@@ -405,6 +405,7 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
                     MusicUtils.getSongListForArtist(this, Long.parseLong(mCurrentArtistId))
                     : MusicUtils.getSongListForAlbum(this, Long.parseLong(mCurrentAlbumId));
                 MusicUtils.addToCurrentPlaylist(this, list);
+                MusicUtils.addToPlaylist(this, list, MusicUtils.getPlayListId());
                 return true;
             }
 
