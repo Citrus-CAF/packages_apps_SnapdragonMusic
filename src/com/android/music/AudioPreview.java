@@ -221,6 +221,11 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
              }
         };
         registerReceiver(mAudioTrackListener, f);
+
+        IntentFilter s = new IntentFilter();
+        s.addAction(Intent.ACTION_SCREEN_ON);
+        s.addAction(Intent.ACTION_SCREEN_OFF);
+        registerReceiver(mScreenTimeoutListener, new IntentFilter(s));
     }
 
     @Override
@@ -236,6 +241,10 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         if(mAudioTrackListener != null) {
         unregisterReceiver(mAudioTrackListener);
         mAudioTrackListener = null;
+        }
+        if (mScreenTimeoutListener != null) {
+            unregisterReceiver(mScreenTimeoutListener);
+            mScreenTimeoutListener = null;
         }
     }
 
@@ -351,6 +360,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     class ProgressRefresher implements Runnable {
 
         public void run() {
+            if (mScreenOff) return;
             if (mPlayer != null && !mSeeking && mDuration != 0) {
                 int progress = mPlayer.getCurrentPosition() / mDuration;
                 mSeekBar.setProgress(mPlayer.getCurrentPosition());
@@ -360,6 +370,20 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         }
     }
     
+    private boolean mScreenOff;
+    private BroadcastReceiver mScreenTimeoutListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
+                mScreenOff = false;
+                mProgressRefresher.removeCallbacksAndMessages(null);
+                mProgressRefresher.postDelayed(new ProgressRefresher(), 200);
+            } else if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
+                mScreenOff = true;
+            }
+        }
+    };
+
     private void updatePlayPause() {
         ImageButton b = (ImageButton) findViewById(R.id.playpause);
         if (b != null) {
