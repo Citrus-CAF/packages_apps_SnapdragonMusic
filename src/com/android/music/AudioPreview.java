@@ -394,7 +394,24 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         item.setVisible(false);
         return false;
     }
-    
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+    // TODO Auto-generated method stub
+        switch (item.getItemId()) {
+            case OPEN_IN_MUSIC:
+                String path = mUri.getLastPathSegment();
+                int id = MusicUtils.getAudioIDFromPath(this,path);
+                Uri newUri = Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                String.valueOf(id));
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setDataAndType(newUri, "audio/*");
+                startActivity(intent);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         // Null pointer check here is to avoid monkey test failure.

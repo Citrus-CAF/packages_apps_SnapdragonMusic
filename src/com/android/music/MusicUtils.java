@@ -1396,4 +1396,25 @@ public class MusicUtils {
             }
         }
     }
+
+    public static int getAudioIDFromPath(Context context,String path){
+        int id = 0;
+        String[] columns = new String[] { MediaStore.Audio.Media._ID };
+        String where = MediaStore.Audio.Media.DISPLAY_NAME + "=?";
+        String[] selectionArgs = { path };
+        Cursor c = null;
+        try {
+            c = query(context,MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                columns, where, selectionArgs, null);
+            if (c != null && c.moveToFirst()) {
+                int i = c.getColumnIndexOrThrow(MediaStore.Audio.Media._ID);
+                id = c.getInt(i);
+            }
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
+        return id;
+    }
 }
