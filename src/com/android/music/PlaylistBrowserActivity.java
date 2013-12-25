@@ -72,7 +72,7 @@ public class PlaylistBrowserActivity extends ListActivity
     boolean mAdapterSent;
     private static int mLastListPosCourse = -1;
     private static int mLastListPosFine = -1;
-
+    private CharSequence mTitle;
     private boolean mCreateShortcut;
     private ServiceToken mToken;
 
@@ -332,8 +332,9 @@ public class PlaylistBrowserActivity extends ListActivity
         }
 
         mPlaylistCursor.moveToPosition(mi.position);
-        menu.setHeaderTitle(mPlaylistCursor.getString(mPlaylistCursor.getColumnIndexOrThrow(
-                MediaStore.Audio.Playlists.NAME)));
+        mTitle = mPlaylistCursor.getString(mPlaylistCursor.getColumnIndexOrThrow(
+                MediaStore.Audio.Playlists.NAME));
+        menu.setHeaderTitle(mTitle);
     }
 
     @Override
