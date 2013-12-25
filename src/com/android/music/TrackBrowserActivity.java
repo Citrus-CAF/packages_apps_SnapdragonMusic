@@ -313,6 +313,13 @@ public class TrackBrowserActivity extends ListActivity
             getListView().invalidateViews();
         }
         MusicUtils.setSpinnerState(this);
+
+        if (mAlbumId != null && mTrackCursor != null){
+            if (mTrackCursor.getCount() == 0){
+                setResult(RESULT_OK);
+                finish();
+            }
+        }
     }
     @Override
     public void onPause() {
