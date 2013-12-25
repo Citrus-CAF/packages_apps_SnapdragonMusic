@@ -2221,6 +2221,13 @@ public class MediaPlaybackService extends Service {
         return -1;
     }
 
+    public boolean isComplete() {
+        if (mPlayer.isInitialized()) {
+            return mPlayer.isComplete();
+        }
+        return false;
+    }
+
     /**
      * Returns the current playback position in milliseconds
      */
@@ -2517,6 +2524,7 @@ public class MediaPlaybackService extends Service {
         private CompatMediaPlayer mNextMediaPlayer;
         private Handler mHandler;
         private boolean mIsInitialized = false;
+        private boolean mIsComplete = false;
 
         public MultiPlayer() {
             mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
@@ -2592,6 +2600,7 @@ public class MediaPlaybackService extends Service {
         public void start() {
             MusicUtils.debugLog(new Exception("MultiPlayer.start called"));
             mCurrentMediaPlayer.start();
+            mIsComplete = false;
         }
 
         public void stop() {
@@ -2617,6 +2626,7 @@ public class MediaPlaybackService extends Service {
 
         MediaPlayer.OnCompletionListener listener = new MediaPlayer.OnCompletionListener() {
             public void onCompletion(MediaPlayer mp) {
+                mIsComplete = true;
                 if (mp == mCurrentMediaPlayer && mNextMediaPlayer != null) {
                     mCurrentMediaPlayer.release();
                     mCurrentMediaPlayer = mNextMediaPlayer;
@@ -2629,7 +2639,7 @@ public class MediaPlaybackService extends Service {
                     // This temporary wakelock is released when the RELEASE_WAKELOCK
                     // message is processed, but just in case, put a timeout on it.
                     mWakeLock.acquire(30000);
-                    mHandler.sendEmptyMessage(TRACK_ENDED);
+                    mHandler.sendEmptyMessageDelayed(TRACK_ENDED, 60);
                     mHandler.sendEmptyMessage(RELEASE_WAKELOCK);
                 }
             }
@@ -2671,6 +2681,10 @@ public class MediaPlaybackService extends Service {
                 }
            }
         };
+
+        public boolean isComplete() {
+            return mIsComplete;
+        }
 
         public long duration() {
             return mCurrentMediaPlayer.getDuration();
@@ -2790,6 +2804,9 @@ public class MediaPlaybackService extends Service {
         }
         public int getHistSize() {
             return mService.get().getHistSize();
+        }
+        public boolean isComplete() {
+            return mService.get().isComplete();
         }
         public String getTrackName() {
             return mService.get().getTrackName();
