@@ -57,7 +57,7 @@ import android.widget.Toast;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 import java.util.Random;
 import java.util.Vector;
 import java.util.HashMap;
@@ -545,6 +545,7 @@ public class MediaPlaybackService extends Service {
 
         mWakeLock.release();
         super.onDestroy();
+        mServiceInUse = false;
     }
     
     private final char hexdigits [] = new char [] {
@@ -2113,7 +2114,7 @@ public class MediaPlaybackService extends Service {
      */
     public long getAudioId() {
         synchronized (this) {
-            if (mPlayPos >= 0 && mPlayer.isInitialized()) {
+            if (mPlayPos >= 0 && mPlayer!=null && mPlayer.isInitialized()) {
                 return mPlayList[mPlayPos];
             }
         }
@@ -2765,10 +2766,11 @@ public class MediaPlaybackService extends Service {
      * has a remote reference to the stub.
      */
     static class ServiceStub extends IMediaPlaybackService.Stub {
-        WeakReference<MediaPlaybackService> mService;
+        //changing weak ref to softref to prevent media playercrash
+        SoftReference<MediaPlaybackService> mService;
 
         ServiceStub(MediaPlaybackService service) {
-            mService = new WeakReference<MediaPlaybackService>(service);
+            mService = new SoftReference<MediaPlaybackService>(service);
         }
 
         public void openFile(String path)

@@ -1307,6 +1307,10 @@ public class MusicUtils {
                 return;
             }
         } catch (RemoteException ex) {
+        } catch (NullPointerException ex) {
+            // we might not actually have the service yet
+            ex.printStackTrace();
+            return ;
         }
         nowPlayingView.setVisibility(View.GONE);
     }
