@@ -529,7 +529,11 @@ public class TrackBrowserActivity extends ListActivity
         }
 
         if (fancyName != null) {
-            setTitle(fancyName);
+            if ("My recordings".equals(fancyName)) {
+                setTitle(R.string.audio_db_playlist_name);
+            } else {
+                setTitle(fancyName);
+            }
         } else {
             setTitle(R.string.tracks_title);
         }
