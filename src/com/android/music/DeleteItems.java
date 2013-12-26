@@ -79,6 +79,12 @@ public class DeleteItems extends Activity
         unregisterReceiver(mLanguageChangeReceiver);
     }
 
+    @Override
+    public void onUserLeaveHint() {
+        finish();
+        super.onUserLeaveHint();
+    }
+
     // Broadcast receiver monitor system language change, if language changed
     // will finsh current activity, same as system alter dialog.
     private BroadcastReceiver mLanguageChangeReceiver = new BroadcastReceiver() {
