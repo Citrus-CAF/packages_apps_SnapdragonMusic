@@ -182,8 +182,9 @@ public class RenamePlaylist extends Activity
                         return;
                     }
                     ContentResolver resolver = getContentResolver();
-                    ContentValues values = new ContentValues(1);
+                    ContentValues values = new ContentValues(2);
                     values.put(MediaStore.Audio.Playlists.NAME, name);
+                    values.put(MediaStore.Audio.Playlists.DATA, MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI + "/" + name);
                     resolver.update(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, values,
                             MediaStore.Audio.Playlists._ID + "=?", new String[] {
                                 Long.valueOf(mRenameId).toString()
