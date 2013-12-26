@@ -112,6 +112,8 @@ public class PlaylistBrowserActivity extends ListActivity
                                 long[] list = MusicUtils.getAllSongs(PlaylistBrowserActivity.this);
                                 if (list != null) {
                                     MusicUtils.playAll(PlaylistBrowserActivity.this, list, 0);
+                                } else {
+                                    Toast.makeText(PlaylistBrowserActivity.this, R.string.list_empty, Toast.LENGTH_SHORT).show();
                                 }
                             } else {
                                 MusicUtils.playPlaylist(PlaylistBrowserActivity.this, id);

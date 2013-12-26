@@ -322,5 +322,6 @@
     <string name="same_playlist_name_alert">Playlist \"<xliff:g id="name">%s</xliff:g>\" name is not changed. Please select a different name.</string>
     <string name="button_ok">Ok</string>
 
+    <string name="list_empty">No music in the playlist.</string>
 </resources>
 
