@@ -427,6 +427,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     public void onCompletion(MediaPlayer mp) {
         // Leave 100ms for mediaplayer to change state.
         SystemClock.sleep(100);
+        mSeekBar.setProgress(mDuration);
         updatePlayPause();
     }
 
