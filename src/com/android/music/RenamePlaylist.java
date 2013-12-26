@@ -149,6 +149,9 @@ public class RenamePlaylist extends Activity
             c.moveToFirst();
             if (!c.isAfterLast()) {
                 name = c.getString(0);
+                if (name.equals("My recordings")) {
+                    name =  getResources().getString(R.string.audio_db_playlist_name);
+                }
             }
         }
         c.close();

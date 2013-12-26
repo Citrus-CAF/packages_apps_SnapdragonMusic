@@ -80,6 +80,9 @@ implements MusicUtils.Defs, ServiceConnection
     public void onCreate(Bundle icicle)
     {
         super.onCreate(icicle);
+        if (icicle != null) {
+            mFilterString = icicle.getString("filterString");
+        }
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         mAdapter = (QueryListAdapter) getLastNonConfigurationInstance();
         mToken = MusicUtils.bindToService(this, this);
@@ -207,6 +210,13 @@ implements MusicUtils.Defs, ServiceConnection
         }
         super.onResume();
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle outcicle) {
+        outcicle.putString("filterString", mFilterString);
+        super.onSaveInstanceState(outcicle);
+    }
+
     @Override
     public void onDestroy() {
         MusicUtils.unbindFromService(mToken);

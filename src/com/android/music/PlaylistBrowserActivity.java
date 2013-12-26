@@ -364,7 +364,8 @@ public class PlaylistBrowserActivity extends ListActivity
         mPlaylistCursor.moveToPosition(mi.position);
         mTitle = mPlaylistCursor.getString(mPlaylistCursor.getColumnIndexOrThrow(
                 MediaStore.Audio.Playlists.NAME));
-        menu.setHeaderTitle(mTitle);
+        menu.setHeaderTitle(mTitle.equals("My recordings") ?
+                getResources().getString(R.string.audio_db_playlist_name) : mTitle);
     }
 
     @Override

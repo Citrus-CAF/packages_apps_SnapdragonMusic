@@ -998,9 +998,11 @@ public class MediaPlaybackService extends Service {
                         if (mIsSupposedToBePlaying) {
                             stopForeground(false);
                             seek(0);
+                            notifyChange(PLAYSTATE_CHANGED);
                         } else {
                             stopForeground(true);
                             seek(0);
+                            notifyChange(PLAYSTATE_CHANGED);
                         }
                         mQueueIsSaveable = true;
                         notifyChange(QUEUE_CHANGED);
@@ -1597,7 +1599,6 @@ public class MediaPlaybackService extends Service {
         if (remove_status_icon) {
             mIsSupposedToBePlaying = false;
         }
-        notifyChange(PLAYSTATE_CHANGED);
     }
 
     /**
