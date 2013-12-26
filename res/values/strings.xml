@@ -69,6 +69,8 @@
     <string name="play_all">Play all</string>
     <!-- Menu item to play song in music -->
     <string name="open_in_music">Open in music</string>
+    <!-- Menu item to share audio or video -->
+    <string name="share">Share</string>
 
     <!-- Delete confirmation dialog when deleting an entire artist -->
     <string name="delete_artist_desc">Permanently delete all songs by <xliff:g id="artist">%s</xliff:g> from the SD card?</string>

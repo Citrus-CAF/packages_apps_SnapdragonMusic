@@ -75,7 +75,7 @@ public class TrackBrowserActivity extends ListActivity
     private static final int CLEAR_PLAYLIST = CHILD_MENU_BASE + 4;
     private static final int REMOVE = CHILD_MENU_BASE + 5;
     private static final int SEARCH = CHILD_MENU_BASE + 6;
-
+    private static final int SHARE = CHILD_MENU_BASE + 7; // Menu to share audio
 
     private static final String LOGTAG = "TrackBrowser";
 
@@ -699,6 +699,8 @@ public class TrackBrowserActivity extends ListActivity
         mCurrentTrackName = mTrackCursor.getString(mTrackCursor.getColumnIndexOrThrow(
                 MediaStore.Audio.Media.TITLE));
         menu.setHeaderTitle(mCurrentTrackName);
+        // Menu item to share audio
+        menu.add(0, SHARE, 0, R.string.share);
     }
 
     @Override
@@ -763,6 +765,22 @@ public class TrackBrowserActivity extends ListActivity
                 
             case SEARCH:
                 doSearch();
+                return true;
+
+            case SHARE:
+                // Send intent to share audio
+                long id;
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("audio/*");
+                mTrackCursor.moveToPosition(mSelectedPosition);
+                if (mEditMode && !mPlaylist.equals("nowplaying")) {
+                    id = mTrackCursor.getLong(mTrackCursor.getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.AUDIO_ID));
+                } else {
+                    id = mTrackCursor.getLong(mTrackCursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID));
+                }
+                Uri uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
+                shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+                startActivity(shareIntent);
                 return true;
         }
         return super.onContextItemSelected(item);
