@@ -60,6 +60,8 @@
     <string name="party_shuffle">Party shuffle</string>
     <!-- Menu item that switches the music player out of party shuffle mode -->
     <string name="party_shuffle_off">Party shuffle off</string>
+    <!-- Menu item that clear all playlists mode -->
+    <string name="clear_all_playlists">Clear all playlists</string>
     <!-- Menu item that deletes the currently selected item, which might be a single song, or a collection of songs.
          The user will be prompted to confirm before deletion actually takes place -->
     <string name="delete_item">Delete</string>

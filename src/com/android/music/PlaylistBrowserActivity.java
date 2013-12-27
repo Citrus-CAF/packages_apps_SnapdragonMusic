@@ -56,6 +56,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.view.KeyEvent;
+import android.content.Intent;
 
 import java.text.Collator;
 import java.util.ArrayList;
@@ -68,6 +69,7 @@ public class PlaylistBrowserActivity extends ListActivity
     private static final int EDIT_PLAYLIST = CHILD_MENU_BASE + 2;
     private static final int RENAME_PLAYLIST = CHILD_MENU_BASE + 3;
     private static final int CHANGE_WEEKS = CHILD_MENU_BASE + 4;
+    private static final int CLEAR_ALL_PLAYLISTS = CHILD_MENU_BASE + 5;
     private static final long RECENTLY_ADDED_PLAYLIST = -1;
     private static final long ALL_SONGS_PLAYLIST = -2;
     private static final long PODCASTS_PLAYLIST = -3;
@@ -304,6 +306,7 @@ public class PlaylistBrowserActivity extends ListActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         if (!mCreateShortcut) {
             menu.add(0, PARTY_SHUFFLE, 0, R.string.party_shuffle); // icon will be set in onPrepareOptionsMenu()
+            menu.add(0, CLEAR_ALL_PLAYLISTS, 0, R.string.clear_all_playlists).setIcon(R.drawable.ic_menu_clear_playlist);
         }
         return super.onCreateOptionsMenu(menu);
     }
@@ -316,12 +319,22 @@ public class PlaylistBrowserActivity extends ListActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Intent intent;
+        Intent intent = new Intent();
         switch (item.getItemId()) {
             case PARTY_SHUFFLE:
                 MusicUtils.togglePartyShuffle();
                 AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
                 audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
+                break;
+            case CLEAR_ALL_PLAYLISTS:
+                String desc = getString(R.string.clear_all_playlists_message);
+                Uri uri = MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI;
+                Bundle b = new Bundle();
+                b.putString("description", desc);
+                b.putParcelable("Playlist", uri);
+                intent.setClass(this, DeleteItems.class);
+                intent.putExtras(b);
+                startActivityForResult(intent, -1);
                 break;
         }
         return super.onOptionsItemSelected(item);
