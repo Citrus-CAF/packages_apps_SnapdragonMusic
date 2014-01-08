@@ -25,16 +25,23 @@ import android.database.Cursor;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
+import android.net.Uri;
 import android.view.KeyEvent;
 
 import java.lang.Integer;
 
 public class VideoBrowserActivity extends ListActivity implements MusicUtils.Defs
 {
+    private int mSelectedPosition; // Position of selected view
+    private static final int SHARE = 0; // Menu to share video
     public VideoBrowserActivity()
     {
     }
@@ -48,6 +55,47 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
         init();
     }
 
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+            ContextMenuInfo menuInfo) {
+        // Get position of selected view
+        AdapterContextMenuInfo mi = (AdapterContextMenuInfo) menuInfo;
+        mSelectedPosition =  mi.position;
+
+        // Set menu title
+        if (null == mCursor) {
+            return;
+        }
+        mCursor.moveToPosition(mSelectedPosition);
+        String currentVideoName = mCursor.getString(mCursor.getColumnIndexOrThrow(
+                MediaStore.Video.Media.TITLE));
+        menu.setHeaderTitle(currentVideoName);
+
+        // Menu item to share video
+        menu.add(0, SHARE, 0, R.string.share);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case SHARE:
+                // Send intent to share video
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("video/*");
+
+                if (null == mCursor) {
+                    return super.onContextItemSelected(item);
+                }
+                mCursor.moveToPosition(mSelectedPosition);
+                long id = mCursor.getLong(mCursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID));
+                Uri uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id);
+                shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+                startActivity(shareIntent);
+                return true;
+        }
+        return super.onContextItemSelected(item);
+    }
+
     public void init() {
 
         // Set the layout for this activity.  You can find it
@@ -55,6 +103,7 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
         setContentView(R.layout.media_picker_activity);
         View listView = findViewById(R.id.buttonbar);
         listView.setVisibility(View.GONE);
+        getListView().setOnCreateContextMenuListener(this); // Set OnCreateContextMenuListener interface
 
         MakeCursor();
 
