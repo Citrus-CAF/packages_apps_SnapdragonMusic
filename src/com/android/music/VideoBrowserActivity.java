@@ -20,6 +20,7 @@ import android.app.ListActivity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Intent;
+import android.content.ActivityNotFoundException;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.os.Bundle;
@@ -27,6 +28,7 @@ import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.Toast;
 import android.view.KeyEvent;
 
 import java.lang.Integer;
@@ -85,8 +87,11 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
         mCursor.moveToPosition(position);
         String type = mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Video.Media.MIME_TYPE));
         intent.setDataAndType(ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id), type);
-        
-        startActivity(intent);
+        try {
+            startActivity(intent);
+        } catch (ActivityNotFoundException ex) {
+            Toast.makeText(this, R.string.enable_gallery_app, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void MakeCursor() {

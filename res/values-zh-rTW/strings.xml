@@ -159,4 +159,5 @@
     <string name="duplicate_playlist_name_alert">已存在名為\"<xliff:g id="name">%s</xliff:g>\"的播放清單，請選擇其他名稱。</string>
     <string name="same_playlist_name_alert">播放清單\"<xliff:g id="name">%s</xliff:g>\"名稱未改變，請選擇其他名稱。</string>
     <string name="button_ok">確定</string>
+    <string name="enable_gallery_app">視頻檔案無法開啟，請從設定啟用圖片庫。</string>
 </resources>

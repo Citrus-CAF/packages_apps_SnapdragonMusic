@@ -168,6 +168,6 @@
     <string name="duplicate_playlist_name_alert">已存在名为\"<xliff:g id="name">%s</xliff:g>\"的播放列表，请选择其他名称。</string>
     <string name="same_playlist_name_alert">播放列表\"<xliff:g id="name">%s</xliff:g>\"名称未改变，请选择其他名称。</string>
     <string name="button_ok">确定</string>
-
     <string name="list_empty">播放列表为空。</string>
+    <string name="enable_gallery_app">视频文件无法打开，请从设置启用图库。</string>
 </resources>
