@@ -1104,8 +1104,16 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             mToast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
         }
         mToast.setText(resid);
+        mToastHandler.postDelayed(mRun, 600);
         mToast.show();
     }
+
+    private Handler mToastHandler = new Handler();
+    private Runnable mRun = new Runnable() {
+        public void run() {
+            mToast.cancel();
+        }
+    };
 
     private void startPlayback() {
 
