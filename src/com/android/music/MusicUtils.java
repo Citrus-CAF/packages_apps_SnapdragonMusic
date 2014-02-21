@@ -48,6 +48,7 @@ import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.Log;
@@ -1194,7 +1195,7 @@ public class MusicUtils {
         SharedPreferencesCompat.apply(ed);
     }
 
-    static void setRingtone(Context context, long id) {
+    static void setRingtone(Context context, long id, int sub_id) {
         ContentResolver resolver = context.getContentResolver();
         // Set the flag in the database to mark this as a ringtone
         Uri ringUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
@@ -1222,8 +1223,18 @@ public class MusicUtils {
             if (cursor != null && cursor.getCount() == 1) {
                 // Set the system setting to make this the current ringtone
                 cursor.moveToFirst();
-                Settings.System.putString(resolver, Settings.System.RINGTONE, ringUri.toString());
                 String message = context.getString(R.string.ringtone_set, cursor.getString(2));
+                if (sub_id == RINGTONE_SUB_0) {
+                    Settings.System.putString(resolver, Settings.System.RINGTONE , ringUri.toString());
+                    if (TelephonyManager.getDefault().isMultiSimEnabled()) {
+                        message = context.getString(R.string.ringtone_set_1, cursor.getString(2));
+                    } else {
+                        message = context.getString(R.string.ringtone_set, cursor.getString(2));
+                    }
+                } else if (sub_id == RINGTONE_SUB_1) {
+                    Settings.System.putString(resolver, Settings.System.RINGTONE_2, ringUri.toString());
+                    message = context.getString(R.string.ringtone_set_2, cursor.getString(2));
+                }
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
             }
         } finally {
@@ -1232,7 +1243,11 @@ public class MusicUtils {
             }
         }
     }
-    
+
+    static void setRingtone(Context context, long id) {
+        setRingtone(context, id, RINGTONE_SUB_0);
+    }
+
     static int sActiveTabIndex = -1;
     
     static boolean updateButtonBar(Activity a, int highlight) {

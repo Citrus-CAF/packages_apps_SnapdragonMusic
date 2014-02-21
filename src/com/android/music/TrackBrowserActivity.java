@@ -43,6 +43,7 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Audio.Playlists;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -711,7 +712,18 @@ public class TrackBrowserActivity extends ListActivity
         if (mEditMode) {
             menu.add(0, REMOVE, 0, R.string.remove_from_playlist);
         }
-        menu.add(0, USE_AS_RINGTONE, 0, R.string.ringtone_menu);
+
+        if (TelephonyManager.getDefault().isMultiSimEnabled()) {
+            int[] ringtones = { USE_AS_RINGTONE, USE_AS_RINGTONE_2 };
+            int[] menuStrings = { R.string.ringtone_menu_1,
+                                  R.string.ringtone_menu_2 };
+            for (int i = 0; i < TelephonyManager.getDefault().getPhoneCount(); i++) {
+                menu.add(0, ringtones[i], 0, menuStrings[i]);
+            }
+        } else {
+            menu.add(0, USE_AS_RINGTONE, 0, R.string.ringtone_menu);
+        }
+
         menu.add(0, DELETE_ITEM, 0, R.string.delete_item);
         AdapterContextMenuInfo mi = (AdapterContextMenuInfo) menuInfoIn;
         mSelectedPosition =  mi.position;
@@ -772,6 +784,11 @@ public class TrackBrowserActivity extends ListActivity
             case USE_AS_RINGTONE:
                 // Set the system setting to make this the current ringtone
                 MusicUtils.setRingtone(this, mSelectedId);
+                return true;
+
+            case USE_AS_RINGTONE_2:
+                // Set the system setting to make this the current ringtone for SUB_1
+                MusicUtils.setRingtone(this, mSelectedId, MusicUtils.RINGTONE_SUB_1);
                 return true;
 
             case DELETE_ITEM: {

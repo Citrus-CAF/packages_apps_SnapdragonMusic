@@ -215,6 +215,16 @@
     <string name="ringtone_menu_short">Use as ringtone</string>
     <!-- Toast after setting a song as phone ringtone -->
     <string name="ringtone_set">\"<xliff:g id="name" example="Alarm Bell">%s</xliff:g>\" set as phone ringtone.</string>
+    <!-- Individual song context menu item -->
+    <string name="ringtone_menu_1">Use as slot 1 ringtone</string>
+    <string name="ringtone_menu_2">Use as slot 2 ringtone</string>
+    <!-- Menu item -->
+    <string name="ringtone_menu_short_1">Use as ringtone 1</string>
+    <string name="ringtone_menu_short_2">Use as ringtone 2</string>
+    <!-- Toast after setting a song as phone ringtone -->
+    <string name="ringtone_set_1">\"<xliff:g id="name" example="Alarm Bell">%s</xliff:g>\" set as slot 1 ringtone.</string>
+    <!-- Toast after setting a song as phone ringtone -->
+    <string name="ringtone_set_2">\"<xliff:g id="name" example="Alarm Bell">%s</xliff:g>\" set as slot 2 ringtone.</string>
     <!-- Context menu item -->
     <string name="play_selection">Play</string>
     <!-- Context menu item -->
