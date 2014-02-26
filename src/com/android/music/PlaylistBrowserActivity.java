@@ -386,9 +386,7 @@ public class PlaylistBrowserActivity extends ListActivity
                 // playlist without any notification.
                 // show a dialog to confirm deleting this playlist.
                 // get playlist name
-                String name = mPlaylistCursor.getString(mPlaylistCursor.getColumnIndexOrThrow(
-                        MediaStore.Audio.Playlists.NAME));
-                String desc = getString(R.string.delete_playlist_message, name);
+                String desc = getString(R.string.delete_playlist_message, mTitle);
                 Uri uri = ContentUris.withAppendedId(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, mi.id);
                 Bundle b = new Bundle();
                 b.putString("description", desc);
