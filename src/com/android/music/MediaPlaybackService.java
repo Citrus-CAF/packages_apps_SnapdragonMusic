@@ -1408,6 +1408,13 @@ public class MediaPlaybackService extends Service {
     private void setNextTrack() {
         if(!SystemProperties.getBoolean("audio.gapless.playback.disable", false)) {
             mNextPlayPos = getNextPosition(false);
+
+            // remove the tail which is the next track
+            // from history vector in shuffle mode.
+            int histsize = mHistory.size();
+            if (histsize > 0 && mShuffleMode == SHUFFLE_NORMAL) {
+                mHistory.remove(histsize - 1);
+            }
             if (mNextPlayPos >= 0) {
                 long id = mPlayList[mNextPlayPos];
                 mPlayer.setNextDataSource(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI + "/" + id);
