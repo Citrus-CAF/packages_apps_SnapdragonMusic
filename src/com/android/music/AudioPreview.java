@@ -77,6 +77,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     private BroadcastReceiver mAudioTrackListener;
 
     private int mSeekStopPosition;
+    private boolean isCompleted = false;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -343,6 +344,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         mAudioManager.requestAudioFocus(mAudioFocusListener, AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
         mPlayer.start();
+        isCompleted = false;
         mProgressRefresher.postDelayed(new ProgressRefresher(), 200);
     }
     
@@ -376,8 +378,10 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         public void onReceive(Context context, Intent intent) {
             if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
                 mScreenOff = false;
-                mProgressRefresher.removeCallbacksAndMessages(null);
-                mProgressRefresher.postDelayed(new ProgressRefresher(), 200);
+                if(!isCompleted) {
+                    mProgressRefresher.removeCallbacksAndMessages(null);
+                    mProgressRefresher.postDelayed(new ProgressRefresher(), 200);
+                }
             } else if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
                 mScreenOff = true;
             }
@@ -427,6 +431,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     public void onCompletion(MediaPlayer mp) {
         // Leave 100ms for mediaplayer to change state.
         SystemClock.sleep(100);
+        isCompleted = true;
         mSeekBar.setProgress(mDuration);
         updatePlayPause();
     }
