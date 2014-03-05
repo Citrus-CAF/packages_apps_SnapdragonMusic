@@ -332,7 +332,8 @@ public class MediaPlaybackService extends Service {
                             if(isPlaying()) {
                                 mPausedByTransientLossOfFocus = false;
                             }
-                            pause();
+                            // Don't idle to avoid being killed by LMK
+                            pause(false);
                             break;
                         case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                             if(isPlaying()) {
@@ -345,7 +346,8 @@ public class MediaPlaybackService extends Service {
                             if(isPlaying()) {
                                 mPausedByTransientLossOfFocus = true;
                             }
-                            pause();
+                            // Don't idle to avoid being killed by LMK
+                            pause(false);
                             break;
                         case AudioManager.AUDIOFOCUS_GAIN:
                             Log.v(LOGTAG, "AudioFocus: received AUDIOFOCUS_GAIN");
@@ -1622,11 +1624,20 @@ public class MediaPlaybackService extends Service {
      * Pauses playback (call play() to resume)
      */
     public void pause() {
+        pause(true);
+    }
+
+    /**
+     * Pauses playback (based on input to decide idle or not)
+     */
+    public void pause(boolean idle) {
         synchronized(this) {
             mMediaplayerHandler.removeMessages(FADEUP);
             if (isPlaying()) {
                 mPlayer.pause();
-                gotoIdleState();
+                if(idle) {
+                    gotoIdleState();
+                }
                 mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
                 saveBookmarkIfNeeded();
