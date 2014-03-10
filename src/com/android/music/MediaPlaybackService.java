@@ -40,6 +40,7 @@ import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.RemoteControlClient;
+import android.media.RemoteControlClient.OnPlaybackPositionUpdateListener;
 import android.media.RemoteControlClient.MetadataEditor;
 import android.net.Uri;
 import android.os.Handler;
@@ -423,6 +424,20 @@ public class MediaPlaybackService extends Service {
         }
     };
 
+    private OnPlaybackPositionUpdateListener mPosListener = new OnPlaybackPositionUpdateListener() {
+        public void onPlaybackPositionUpdate(long newPositionMs) {
+            if (newPositionMs > duration()) {
+                boolean wasPlaying = isPlaying();
+                gotoNext(true);
+                if (!wasPlaying) {
+                    pause();
+                }
+            } else {
+                seek(newPositionMs);
+            }
+        }
+    };
+
     public MediaPlaybackService() {
     }
 
@@ -447,10 +462,12 @@ public class MediaPlaybackService extends Service {
         int flags = RemoteControlClient.FLAG_KEY_MEDIA_PREVIOUS
                 | RemoteControlClient.FLAG_KEY_MEDIA_NEXT
                 | RemoteControlClient.FLAG_KEY_MEDIA_PLAY
+                | RemoteControlClient.FLAG_KEY_MEDIA_POSITION_UPDATE
                 | RemoteControlClient.FLAG_KEY_MEDIA_PAUSE
                 | RemoteControlClient.FLAG_KEY_MEDIA_PLAY_PAUSE
                 | RemoteControlClient.FLAG_KEY_MEDIA_STOP;
         mRemoteControlClient.setTransportControlFlags(flags);
+        mRemoteControlClient.setPlaybackPositionUpdateListener(mPosListener);
         
         mPreferences = getSharedPreferences("Music", MODE_WORLD_READABLE | MODE_WORLD_WRITEABLE);
         mCardId = MusicUtils.getCardId(this);
@@ -1116,9 +1133,11 @@ public class MediaPlaybackService extends Service {
         sendStickyBroadcast(i);
 
         if (what.equals(PLAYSTATE_CHANGED)) {
+            long pos = position();
+            if (pos < 0) pos = 0;
             mRemoteControlClient.setPlaybackState((isPlaying() ?
                     RemoteControlClient.PLAYSTATE_PLAYING : RemoteControlClient.PLAYSTATE_PAUSED),
-                    position() , RemoteControlClient.PLAYBACK_SPEED_1X);
+                    pos, RemoteControlClient.PLAYBACK_SPEED_1X);
         } else if (what.equals(META_CHANGED)) {
             RemoteControlClient.MetadataEditor ed = mRemoteControlClient.editMetadata(true);
             ed.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, getTrackName());
@@ -2279,6 +2298,10 @@ public class MediaPlaybackService extends Service {
         if (mPlayer.isInitialized()) {
             if (pos < 0) pos = 0;
             if (pos > mPlayer.duration()) pos = mPlayer.duration();
+
+            mRemoteControlClient.setPlaybackState((isPlaying() ?
+                    RemoteControlClient.PLAYSTATE_PLAYING : RemoteControlClient.PLAYSTATE_PAUSED),
+                    pos, RemoteControlClient.PLAYBACK_SPEED_1X);
             return mPlayer.seek(pos);
         }
         return -1;
