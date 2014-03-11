@@ -974,9 +974,16 @@ public class MediaPlaybackService extends Service {
                 public void onReceive(Context context, Intent intent) {
                     String action = intent.getAction();
                     if (action.equals(Intent.ACTION_MEDIA_EJECT)) {
-                        saveQueue(true);
-                        mQueueIsSaveable = false;
-                        closeExternalStorageFiles(intent.getData().getPath());
+                        if (mCursor != null && !mCursor.isAfterLast()) {
+                            String curTrackPath = mCursor.getString(mCursor.getColumnIndexOrThrow(
+                                    MediaStore.Audio.Media.DATA));
+                            // if the currently playing track is on the SD card
+                            if (curTrackPath != null && curTrackPath.contains(intent.getData().getPath())) {
+                                saveQueue(true);
+                                mQueueIsSaveable = false;
+                                closeExternalStorageFiles(intent.getData().getPath());
+                            }
+                        }
                     } else if (action.equals(Intent.ACTION_MEDIA_MOUNTED)) {
                         // when play music in background, delete file in filemanager will not effect music to play
                         if (intent.getStringExtra("FileChange") != null) {
