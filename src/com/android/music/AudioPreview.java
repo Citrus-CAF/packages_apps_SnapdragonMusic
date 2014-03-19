@@ -182,10 +182,15 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
                         MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST},
                         null, null, null);
             } else {
-                // Try to get the display name from another content provider.
-                // Don't specifically ask for the display name though, since the
-                // provider might not actually support that column.
-                mAsyncQueryHandler.startQuery(0, null, mUri, null, null, null, null);
+                // Just hide option menu if uri points to attachment provider
+                if (mUri.getAuthority().contains("attachmentprovider")) {
+                    mMediaId = -1;
+                } else {
+                    // Try to get the display name from another content provider.
+                    // Don't specifically ask for the display name though, since the
+                    // provider might not actually support that column.
+                    mAsyncQueryHandler.startQuery(0, null, mUri, null, null, null, null);
+                }
             }
         } else if (scheme.equals("file")) {
             // check if this file is in the media database (clicking on a download
