@@ -1011,12 +1011,11 @@ public class MediaPlaybackService extends Service {
                         }
                         mMediaMountedCount++;
                         mCardId = MusicUtils.getCardId(MediaPlaybackService.this);
+
+                        // pause playback
+                        pause();
                         reloadQueue();
                         mQueueIsSaveable = true;
-
-                        // reset playback
-                        pause();
-                        seek(0);
 
                         notifyChange(PLAYSTATE_CHANGED);
                         notifyChange(QUEUE_CHANGED);
