@@ -1017,6 +1017,12 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                     mService.next();
                     mStartSeekPos -= duration; // is OK to go negative
                     newpos -= duration;
+
+                    // boundary check to ensure newpos not exceed duration of new track
+                    duration = mService.duration();
+                    if (newpos > duration) {
+                        newpos = duration;
+                    }
                 }
                 if (((delta - mLastSeekEventTime) > 250) || repcnt < 0){
                     mService.seek(newpos);
