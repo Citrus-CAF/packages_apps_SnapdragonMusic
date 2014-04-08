@@ -154,5 +154,6 @@
     <string name="widget_initial_text" msgid="3166878738860903586">"輕觸即可選擇音樂。"</string>
     <string name="effectspanel" msgid="8804547581593509614">"音效"</string>
     <string name="duplicate_playlist_name_alert">已存在名為\"<xliff:g id="name">%s</xliff:g>\"的播放清單，請選擇其他名稱。</string>
+    <string name="same_playlist_name_alert">播放清單\"<xliff:g id="name">%s</xliff:g>\"名稱未改變，請選擇其他名稱。</string>
     <string name="button_ok">確定</string>
 </resources>

@@ -176,7 +176,7 @@ public class RenamePlaylist extends Activity
                 } else {
                     if (mOriginalName.equals(name)) {
                         new AlertDialog.Builder(RenamePlaylist.this).setMessage(
-                                getString(R.string.duplicate_playlist_name_alert, name))
+                                getString(R.string.same_playlist_name_alert, name))
                                 .setPositiveButton(getString(R.string.button_ok), new CancelListener())
                                 .show();
                         return;
