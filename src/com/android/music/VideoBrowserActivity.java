@@ -17,24 +17,26 @@
 package com.android.music;
 
 import android.app.ListActivity;
+import android.app.SearchManager;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.content.ActivityNotFoundException;
 import android.database.Cursor;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.KeyEvent;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
-import android.net.Uri;
-import android.view.KeyEvent;
 
 import java.lang.Integer;
 
@@ -42,6 +44,8 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
 {
     private int mSelectedPosition; // Position of selected view
     private static final int SHARE = 0; // Menu to share video
+    private String mFilterString = "";
+
     public VideoBrowserActivity()
     {
     }
@@ -52,6 +56,11 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
     {
         super.onCreate(icicle);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        Intent intent = getIntent();
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            mFilterString = intent.getStringExtra(SearchManager.QUERY);
+        }
+
         init();
     }
 
@@ -156,7 +165,11 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
             System.out.println("resolver = null");
         } else {
             mSortOrder = MediaStore.Video.Media.TITLE + " COLLATE UNICODE";
-            mWhereClause = MediaStore.Video.Media.TITLE + " != ''";
+            if (TextUtils.isEmpty(mFilterString)){
+                mWhereClause = MediaStore.Video.Media.TITLE + " != ''";
+            }else{
+                mWhereClause = MediaStore.Video.Media.TITLE + " like '%"+mFilterString+"%'";
+            }
             mCursor = resolver.query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                 cols, mWhereClause , null, mSortOrder);
         }
