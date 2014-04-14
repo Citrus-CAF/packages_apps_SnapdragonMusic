@@ -1960,6 +1960,14 @@ public class MediaPlaybackService extends Service {
      * @return the number of tracks deleted
      */
     public int removeTracks(int first, int last) {
+        // if the next track is to be removed, clear data source
+        // of the next player
+        if (mNextPlayPos >= 0) {
+            long nextPlayId = mPlayList[mNextPlayPos];
+            if (nextPlayId >= first && nextPlayId <= last) {
+                mPlayer.setNextDataSource(null);
+            }
+        }
         int numremoved = removeTracksInternal(first, last);
         if (numremoved > 0) {
             notifyChange(QUEUE_CHANGED);
@@ -2018,6 +2026,14 @@ public class MediaPlaybackService extends Service {
      * @return how many instances of the track were removed
      */
     public int removeTrack(long id) {
+        // if the next track is to be removed, clear data source
+        // of the next player
+        if (mNextPlayPos >= 0) {
+            long nextPlayId = mPlayList[mNextPlayPos];
+            if (nextPlayId == id) {
+                mPlayer.setNextDataSource(null);
+            }
+        }
         int numremoved = 0;
         synchronized (this) {
             for (int i = 0; i < mPlayListLen; i++) {
