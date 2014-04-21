@@ -20,7 +20,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/nowplaying"
     android:layout_width="match_parent"
-    android:layout_height="64dip"
+    android:layout_height="68dip"
     android:focusable="true"
     android:visibility="gone"
     android:background="@drawable/music_bottom_playback_bg"
