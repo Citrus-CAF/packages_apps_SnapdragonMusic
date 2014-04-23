@@ -182,8 +182,9 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
                         MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST},
                         null, null, null);
             } else {
-                // Just hide option menu if uri points to attachment provider
-                if (mUri.getAuthority().contains("attachmentprovider")) {
+                final String authority = mUri.getAuthority();
+                // hide option menu if the uri may not be opened by music app
+                if (authority.contains("attachmentprovider") || authority.contains("mms")) {
                     mMediaId = -1;
                 } else {
                     // Try to get the display name from another content provider.
