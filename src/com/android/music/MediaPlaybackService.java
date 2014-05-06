@@ -362,10 +362,18 @@ public class MediaPlaybackService extends Service {
                     }
                     break;
                 case ERROR:
+                    if (mRepeatMode == REPEAT_CURRENT) {
                         //Called from onError when current clip is played in
                         //repeat only mode.
                         Log.e(LOGTAG," ERROR: Pause the clip");
                         pause();
+                    } else {
+                        if (mIsSupposedToBePlaying) {
+                            gotoNext(true);
+                        } else {
+                            openCurrentAndNext();
+                        }
+                    }
                     break;
                 default:
                     break;
@@ -2614,10 +2622,17 @@ public class MediaPlaybackService extends Service {
                         mHandler.sendMessageDelayed(mHandler.obtainMessage(ERROR),0);
                         return true;
                     }
-                    mHandler.sendMessageDelayed(mHandler.obtainMessage(ERROR),0);
-                    break;
+                    mIsInitialized = false;
+                    mCurrentMediaPlayer.release();
+                    if (mNextMediaPlayer != null) {
+                        mNextMediaPlayer.release();
+                        mNextMediaPlayer = null;
+                    }
+                    mCurrentMediaPlayer = new CompatMediaPlayer();
+                    mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
+                    mHandler.sendMessageDelayed(mHandler.obtainMessage(ERROR), 2000);
+                    return true;
                 }
-                return false;
            }
         };
 
