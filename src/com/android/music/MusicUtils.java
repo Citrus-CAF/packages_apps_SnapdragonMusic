@@ -455,7 +455,12 @@ public class MusicUtils {
 //                    if (cur.getInt(0) == mLastPlaylistSelected) {
 //                        sub.add(0, MusicBaseActivity.PLAYLIST_SELECTED, cur.getString(1)).setIntent(intent);
 //                    } else {
-                        sub.add(1, Defs.PLAYLIST_SELECTED, 0, cur.getString(1)).setIntent(intent);
+                        String name = cur.getString(1);
+                        if (cur.getString(1).equals("My recordings")) {
+                            name = context.getResources()
+                                    .getString(R.string.audio_db_playlist_name);
+                        }
+                        sub.add(1, Defs.PLAYLIST_SELECTED, 0, name).setIntent(intent);
 //                    }
                     cur.moveToNext();
                 }
