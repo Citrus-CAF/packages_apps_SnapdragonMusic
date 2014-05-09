@@ -46,6 +46,9 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
     private static final int SHARE = 0; // Menu to share video
     private String mFilterString = "";
 
+    private static String EXTRA_ALL_VIDEO_FOLDER = "org.codeaurora.intent.extra.ALL_VIDEO_FOLDER";
+    private static String EXTRA_ORDERBY = "org.codeaurora.intent.extra.VIDEO_LIST_ORDERBY";
+
     public VideoBrowserActivity()
     {
     }
@@ -145,6 +148,10 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
         mCursor.moveToPosition(position);
         String type = mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Video.Media.MIME_TYPE));
         intent.setDataAndType(ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id), type);
+        intent.putExtra(EXTRA_ALL_VIDEO_FOLDER, true);
+        if (mSortOrder != null) {
+            intent.putExtra(EXTRA_ORDERBY, mSortOrder);
+        }
         try {
             startActivity(intent);
         } catch (ActivityNotFoundException ex) {
