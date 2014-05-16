@@ -1133,7 +1133,7 @@ public class MediaPlaybackService extends Service {
         sendStickyBroadcast(i);
 
         if (what.equals(PLAYSTATE_CHANGED)) {
-            long pos = position();
+            long pos = (mPlayer != null) ? position() : 0;
             if (pos < 0) pos = 0;
             mRemoteControlClient.setPlaybackState((isPlaying() ?
                     RemoteControlClient.PLAYSTATE_PLAYING : RemoteControlClient.PLAYSTATE_PAUSED),
