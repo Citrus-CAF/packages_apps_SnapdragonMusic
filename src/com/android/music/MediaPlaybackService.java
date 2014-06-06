@@ -1523,6 +1523,22 @@ public class MediaPlaybackService extends Service {
     private void updateNotification() {
         RemoteViews views = new RemoteViews(getPackageName(), R.layout.statusbar);
         views.setImageViewResource(R.id.icon, R.drawable.stat_notify_musicplayer);
+
+        Intent prevIntent = new Intent(MediaPlaybackService.PREVIOUS_ACTION);
+        PendingIntent prevPendingIntent = PendingIntent.getBroadcast(this,
+                0 /* no requestCode */, prevIntent, 0 /* no flags */);
+        views.setOnClickPendingIntent(R.id.prev, prevPendingIntent);
+
+        Intent pauseIntent = new Intent(MediaPlaybackService.PAUSE_ACTION);
+        PendingIntent pausePendingIntent = PendingIntent.getBroadcast(this,
+                0 /* no requestCode */, pauseIntent, 0 /* no flags */);
+        views.setOnClickPendingIntent(R.id.pause, pausePendingIntent);
+
+        Intent nextIntent = new Intent(MediaPlaybackService.NEXT_ACTION);
+        PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this,
+                0 /* no requestCode */, nextIntent, 0 /* no flags */);
+        views.setOnClickPendingIntent(R.id.next, nextPendingIntent);
+
         if (getAudioId() < 0) {
             // streaming
             views.setTextViewText(R.id.trackname, getPath());
