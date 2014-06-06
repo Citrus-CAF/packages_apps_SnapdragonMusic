@@ -18,9 +18,11 @@ package com.android.music;
 
 import android.app.ListActivity;
 import android.content.AsyncQueryHandler;
+import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
 import android.media.AudioManager;
@@ -382,11 +384,17 @@ public class MusicPicker extends ListActivity
 
         @Override
         protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+            if (getListView().getCount() == 0) {
+                mOkayButton.setEnabled(false);
+            }
             if (!isFinishing()) {
                 // Update the adapter: we are no longer loading, and have
                 // a new cursor for it.
                 mAdapter.setLoading(false);
                 mAdapter.changeCursor(cursor);
+                if (getListView().getCount() != 0) {
+                    mOkayButton.setEnabled(true);
+                }
                 setProgressBarIndeterminateVisibility(false);
 
                 // Now that the cursor is populated again, it's possible to restore the list state
@@ -486,8 +494,26 @@ public class MusicPicker extends ListActivity
             }
         }
 
+        IntentFilter f = new IntentFilter();
+        f.addAction(Intent.ACTION_MEDIA_SCANNER_STARTED);
+        f.addAction(Intent.ACTION_MEDIA_SCANNER_FINISHED);
+        f.addDataScheme("file");
+        registerReceiver(mScanListener, f);
         setSortMode(sortMode);
     }
+
+    private final BroadcastReceiver mScanListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            if (Intent.ACTION_MEDIA_SCANNER_STARTED.equals(action) ||
+                    Intent.ACTION_MEDIA_SCANNER_FINISHED.equals(action)) {
+                MusicUtils.setSpinnerState(MusicPicker.this);
+            }
+            doQuery(false, null);
+        }
+    };
 
     @Override public void onRestart() {
         super.onRestart();
@@ -535,6 +561,12 @@ public class MusicPicker extends ListActivity
         // setLoading(false) will be called.
         mAdapter.setLoading(true);
         mAdapter.changeCursor(null);
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(mScanListener);
+        super.onDestroy();
     }
 
     @Override
