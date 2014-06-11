@@ -32,6 +32,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.provider.Downloads;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.text.TextUtils;
@@ -61,6 +62,7 @@ import java.io.IOException;
 public class AudioPreview extends Activity implements OnPreparedListener, OnErrorListener, OnCompletionListener
 {
     private final static String TAG = "AudioPreview";
+    private final static String HOST_DOWNLOADS = "downloads";
     private PreviewPlayer mPlayer;
     private TextView mTextLine1;
     private TextView mTextLine2;
@@ -78,6 +80,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
 
     private int mSeekStopPosition;
     private boolean isCompleted = false;
+    private Uri mMediaUri = null;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -145,6 +148,10 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
                     int artistIdx = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
                     int idIdx = cursor.getColumnIndex(MediaStore.Audio.Media._ID);
                     int displaynameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    int uriIdx = cursor.getColumnIndex(Downloads.Impl.COLUMN_MEDIAPROVIDER_URI);
+                    if (uriIdx >=0) {
+                        mMediaUri = Uri.parse(cursor.getString(uriIdx));
+                    }
 
                     if (idIdx >=0) {
                         mMediaId = cursor.getLong(idIdx);
@@ -482,13 +489,19 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     // TODO Auto-generated method stub
         switch (item.getItemId()) {
             case OPEN_IN_MUSIC:
-                String path = mUri.getLastPathSegment();
-                int id = MusicUtils.getAudioIDFromPath(this,path);
-                Uri newUri = Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                String.valueOf(id));
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setDataAndType(newUri, "audio/*");
-                startActivity(intent);
+                if (HOST_DOWNLOADS.equals(mUri.getHost()) && mMediaUri != null) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(mMediaUri, "audio/*");
+                    startActivity(intent);
+                } else {
+                    String path = mUri.getLastPathSegment();
+                    int id = MusicUtils.getAudioIDFromPath(this,path);
+                    Uri newUri = Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    String.valueOf(id));
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(newUri, "audio/*");
+                    startActivity(intent);
+                }
                 break;
         }
         return super.onOptionsItemSelected(item);
