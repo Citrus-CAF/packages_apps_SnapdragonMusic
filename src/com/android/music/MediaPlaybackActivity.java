@@ -65,6 +65,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.view.KeyEvent;
+import com.android.music.SysApplication;
 
 
 public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
@@ -158,6 +159,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mProgress.setMax(1000);
 
         mTouchSlop = ViewConfiguration.get(this).getScaledTouchSlop();
+        SysApplication.getInstance().addActivity(this);
     }
 
     public void onConfigurationChanged(Configuration newConfig) {
@@ -612,6 +614,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             if (getPackageManager().resolveActivity(i, 0) != null) {
                 menu.add(0, EFFECTS_PANEL, 0, R.string.effectspanel).setIcon(R.drawable.ic_menu_eq);
             }
+            menu.add(0, CLOSE, 0, R.string.close_music).setIcon(
+                    R.drawable.quick_panel_music_close);
 
             return true;
         }
@@ -710,6 +714,17 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 case EFFECTS_PANEL:
                     startSoundEffectActivity();
                     return true;
+
+                case CLOSE: {
+                    try {
+                        if (MusicUtils.sService != null) {
+                            MusicUtils.sService.stop();
+                        }
+                    } catch (RemoteException ex) {
+                    }
+                    SysApplication.getInstance().exit();
+                    return true;
+                }
             }
         } catch (RemoteException ex) {
         }

@@ -43,6 +43,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
@@ -62,6 +63,7 @@ import android.widget.SimpleCursorTreeAdapter;
 import android.widget.TextView;
 import android.widget.ExpandableListView.ExpandableListContextMenuInfo;
 import android.view.KeyEvent;
+import com.android.music.SysApplication;
 
 import java.text.Collator;
 
@@ -139,6 +141,7 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
                 getArtistCursor(mAdapter.getQueryHandler(), null);
             }
         }
+        SysApplication.getInstance().addActivity(this);
     }
 
     @Override
@@ -301,6 +304,7 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
         super.onCreateOptionsMenu(menu);
         menu.add(0, PARTY_SHUFFLE, 0, R.string.party_shuffle); // icon will be set in onPrepareOptionsMenu()
         menu.add(0, SHUFFLE_ALL, 0, R.string.shuffle_all).setIcon(R.drawable.ic_menu_shuffle);
+        menu.add(0, CLOSE, 0, R.string.close_music).setIcon(R.drawable.quick_panel_music_close);
         return true;
     }
     
@@ -331,6 +335,16 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
                     cursor.close();
                 }
                 return true;
+
+            case CLOSE:
+                try {
+                    if (MusicUtils.sService != null) {
+                        MusicUtils.sService.stop();
+                    }
+                } catch (RemoteException ex) {
+                }
+                SysApplication.getInstance().exit();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }

@@ -172,4 +172,6 @@
     <string name="button_ok">确定</string>
     <string name="list_empty">播放列表为空。</string>
     <string name="enable_gallery_app">视频文件无法打开，请从设置启用图库。</string>
+    <string name="close_music">"结束"</string>
+
 </resources>

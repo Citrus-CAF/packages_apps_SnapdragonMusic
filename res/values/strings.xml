@@ -347,5 +347,6 @@
 
     <!-- Shown when video is played after disable Gallery app from Settings -->
     <string name="enable_gallery_app">Video cannot be played, please enable Gallery app from Settings.</string>
+    <string name="close_music">"End"</string>
 </resources>
 
