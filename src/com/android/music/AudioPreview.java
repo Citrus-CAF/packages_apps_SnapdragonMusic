@@ -149,7 +149,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
                     int idIdx = cursor.getColumnIndex(MediaStore.Audio.Media._ID);
                     int displaynameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     int uriIdx = cursor.getColumnIndex(Downloads.Impl.COLUMN_MEDIAPROVIDER_URI);
-                    if (uriIdx >=0) {
+                    if (uriIdx >=0 && cursor.getString(uriIdx) != null) {
                         mMediaUri = Uri.parse(cursor.getString(uriIdx));
                     }
 
