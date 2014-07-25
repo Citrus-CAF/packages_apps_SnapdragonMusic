@@ -1585,6 +1585,8 @@ public class TrackBrowserActivity extends ListActivity
             
             cursor.copyStringToBuffer(mTitleIdx, vh.buffer1);
             vh.line1.setText(vh.buffer1.data, 0, vh.buffer1.sizeCopied);
+            // set textview color as original color "@android:color/bright_foreground_dark"
+            vh.line1.setTextColor(0xffffffff);
             
             int secs = cursor.getInt(mDurationIdx) / 1000;
             if (secs == 0) {
@@ -1611,6 +1613,8 @@ public class TrackBrowserActivity extends ListActivity
             }
             builder.getChars(0, len, vh.buffer2, 0);
             vh.line2.setText(vh.buffer2, 0, len);
+            // set textview color as original color "@android:color/dim_foreground_dark"
+            vh.line2.setTextColor(0xffbebebe);
 
             ImageView iv = vh.play_indicator;
             long id = -1;
