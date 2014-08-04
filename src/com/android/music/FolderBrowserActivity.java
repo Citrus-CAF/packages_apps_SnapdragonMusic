@@ -68,6 +68,7 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 import com.android.music.MusicUtils.ServiceToken;
+import com.android.music.SysApplication;
 
 public class FolderBrowserActivity extends ListActivity
         implements View.OnCreateContextMenuListener, MusicUtils.Defs, ServiceConnection
@@ -129,6 +130,7 @@ public class FolderBrowserActivity extends ListActivity
                 getFolderCursor(mAdapter.getQueryHandler(), null);
             }
         }
+        SysApplication.getInstance().addActivity(this);
     }
 
     @Override

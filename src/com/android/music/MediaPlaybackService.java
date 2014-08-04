@@ -52,6 +52,7 @@ import android.os.SystemProperties;
 import android.os.PowerManager.WakeLock;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -62,6 +63,8 @@ import java.lang.ref.SoftReference;
 import java.util.Random;
 import java.util.Vector;
 import java.util.HashMap;
+
+import com.android.music.SysApplication;
 
 /**
  * Provides "background" audio playback capabilities, allowing the
@@ -108,6 +111,7 @@ public class MediaPlaybackService extends Service {
     public static final String PAUSE_ACTION = "com.android.music.musicservicecommand.pause";
     public static final String PREVIOUS_ACTION = "com.android.music.musicservicecommand.previous";
     public static final String NEXT_ACTION = "com.android.music.musicservicecommand.next";
+    public static final String EXIT_ACTION = "exit";
     private static final String PLAYSTATUS_REQUEST = "org.codeaurora.android.music.playstatusrequest";
     private static final String PLAYSTATUS_RESPONSE = "org.codeaurora.music.playstatusresponse";
     private static final String PLAYERSETTINGS_REQUEST = "org.codeaurora.music.playersettingsrequest";
@@ -135,6 +139,11 @@ public class MediaPlaybackService extends Service {
     private static final int SCOPE_FILE_SYSTEM = 0x01;
     private static final int SCOPE_NOW_PLAYING = 0x03;
     private static final int INVALID_SONG_UID = 0xffffffff;
+
+    private RemoteViews views;
+    private Notification status = new Notification();
+
+    private boolean mControlInStatusBar = false;
 
     private MultiPlayer mPlayer;
     private String mFileToPlay;
@@ -405,6 +414,9 @@ public class MediaPlaybackService extends Service {
             } else if (CMDPAUSE.equals(cmd) || PAUSE_ACTION.equals(action)) {
                 pause();
                 mPausedByTransientLossOfFocus = false;
+            } else if (EXIT_ACTION.equals(action)) {
+                stop();
+                SysApplication.getInstance().exit();
             } else if (CMDPLAY.equals(cmd)) {
                 play();
             } else if (CMDSTOP.equals(cmd)) {
@@ -504,6 +516,7 @@ public class MediaPlaybackService extends Service {
         commandFilter.addAction(PAUSE_ACTION);
         commandFilter.addAction(NEXT_ACTION);
         commandFilter.addAction(PREVIOUS_ACTION);
+        commandFilter.addAction(EXIT_ACTION);
         registerReceiver(mIntentReceiver, commandFilter);
         
         PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
@@ -514,6 +527,8 @@ public class MediaPlaybackService extends Service {
         // system will relaunch it. Make sure it gets stopped again in that case.
         Message msg = mDelayedStopHandler.obtainMessage();
         mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
+
+        mControlInStatusBar = getApplicationContext().getResources().getBoolean(R.bool.control_in_statusbar);
     }
 
     @Override
@@ -1544,13 +1559,22 @@ public class MediaPlaybackService extends Service {
             // something.
             setShuffleMode(SHUFFLE_AUTO);
         }
+
+        if (views != null && status != null && mControlInStatusBar) {
+            // Reset notification play function to pause function
+            views.setImageViewResource(R.id.pause, android.R.drawable.ic_media_pause);
+            Intent pauseIntent = new Intent(PAUSE_ACTION);
+            PendingIntent pausePendingIntent = PendingIntent.getBroadcast(this,
+                    0 /* no requestCode */, pauseIntent, 0 /* no flags */);
+            views.setOnClickPendingIntent(R.id.pause, pausePendingIntent);
+            startForeground(PLAYBACKSERVICE_STATUS, status);
+        }
     }
 
     private void updateNotification() {
-        RemoteViews views = new RemoteViews(getPackageName(), R.layout.statusbar);
+        views = new RemoteViews(getPackageName(), R.layout.statusbar);
         views.setImageViewResource(R.id.icon, R.drawable.stat_notify_musicplayer);
-
-        Intent prevIntent = new Intent(MediaPlaybackService.PREVIOUS_ACTION);
+        Intent prevIntent = new Intent(PREVIOUS_ACTION);
         PendingIntent prevPendingIntent = PendingIntent.getBroadcast(this,
                 0 /* no requestCode */, prevIntent, 0 /* no flags */);
         views.setOnClickPendingIntent(R.id.prev, prevPendingIntent);
@@ -1560,10 +1584,19 @@ public class MediaPlaybackService extends Service {
                 0 /* no requestCode */, toggleIntent, 0 /* no flags */);
         views.setOnClickPendingIntent(R.id.pause, togglePendingIntent);
 
-        Intent nextIntent = new Intent(MediaPlaybackService.NEXT_ACTION);
+        Intent nextIntent = new Intent(NEXT_ACTION);
         PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this,
                 0 /* no requestCode */, nextIntent, 0 /* no flags */);
         views.setOnClickPendingIntent(R.id.next, nextPendingIntent);
+
+        if (mControlInStatusBar) {
+            views.setViewVisibility(R.id.exit, View.VISIBLE);
+            views.setImageViewResource(R.id.exit, R.drawable.exit);
+            Intent exitIntent = new Intent(EXIT_ACTION);
+            PendingIntent exitPendingIntent = PendingIntent.getBroadcast(this,
+                    0 /* no requestCode */, exitIntent, 0 /* no flags */);
+            views.setOnClickPendingIntent(R.id.exit, exitPendingIntent);
+        }
 
         if (getAudioId() < 0) {
             // streaming
@@ -1588,7 +1621,7 @@ public class MediaPlaybackService extends Service {
         views.setImageViewResource(R.id.pause, (isPlaying() ?
                     R.drawable.ic_appwidget_music_pause : R.drawable.ic_appwidget_music_play));
 
-        Notification status = new Notification();
+        status = new Notification();
         status.contentView = views;
         status.flags |= Notification.FLAG_ONGOING_EVENT;
         status.icon = R.drawable.stat_notify_musicplayer;
@@ -1609,6 +1642,7 @@ public class MediaPlaybackService extends Service {
         }
         if (remove_status_icon) {
             gotoIdleState();
+            stopForeground(true);
         } else {
             stopForeground(false);
         }
@@ -1647,6 +1681,15 @@ public class MediaPlaybackService extends Service {
                 }
                 notifyChange(PLAYSTATE_CHANGED);
                 saveBookmarkIfNeeded();
+                if (mControlInStatusBar) {
+                    // Reset notification pause function to play function
+                    views.setImageViewResource(R.id.pause, android.R.drawable.ic_media_play);
+                    Intent playIntent = new Intent(TOGGLEPAUSE_ACTION);
+                    PendingIntent playPendingIntent = PendingIntent.getBroadcast(this,
+                            0 /* no requestCode */, playIntent, 0 /* no flags */);
+                    views.setOnClickPendingIntent(R.id.pause, playPendingIntent);
+                    startForeground(PLAYBACKSERVICE_STATUS, status);
+                }
             }
         }
     }
@@ -1847,7 +1890,9 @@ public class MediaPlaybackService extends Service {
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         Message msg = mDelayedStopHandler.obtainMessage();
         mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
-        stopForeground(true);
+        if (! mControlInStatusBar) {
+            stopForeground(true);
+        }
     }
     
     private void saveBookmarkIfNeeded() {

@@ -31,5 +31,6 @@
 
     <!-- configuration to support group music by folder path -->
     <bool name="group_by_folder">false</bool>
+    <bool name="control_in_statusbar">false</bool>
 
 </resources>
