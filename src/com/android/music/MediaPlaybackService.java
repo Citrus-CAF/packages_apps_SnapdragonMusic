@@ -397,7 +397,7 @@ public class MediaPlaybackService extends Service {
                 prev();
             } else if (CMDTOGGLEPAUSE.equals(cmd) || TOGGLEPAUSE_ACTION.equals(action)) {
                 if (isPlaying()) {
-                    pause();
+                    pause(false);
                     mPausedByTransientLossOfFocus = false;
                 } else {
                     play();
@@ -824,7 +824,7 @@ public class MediaPlaybackService extends Service {
                 }
             } else if (CMDTOGGLEPAUSE.equals(cmd) || TOGGLEPAUSE_ACTION.equals(action)) {
                 if (isPlaying()) {
-                    pause();
+                    pause(false);
                     mPausedByTransientLossOfFocus = false;
                 } else {
                     play();
@@ -1532,11 +1532,11 @@ public class MediaPlaybackService extends Service {
             mMediaplayerHandler.removeMessages(FADEDOWN);
             mMediaplayerHandler.sendEmptyMessage(FADEUP);
 
-            updateNotification();
             if (!mIsSupposedToBePlaying) {
                 mIsSupposedToBePlaying = true;
                 notifyChange(PLAYSTATE_CHANGED);
             }
+            updateNotification();
 
         } else if (mPlayListLen <= 0) {
             // This is mostly so that if you press 'play' on a bluetooth headset
@@ -1555,10 +1555,10 @@ public class MediaPlaybackService extends Service {
                 0 /* no requestCode */, prevIntent, 0 /* no flags */);
         views.setOnClickPendingIntent(R.id.prev, prevPendingIntent);
 
-        Intent pauseIntent = new Intent(MediaPlaybackService.PAUSE_ACTION);
-        PendingIntent pausePendingIntent = PendingIntent.getBroadcast(this,
-                0 /* no requestCode */, pauseIntent, 0 /* no flags */);
-        views.setOnClickPendingIntent(R.id.pause, pausePendingIntent);
+        Intent toggleIntent = new Intent(MediaPlaybackService.TOGGLEPAUSE_ACTION);
+        PendingIntent togglePendingIntent = PendingIntent.getBroadcast(this,
+                0 /* no requestCode */, toggleIntent, 0 /* no flags */);
+        views.setOnClickPendingIntent(R.id.pause, togglePendingIntent);
 
         Intent nextIntent = new Intent(MediaPlaybackService.NEXT_ACTION);
         PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this,
@@ -1584,6 +1584,10 @@ public class MediaPlaybackService extends Service {
                     getString(R.string.notification_artist_album, artist, album)
                     );
         }
+
+        views.setImageViewResource(R.id.pause, (isPlaying() ?
+                    R.drawable.ic_appwidget_music_pause : R.drawable.ic_appwidget_music_play));
+
         Notification status = new Notification();
         status.contentView = views;
         status.flags |= Notification.FLAG_ONGOING_EVENT;
@@ -1635,10 +1639,12 @@ public class MediaPlaybackService extends Service {
             mMediaplayerHandler.removeMessages(FADEUP);
             if (isPlaying()) {
                 mPlayer.pause();
+                mIsSupposedToBePlaying = false;
                 if(idle) {
                     gotoIdleState();
+                } else {
+                    updateNotification();
                 }
-                mIsSupposedToBePlaying = false;
                 notifyChange(PLAYSTATE_CHANGED);
                 saveBookmarkIfNeeded();
             }
