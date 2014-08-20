@@ -27,6 +27,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.BROADCAST_STICKY" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
+    <uses-permission android:name="android.permission.WRITE_MEDIA_STORAGE"/>
 
     <application android:icon="@drawable/app_music"
         android:label="@string/musicbrowserlabel"
@@ -72,7 +75,8 @@
                 android:launchMode="singleTask"
                 android:clearTaskOnLaunch="true"
                 android:excludeFromRecents="true"
-                android:exported="true" >
+                android:exported="true"
+                android:configChanges="orientation|keyboardHidden" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -145,7 +149,8 @@
                 <data android:mimeType="vnd.android.cursor.dir/nowplaying"/>
             </intent-filter>
         </activity>
-        <activity android:name="com.android.music.TrackBrowserActivity" android:exported="false" >
+        <activity android:name="com.android.music.TrackBrowserActivity" android:exported="false"
+            android:configChanges="orientation|keyboardHidden|screenSize" >
             <intent-filter>
                 <action android:name="android.intent.action.EDIT" />
                 <action android:name="android.intent.action.PICK" />
@@ -155,7 +160,8 @@
         </activity>
         <activity android:name="com.android.music.QueryBrowserActivity"
                 android:theme="@android:style/Theme.NoTitleBar"
-                android:exported="true" >
+                android:exported="true"
+                android:configChanges="orientation|keyboardHidden|screenSize" >
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
                 <action android:name="android.intent.action.MEDIA_SEARCH" />
@@ -256,7 +262,8 @@
             </intent-filter>
         </activity>
         <activity android:name="com.android.music.CreatePlaylist"
-            android:theme="@android:style/Theme.Dialog" android:exported="false" />
+            android:theme="@android:style/Theme.Dialog" android:exported="false"
+            android:configChanges="orientation|keyboardHidden" />
         <activity android:name="com.android.music.RenamePlaylist"
             android:theme="@android:style/Theme.Dialog" android:exported="false" />
         <activity android:name="com.android.music.WeekSelector"
