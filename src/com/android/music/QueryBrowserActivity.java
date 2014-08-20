@@ -263,6 +263,13 @@ implements MusicUtils.Defs, ServiceConnection
                 break;
         }
     }
+
+    public boolean onKeyDown(int keyCode, KeyEvent event)  {
+        if (keyCode == KeyEvent.KEYCODE_MENU)  {
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
     
     public void init(Cursor c) {
 
