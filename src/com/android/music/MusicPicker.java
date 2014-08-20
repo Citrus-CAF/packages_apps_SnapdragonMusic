@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.text.Collator;
 import java.util.Formatter;
 import java.util.Locale;
+import android.view.KeyEvent;
 
 /**
  * Activity allowing the user to select a music track on the device, and
@@ -530,7 +531,17 @@ public class MusicPicker extends ListActivity
         mAdapter.setLoading(true);
         mAdapter.changeCursor(null);
     }
-    
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_UP &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
     /**
      * Changes the current sort order, building the appropriate query string
      * for the selected order.

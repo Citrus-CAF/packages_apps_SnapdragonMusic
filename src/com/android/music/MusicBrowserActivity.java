@@ -25,6 +25,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.view.KeyEvent;
 
 public class MusicBrowserActivity extends Activity
     implements MusicUtils.Defs {
@@ -61,6 +62,16 @@ public class MusicBrowserActivity extends Activity
             MusicUtils.unbindFromService(mToken);
         }
         super.onDestroy();
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_UP &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
     }
 
     private ServiceConnection autoshuffle = new ServiceConnection() {

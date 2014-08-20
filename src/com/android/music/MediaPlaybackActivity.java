@@ -64,6 +64,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.view.KeyEvent;
 
 
 public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
@@ -739,6 +740,17 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 break;
         }
     }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_UP &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
     private final int keyboard[][] = {
         {
             KeyEvent.KEYCODE_Q,

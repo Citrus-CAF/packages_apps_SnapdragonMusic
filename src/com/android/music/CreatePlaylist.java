@@ -35,6 +35,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.view.KeyEvent;
 
 public class CreatePlaylist extends Activity
 {
@@ -133,6 +134,16 @@ public class CreatePlaylist extends Activity
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             finish();
         }
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_UP &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
     }
 
     private String makePlaylistName() {

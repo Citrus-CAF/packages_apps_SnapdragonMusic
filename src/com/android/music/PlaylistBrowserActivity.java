@@ -53,6 +53,7 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.view.KeyEvent;
 
 import java.text.Collator;
 import java.util.ArrayList;
@@ -257,6 +258,18 @@ public class PlaylistBrowserActivity extends ListActivity
             }
         }
     };
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_UP &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
+        }
+
+        return super.dispatchKeyEvent(event);
+    }
+
     public void init(Cursor cursor) {
 
         if (mAdapter == null) {

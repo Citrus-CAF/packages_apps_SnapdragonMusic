@@ -33,6 +33,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import android.view.KeyEvent;
 
 import java.util.ArrayList;
 
@@ -71,6 +72,16 @@ public class MediaPickerActivity extends ListActivity implements MusicUtils.Defs
         if (mCursor != null) {
             mCursor.close();
         }
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_UP &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
     }
 
     public void init() {

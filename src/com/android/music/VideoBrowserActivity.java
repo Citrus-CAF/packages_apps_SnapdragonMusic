@@ -27,6 +27,7 @@ import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.view.KeyEvent;
 
 import java.lang.Integer;
 
@@ -111,6 +112,16 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
             mCursor.close();
         }
         super.onDestroy();
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_UP &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
     }
 
     private Cursor mCursor;

@@ -62,6 +62,7 @@ import android.widget.SectionIndexer;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.view.KeyEvent;
 
 import java.text.Collator;
 
@@ -225,6 +226,17 @@ public class AlbumBrowserActivity extends ListActivity
         unregisterReceiver(mTrackListListener);
         mReScanHandler.removeCallbacksAndMessages(null);
         super.onPause();
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_UP &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
+        }
+
+        return super.dispatchKeyEvent(event);
     }
 
     public void init(Cursor c) {

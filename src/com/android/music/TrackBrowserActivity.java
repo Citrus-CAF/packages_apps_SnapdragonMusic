@@ -61,6 +61,7 @@ import android.widget.SectionIndexer;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.view.KeyEvent;
 
 import java.text.Collator;
 import java.util.Arrays;
@@ -835,6 +836,10 @@ public class TrackBrowserActivity extends ListActivity
                     removeItem();
                     return true;
             }
+        } else if (event.getAction() == KeyEvent.ACTION_UP &&
+                       event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
         }
 
         return super.dispatchKeyEvent(event);
