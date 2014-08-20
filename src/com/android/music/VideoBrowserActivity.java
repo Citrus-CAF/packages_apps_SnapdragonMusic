@@ -44,10 +44,13 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
 {
     private int mSelectedPosition; // Position of selected view
     private static final int SHARE = 0; // Menu to share video
+    private static final int DELETE = 1; // Menu to delete video
     private String mFilterString = "";
+    private boolean mIsDeleteVideoItem = false;
 
     private static String EXTRA_ALL_VIDEO_FOLDER = "org.codeaurora.intent.extra.ALL_VIDEO_FOLDER";
     private static String EXTRA_ORDERBY = "org.codeaurora.intent.extra.VIDEO_LIST_ORDERBY";
+    private static String DELETE_VIDEO_ITEM = "delete.video.file";
 
     public VideoBrowserActivity()
     {
@@ -63,7 +66,8 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             mFilterString = intent.getStringExtra(SearchManager.QUERY);
         }
-
+        mIsDeleteVideoItem = getApplicationContext().getResources()
+                .getBoolean(R.bool.delete_video_item);
         init();
     }
 
@@ -85,6 +89,9 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
 
         // Menu item to share video
         menu.add(0, SHARE, 0, R.string.share);
+        if (mIsDeleteVideoItem) {
+            menu.add(0, DELETE, 0, R.string.delete_item);
+        }
     }
 
     @Override
@@ -103,6 +110,25 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
                 Uri uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id);
                 shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
                 startActivity(shareIntent);
+                return true;
+            case DELETE:
+                mCursor.moveToPosition(mSelectedPosition);
+                long videoId = mCursor.getLong(mCursor.getColumnIndexOrThrow
+                        (MediaStore.Video.Media._ID));
+                Uri videoUri = ContentUris.withAppendedId(MediaStore.Video.Media
+                        .EXTERNAL_CONTENT_URI, videoId);
+                String videoTitle= mCursor.getString(mCursor.getColumnIndexOrThrow
+                        (MediaStore.Video.Media.TITLE));
+                String videoName = getString(R.string.delete_video_item_message,
+                        videoTitle);
+                Bundle bundle = new Bundle();
+                bundle.putString("description", DELETE_VIDEO_ITEM);
+                bundle.putString("videoName", videoName);
+                bundle.putParcelable("videoUri", videoUri);
+                Intent deleteIntent = new Intent();
+                deleteIntent.setClass(this, DeleteItems.class);
+                deleteIntent.putExtras(bundle);
+                startActivity(deleteIntent);
                 return true;
         }
         return super.onContextItemSelected(item);

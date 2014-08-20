@@ -173,5 +173,7 @@
     <string name="list_empty">播放列表为空。</string>
     <string name="enable_gallery_app">视频文件无法打开，请从设置启用图库。</string>
     <string name="close_music">"结束"</string>
+    <string name="delete_video_item_message">"要删除“<xliff:g id="name">%s</xliff:g>”吗？"</string>
+    <string name="video_deleted_message">"视频文件已删除。"</string>
 
 </resources>

@@ -38,6 +38,8 @@ public class DeleteItems extends Activity
     private Button mButton;
     private long [] mItemList;
     private Uri mPlaylistUri;
+    private Uri mVideoUri;
+    private static String DELETE_VIDEO_ITEM = "delete.video.file";
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -61,9 +63,15 @@ public class DeleteItems extends Activity
 
         Bundle b = getIntent().getExtras();
         String desc = b.getString("description");
-        mPlaylistUri = b.getParcelable("Playlist");
-        if (mPlaylistUri == null) {
-            mItemList = b.getLongArray("items");
+        if (DELETE_VIDEO_ITEM.equals(desc)) {
+            String videoName = b.getString("videoName");
+            desc = videoName;
+            mVideoUri = b.getParcelable("videoUri");
+        } else {
+            mPlaylistUri = b.getParcelable("Playlist");
+            if (mPlaylistUri == null) {
+                mItemList = b.getLongArray("items");
+            }
         }
         mPrompt.setText(desc);
 
@@ -99,12 +107,17 @@ public class DeleteItems extends Activity
     
     private View.OnClickListener mButtonClicked = new View.OnClickListener() {
         public void onClick(View v) {
-            // delete the selected Playlist
-            if (mPlaylistUri != null) {
-                getContentResolver().delete(mPlaylistUri, null, null);
-                Toast.makeText(DeleteItems.this,
-                        R.string.playlist_deleted_message,
-                        Toast.LENGTH_SHORT).show();
+            // delete the selected video item
+            if (mVideoUri != null) {
+               getContentResolver().delete(mVideoUri, null, null);
+               Toast.makeText(DeleteItems.this,
+                               R.string.video_deleted_message,
+                               Toast.LENGTH_SHORT).show();
+            } else if (mPlaylistUri != null) {
+                       getContentResolver().delete(mPlaylistUri, null, null);
+                       Toast.makeText(DeleteItems.this,
+                               R.string.playlist_deleted_message,
+                               Toast.LENGTH_SHORT).show();
             } else {
                 // delete the selected item(s)
                 MusicUtils.deleteTracks(DeleteItems.this, mItemList);

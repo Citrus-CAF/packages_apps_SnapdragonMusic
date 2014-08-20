@@ -348,5 +348,7 @@
     <!-- Shown when video is played after disable Gallery app from Settings -->
     <string name="enable_gallery_app">Video cannot be played, please enable Gallery app from Settings.</string>
     <string name="close_music">"End"</string>
+    <string name="delete_video_item_message">Do you want to delete \"<xliff:g id="name">%s</xliff:g>\"?</string>
+    <string name="video_deleted_message">Video file deleted.</string>
 </resources>
 
