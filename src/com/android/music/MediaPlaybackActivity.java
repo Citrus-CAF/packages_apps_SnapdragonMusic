@@ -670,7 +670,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                         list[0] = MusicUtils.getCurrentAudioId();
                         Bundle b = new Bundle();
                         String f;
-                        if (android.os.Environment.isExternalStorageRemovable()) {
+                        String status = android.os.Environment.getExternalStorageState();
+                        if (status.equals(android.os.Environment.MEDIA_MOUNTED)) {
                             f = getString(R.string.delete_song_desc, mService.getTrackName());
                         } else {
                             f = getString(R.string.delete_song_desc_nosdcard, mService.getTrackName());
