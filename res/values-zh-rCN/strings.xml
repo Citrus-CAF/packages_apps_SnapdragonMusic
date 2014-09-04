@@ -176,4 +176,6 @@
     <string name="delete_video_item_message">"要删除“<xliff:g id="name">%s</xliff:g>”吗？"</string>
     <string name="video_deleted_message">"视频文件已删除。"</string>
 
+    <string name="more_music">更多音乐</string>
+    <string name="more_video">更多视频</string>
 </resources>

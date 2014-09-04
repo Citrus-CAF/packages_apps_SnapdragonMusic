@@ -97,9 +97,11 @@ public class MusicUtils {
         public final static int SCAN_DONE = 11;
         public final static int QUEUE = 12;
         public final static int EFFECTS_PANEL = 13;
-        public final static int USE_AS_RINGTONE_2 = 14;
-        public final static int CHILD_MENU_BASE = 15;
-        public final static int CLOSE = 16; // this should be the last item;
+        public final static int MORE_MUSIC = 14;
+        public final static int MORE_VIDEO = 15;
+        public final static int USE_AS_RINGTONE_2 = 16;
+        public final static int CHILD_MENU_BASE = 17;
+        public final static int CLOSE = 18; // this should be the last item;
     }
 
     public static String makeAlbumsLabel(Context context, int numalbums, int numsongs, boolean isUnknown) {

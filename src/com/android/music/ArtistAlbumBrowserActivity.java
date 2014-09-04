@@ -305,6 +305,10 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
         menu.add(0, PARTY_SHUFFLE, 0, R.string.party_shuffle); // icon will be set in onPrepareOptionsMenu()
         menu.add(0, SHUFFLE_ALL, 0, R.string.shuffle_all).setIcon(R.drawable.ic_menu_shuffle);
         menu.add(0, CLOSE, 0, R.string.close_music).setIcon(R.drawable.quick_panel_music_close);
+
+        if (getResources().getBoolean(R.bool.def_music_add_more_video_enabled))
+            menu.add(0, MORE_MUSIC, 0, R.string.more_music).setIcon(
+                    R.drawable.ic_menu_music_library);
         return true;
     }
     
@@ -319,6 +323,12 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
         Intent intent;
         Cursor cursor;
         switch (item.getItemId()) {
+            case MORE_MUSIC:
+                Uri MoreUri = Uri
+                        .parse(getResources().getString(R.string.def_music_add_more_music));
+                Intent MoreIntent = new Intent(Intent.ACTION_VIEW, MoreUri);
+                startActivity(MoreIntent);
+                break;
             case PARTY_SHUFFLE:
                 MusicUtils.togglePartyShuffle();
                 AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);

@@ -30,6 +30,7 @@ import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.KeyEvent;
@@ -72,6 +73,28 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        if (getResources().getBoolean(R.bool.def_music_add_more_video_enabled))
+            menu.add(0, MORE_VIDEO, 0, R.string.more_video).setIcon(
+                    R.drawable.ic_menu_set_as_ringtone);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case MORE_VIDEO:
+                Uri MoreUri = Uri
+                        .parse(getResources().getString(R.string.def_music_add_more_video));
+                Intent MoreIntent = new Intent(Intent.ACTION_VIEW, MoreUri);
+                startActivity(MoreIntent);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void onCreateContextMenu(ContextMenu menu, View v,
             ContextMenuInfo menuInfo) {
         // Get position of selected view
@@ -87,6 +110,9 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
                 MediaStore.Video.Media.TITLE));
         menu.setHeaderTitle(currentVideoName);
 
+        if (getResources().getBoolean(R.bool.def_music_play_selection_enabled)) {
+            menu.add(0, PLAY_SELECTION, 0, R.string.play_selection);
+        }
         // Menu item to share video
         menu.add(0, SHARE, 0, R.string.share);
         if (mIsDeleteVideoItem) {
@@ -97,6 +123,25 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case PLAY_SELECTION: {
+                // play the video
+                int position = mSelectedPosition;
+                mCursor.moveToPosition(position);
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                long id = mCursor.getLong(mCursor.getColumnIndexOrThrow(
+                        MediaStore.Video.Media._ID));
+                String type = mCursor.getString(mCursor.getColumnIndexOrThrow(
+                        MediaStore.Video.Media.MIME_TYPE));
+                intent.setDataAndType(ContentUris.withAppendedId(MediaStore.Video
+                        .Media.EXTERNAL_CONTENT_URI, id), type);
+                try {
+                    startActivity(intent);
+                } catch (ActivityNotFoundException ex) {
+                    Toast.makeText(this, R.string.enable_gallery_app, Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            }
+
             case SHARE:
                 // Send intent to share video
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
