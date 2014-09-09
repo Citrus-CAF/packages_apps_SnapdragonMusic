@@ -119,6 +119,10 @@
     <!-- Songs screen title -->
     <string name="tracks_title">Songs</string>
     <!-- Category label on Library screen -->
+    <string name="folder_menu">Folder</string>
+    <!-- Folder screen title -->
+    <string name="folders_title">Folder</string>
+    <!-- Category label on Library screen -->
     <string name="playlists_menu">Playlists</string>
     <!-- Playlists screen title -->
     <string name="playlists_title">Playlists</string>
@@ -191,6 +195,10 @@
     <string name="unknown_artist_name">Unknown artist</string>
     <!-- Default name of album that doesn't have a name in the metadata -->
     <string name="unknown_album_name">Unknown album</string>
+    <!-- Default name of folder that doesn't have a path in the metadata -->
+    <string name="unknown_folder_name">Unknown path</string>
+    <!-- Default name of folder that doesn't have a count in the metadata -->
+    <string name="unknown_folder_count">Unknown count</string>
     <!-- Toast after turning shuffle on -->
     <string name="shuffle_on_notif">Shuffle is on.</string>
     <!-- Toast after turning shuffle off -->
@@ -300,6 +308,8 @@
     <string name="working_albums">Albums\u2026</string>
     <!-- Shown in the title bar while the list of songs is being retrieved in the background -->
     <string name="working_songs">Songs\u2026</string>
+    <!-- Shown in the title bar while the list of folders is being retrieved in the background -->
+    <string name="working_folders">Folders\u2026</string>
     <!-- Shown in the title bar while the list of playlists is being retrieved in the background -->
     <string name="working_playlists">Playlists\u2026</string>
 

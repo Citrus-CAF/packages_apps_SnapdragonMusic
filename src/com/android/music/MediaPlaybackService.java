@@ -2209,6 +2209,15 @@ public class MediaPlaybackService extends Service {
         }
     }
 
+    public String getData() {
+        synchronized (this) {
+            if (mCursor == null) {
+                return null;
+            }
+            return mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+        }
+    }
+
     private boolean isPodcast() {
         synchronized (this) {
             if (mCursor == null) {
@@ -2841,6 +2850,9 @@ public class MediaPlaybackService extends Service {
         }
         public long getArtistId() {
             return mService.get().getArtistId();
+        }
+        public String getData() {
+            return mService.get().getData();
         }
         public void enqueue(long [] list , int action) {
             mService.get().enqueue(list, action);

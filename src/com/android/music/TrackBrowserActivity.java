@@ -96,6 +96,8 @@ public class TrackBrowserActivity extends ListActivity
     private String mPlaylist;
     private String mGenre;
     private String mSortOrder;
+    private int mParent = -1;
+    private String mRootPath;
     private int mSelectedPosition;
     private long mSelectedId;
     private static int mLastListPosCourse = -1;
@@ -127,6 +129,10 @@ public class TrackBrowserActivity extends ListActivity
             mArtistId = icicle.getString("artist");
             mPlaylist = icicle.getString("playlist");
             mGenre = icicle.getString("genre");
+            if (MusicUtils.isGroupByFolder()) {
+                mParent = icicle.getInt("parent", -1);
+                mRootPath = icicle.getString("rootPath");
+            }
             mEditMode = icicle.getBoolean("editmode", false);
         } else {
             mAlbumId = intent.getStringExtra("album");
@@ -135,6 +141,10 @@ public class TrackBrowserActivity extends ListActivity
             mArtistId = intent.getStringExtra("artist");
             mPlaylist = intent.getStringExtra("playlist");
             mGenre = intent.getStringExtra("genre");
+            if (MusicUtils.isGroupByFolder()) {
+                mParent = intent.getIntExtra("parent", -1);
+                mRootPath = intent.getStringExtra("rootPath");
+            }
             mEditMode = intent.getAction().equals(Intent.ACTION_EDIT);
         }
 
@@ -499,6 +509,8 @@ public class TrackBrowserActivity extends ListActivity
                     }    
                     cursor.deactivate();
                 }
+            } else if (mRootPath != null) {
+                fancyName = mRootPath;
                 if (fancyName == null || fancyName.equals(MediaStore.UNKNOWN_STRING)) {
                     fancyName = getString(R.string.unknown_album_name);
                 }
@@ -1147,6 +1159,13 @@ public class TrackBrowserActivity extends ListActivity
                 ret = queryhandler.doQuery(uri, mPlaylistMemberCols,
                         where.toString(), null, mSortOrder, async);
             }
+        } else if (MusicUtils.isGroupByFolder() && mParent >= 0) {
+            String uriString = "content://media/external/audio/folder/" + mParent;
+            Uri uri = Uri.parse(uriString);
+            where.append(" AND " + MediaStore.Audio.Media.IS_MUSIC + "=1");
+            ret = queryhandler.doQuery(uri,
+                    null, where.toString(), null, mSortOrder, async);
+            return ret;
         } else {
             if (mAlbumId != null) {
                 where.append(" AND " + MediaStore.Audio.Media.ALBUM_ID + "=" + mAlbumId);

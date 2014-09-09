@@ -45,6 +45,7 @@ public class MusicBrowserActivity extends Activity
         if (activeTab != R.id.artisttab
                 && activeTab != R.id.albumtab
                 && activeTab != R.id.songtab
+                && activeTab != R.id.foldertab
                 && activeTab != R.id.playlisttab) {
             activeTab = R.id.artisttab;
         }
