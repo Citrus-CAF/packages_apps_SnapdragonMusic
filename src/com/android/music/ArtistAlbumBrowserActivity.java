@@ -568,7 +568,7 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
     
     static class ArtistAlbumListAdapter extends SimpleCursorTreeAdapter implements SectionIndexer {
         
-        private final Drawable mNowPlayingOverlay;
+        private Drawable mNowPlayingOverlay;
         private final BitmapDrawable mDefaultAlbumIcon;
         private int mGroupArtistIdIdx;
         private int mGroupArtistIdx;
@@ -708,6 +708,14 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
             
             long currentartistid = MusicUtils.getCurrentArtistId();
             long artistid = cursor.getLong(mGroupArtistIdIdx);
+
+            // We set different icon according to different play state
+            if (MusicUtils.isPlaying()) {
+                mNowPlayingOverlay = mResources.getDrawable(R.drawable.indicator_ic_mp_playing_list);
+            } else {
+                mNowPlayingOverlay = mResources.getDrawable(R.drawable.indicator_ic_mp_pause_list);
+            }
+
             if (currentartistid == artistid && !isexpanded) {
                 vh.play_indicator.setImageDrawable(mNowPlayingOverlay);
             } else {
@@ -771,6 +779,15 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
             long currentalbumid = MusicUtils.getCurrentAlbumId();
             long aid = cursor.getLong(0);
             iv = vh.play_indicator;
+
+            // We set different icon according to different play state
+            Resources res = context.getResources();
+            if (MusicUtils.isPlaying()) {
+                mNowPlayingOverlay = res.getDrawable(R.drawable.indicator_ic_mp_playing_list);
+            } else {
+                mNowPlayingOverlay = res.getDrawable(R.drawable.indicator_ic_mp_pause_list);
+            }
+
             if (currentalbumid == aid) {
                 iv.setImageDrawable(mNowPlayingOverlay);
             } else {

@@ -54,6 +54,7 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.Window;
+import android.widget.ImageView;
 import android.widget.TabWidget;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -1289,6 +1290,7 @@ public class MusicUtils {
             if (true && MusicUtils.sService != null && MusicUtils.sService.getAudioId() != -1) {
                 TextView title = (TextView) nowPlayingView.findViewById(R.id.title);
                 TextView artist = (TextView) nowPlayingView.findViewById(R.id.artist);
+                ImageView image = (ImageView) nowPlayingView.findViewById(R.id.icon);
                 title.setText(MusicUtils.sService.getTrackName());
                 String artistName = MusicUtils.sService.getArtistName();
                 if (MediaStore.UNKNOWN_STRING.equals(artistName)) {
@@ -1298,6 +1300,13 @@ public class MusicUtils {
                 //mNowPlayingView.setOnFocusChangeListener(mFocuser);
                 //mNowPlayingView.setOnClickListener(this);
                 nowPlayingView.setVisibility(View.VISIBLE);
+
+                if (isPlaying()) {
+                    image.setImageResource(R.drawable.indicator_ic_mp_playing_large);
+                } else {
+                    image.setImageResource(R.drawable.indicator_ic_mp_pause_large);
+                }
+
                 nowPlayingView.setOnClickListener(new View.OnClickListener() {
 
                     public void onClick(View v) {
@@ -1410,7 +1419,7 @@ public class MusicUtils {
         }
     }
 
-    public static int getAudioIDFromPath(Context context,String path){
+    public static int getAudioIDFromPath(Context context,String path) {
         int id = 0;
         String[] columns = new String[] { MediaStore.Audio.Media._ID };
         String where = MediaStore.Audio.Media.DISPLAY_NAME + "=?";
@@ -1429,5 +1438,19 @@ public class MusicUtils {
             }
         }
         return id;
+    }
+
+    /**
+     *
+     * @return true if one track is palying. Otherwise false
+     */
+    public static boolean isPlaying() {
+        if (sService != null) {
+            try {
+                return sService.isPlaying();
+            } catch (RemoteException ex) {
+            }
+        }
+        return false;
     }
 }

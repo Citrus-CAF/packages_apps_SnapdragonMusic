@@ -314,17 +314,20 @@ public class TrackBrowserActivity extends ListActivity
             getListView().invalidateViews();
         }
         MusicUtils.setSpinnerState(this);
-
         if (mAlbumId != null && mTrackCursor != null){
             if (mTrackCursor.getCount() == 0){
                 setResult(RESULT_OK);
                 finish();
             }
         }
+        IntentFilter stateIntentfilter = new IntentFilter();
+        stateIntentfilter.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
+        registerReceiver(mStatusListener, stateIntentfilter);
     }
     @Override
     public void onPause() {
         mReScanHandler.removeCallbacksAndMessages(null);
+        unregisterReceiver(mStatusListener);
         super.onPause();
     }
     
@@ -341,6 +344,19 @@ public class TrackBrowserActivity extends ListActivity
                 MusicUtils.setSpinnerState(TrackBrowserActivity.this);
             }
             mReScanHandler.sendEmptyMessage(0);
+        }
+    };
+
+    // Receiver of PLAYSTATE_CHANGED to set the icon of play state
+    private BroadcastReceiver mStatusListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
+                if (null != mAdapter)
+                    getTrackCursor(mAdapter.getQueryHandler(), null,true);
+                    MusicUtils.updateNowPlaying(TrackBrowserActivity.this);
+            }
         }
     };
     
@@ -1604,7 +1620,12 @@ public class TrackBrowserActivity extends ListActivity
             // which is not really a playlist)
             if ( (mIsNowPlaying && cursor.getPosition() == id) ||
                  (!mIsNowPlaying && !mDisableNowPlayingIndicator && cursor.getLong(mAudioIdIdx) == id)) {
-                iv.setImageResource(R.drawable.indicator_ic_mp_playing_list);
+                // We set different icon according to different play state
+                if (MusicUtils.isPlaying()) {
+                    iv.setImageResource(R.drawable.indicator_ic_mp_playing_list);
+                } else {
+                    iv.setImageResource(R.drawable.indicator_ic_mp_pause_list);
+                }
                 iv.setVisibility(View.VISIBLE);
             } else {
                 iv.setVisibility(View.GONE);
