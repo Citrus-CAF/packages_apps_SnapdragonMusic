@@ -317,6 +317,7 @@ public class MediaPlaybackService extends Service {
                         mCursor = getCursorForId(mPlayList[mPlayPos]);
                     }
                     notifyChange(META_CHANGED);
+                    notifyChange(PLAYSTATE_CHANGED);
                     updateNotification();
                     setNextTrack();
                     break;
@@ -1754,6 +1755,7 @@ public class MediaPlaybackService extends Service {
             openCurrentAndNext();
             play();
             notifyChange(META_CHANGED);
+            notifyChange(PLAYSTATE_CHANGED);
         }
     }
 
@@ -1883,6 +1885,7 @@ public class MediaPlaybackService extends Service {
             mAppWidgetProvider.setPauseState(false);
             play();
             notifyChange(META_CHANGED);
+            notifyChange(PLAYSTATE_CHANGED);
         }
     }
     
