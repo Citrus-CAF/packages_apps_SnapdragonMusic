@@ -25,8 +25,8 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dip"
         android:layout_marginTop="8dip"
-        android:layout_marginLeft="8dip"
-        android:layout_marginRight="8dip">
+        android:layout_marginStart="8dip"
+        android:layout_marginEnd="8dip">
 
         <ImageView
             android:layout_width="wrap_content"
@@ -36,7 +36,7 @@
         <TextView android:id="@+id/prompt"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="@string/create_playlist_create_text_prompt"
-            android:layout_marginLeft="8dip">
+            android:layout_marginStart="8dip">
         </TextView>
     </LinearLayout>
 
@@ -58,12 +58,12 @@
         <Button android:id="@+id/create"
             android:layout_width="120dip" android:layout_height="wrap_content" 
             android:text="@string/create_playlist_create_text"
-            android:layout_alignParentLeft="true" />
+            android:layout_alignParentStart="true" />
 
         <Button android:id="@+id/cancel"
             android:layout_width="120dip" android:layout_height="wrap_content" 
             android:text="@string/cancel"
-            android:layout_alignParentRight="true" />
+            android:layout_alignParentEnd="true" />
 
     </RelativeLayout>
 

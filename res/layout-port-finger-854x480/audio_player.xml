@@ -42,18 +42,18 @@
        <ImageButton android:id="@+id/shuffle"
             android:layout_width="72dip"
             android:layout_height="54dip"
-            android:layout_marginLeft="9dip" />
+            android:layout_marginStart="9dip" />
 
        <ImageButton android:id="@+id/repeat"
             android:layout_width="72dip"
             android:layout_height="54dip"
-            android:layout_marginLeft="9dip" />
+            android:layout_marginStart="9dip" />
 
         <ImageButton android:id="@+id/sound_effect"
             android:src="@drawable/ic_mp_sound_effect_btn"
             android:layout_width="72dip"
             android:layout_height="54dip"
-            android:layout_marginLeft="9dip" />
+            android:layout_marginStart="9dip" />
     </LinearLayout>
 
     <LinearLayout
@@ -61,14 +61,14 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:baselineAligned="false"
-        android:paddingLeft="11dip"
+        android:paddingStart="11dip"
         android:paddingTop="2dip"
         android:paddingBottom="4dip">
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="4dip"
+            android:layout_marginEnd="4dip"
             android:src="@drawable/ic_mp_artist_playback" />
 
         <TextView android:id="@+id/artistname"
@@ -87,14 +87,14 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:baselineAligned="false"
-        android:paddingLeft="11dip"
+        android:paddingStart="11dip"
         android:paddingTop="4dip"
         android:paddingBottom="8dip">
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="4dip"
+            android:layout_marginEnd="4dip"
             android:src="@drawable/ic_mp_album_playback" />
 
         <TextView android:id="@+id/albumname"
@@ -112,14 +112,14 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:baselineAligned="false"
-        android:paddingLeft="11dip"
+        android:paddingStart="11dip"
         android:paddingTop="0dip"
         android:paddingBottom="8dip">
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="4dip"
+            android:layout_marginEnd="4dip"
             android:src="@drawable/ic_mp_song_playback" />
 
         <TextView android:id="@+id/trackname"

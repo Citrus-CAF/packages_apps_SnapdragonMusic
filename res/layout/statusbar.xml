@@ -26,8 +26,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:paddingLeft="20dip"
-        android:paddingRight="20dip">
+        android:paddingEnd="20dip"
+        android:paddingStart="20dip">
     </ImageView>
 
     <LinearLayout
@@ -44,7 +44,7 @@
                 style="@android:style/TextAppearance.StatusBar.EventContent.Title"
                 android:layout_width="230dip"
                 android:layout_height="wrap_content"
-                android:layout_gravity="left"
+                android:layout_gravity="start"
                 android:ellipsize="marquee"
                 android:focusable="true"
                 android:singleLine="true" />
@@ -74,7 +74,7 @@
                 style="@android:style/TextAppearance.StatusBar.EventContent"
                 android:layout_width="120dip"
                 android:layout_height="wrap_content"
-                android:layout_gravity="left"
+                android:layout_gravity="start"
                 android:ellipsize="end"
                 android:maxLines="2"
                 android:scrollHorizontally="true"/>

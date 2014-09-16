@@ -29,7 +29,7 @@
         android:gravity="center_vertical"
         android:ignoreGravity="@+id/icon"
         android:background="@drawable/playlist_tile"
-        android:paddingLeft="47dip"
+        android:paddingStart="47dip"
         >
 
         <include layout="@layout/track_list_item_common" />

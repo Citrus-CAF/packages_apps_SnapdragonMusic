@@ -34,7 +34,8 @@
     <application android:icon="@drawable/app_music"
         android:label="@string/musicbrowserlabel"
         android:taskAffinity="android.task.music"
-        android:allowTaskReparenting="true">
+        android:allowTaskReparenting="true"
+        android:supportsRtl="true" >
         <meta-data
             android:name="android.app.default_searchable"
             android:value="com.android.music.QueryBrowserActivity"

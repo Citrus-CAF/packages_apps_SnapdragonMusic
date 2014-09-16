@@ -24,8 +24,8 @@
         android:text="@string/create_playlist_create_text_prompt"
         android:layout_marginTop="8dip"
         android:layout_marginBottom="8dip"
-        android:layout_marginLeft="8dip"
-        android:layout_marginRight="8dip">
+        android:layout_marginStart="8dip"
+        android:layout_marginEnd="8dip">
     </TextView>
 
     <EditText android:id="@+id/playlist"
@@ -34,8 +34,8 @@
         android:inputType="textCapSentences"
         android:maxLength ="200"
         android:layout_marginBottom="8dip"
-        android:layout_marginLeft="8dip"
-        android:layout_marginRight="8dip">
+        android:layout_marginStart="8dip"
+        android:layout_marginEnd="8dip">
         <requestFocus />
     </EditText>
 
@@ -48,12 +48,12 @@
         <Button android:id="@+id/create"
             android:layout_width="120dip" android:layout_height="wrap_content" 
             android:text="@string/create_playlist_create_text"
-            android:layout_alignParentLeft="true" />
+            android:layout_alignParentStart="true" />
 
         <Button android:id="@+id/cancel"
             android:layout_width="120dip" android:layout_height="wrap_content" 
             android:text="@string/cancel"
-            android:layout_alignParentRight="true" />
+            android:layout_alignParentEnd="true" />
 
     </RelativeLayout>
 
