@@ -1873,6 +1873,16 @@ public class MediaPlaybackService extends Service {
                     mIsSupposedToBePlaying = false;
                     notifyChange(PLAYSTATE_CHANGED);
                 }
+
+                // no more clip, then reset playback state icon in status bar
+                if (views != null && status != null && mControlInStatusBar) {
+                    views.setImageViewResource(R.id.pause, android.R.drawable.ic_media_play);
+                    Intent playIntent = new Intent(TOGGLEPAUSE_ACTION);
+                    PendingIntent playPendingIntent = PendingIntent.getBroadcast(this,
+                            0 /* no requestCode */, playIntent, 0 /* no flags */);
+                    views.setOnClickPendingIntent(R.id.pause, playPendingIntent);
+                    startForeground(PLAYBACKSERVICE_STATUS, status);
+                }
                 return;
             }
             mPlayPos = pos;
