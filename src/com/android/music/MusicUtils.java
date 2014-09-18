@@ -44,6 +44,8 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
+import android.os.storage.StorageManager;
+import android.os.storage.StorageVolume;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.text.TextUtils;
@@ -1507,5 +1509,25 @@ public class MusicUtils {
 
     public static boolean isGroupByFolder() {
         return mGroupByFolder;
+    }
+
+    static String getSDPath(Context context) {
+        String sd = null;
+        StorageManager mStorageManager = (StorageManager) context
+                .getSystemService(Context.STORAGE_SERVICE);
+        StorageVolume[] volumes = mStorageManager.getVolumeList();
+        for (int i = 0; i < volumes.length; i++) {
+            if (volumes[i].isRemovable() && volumes[i].allowMassStorage()
+                    && volumes[i].getDescription(context).contains("SD")) {
+                sd = volumes[i].getPath();
+            }
+        }
+        return sd;
+    }
+
+    public static String getSDState(Context context) {
+        StorageManager mStorageManager = (StorageManager) context
+                .getSystemService(Context.STORAGE_SERVICE);
+        return mStorageManager.getVolumeState(getSDPath(context));
     }
 }

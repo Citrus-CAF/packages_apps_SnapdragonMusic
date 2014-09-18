@@ -779,7 +779,7 @@ public class TrackBrowserActivity extends ListActivity
                 list[0] = (int) mSelectedId;
                 Bundle b = new Bundle();
                 String f;
-                String status = android.os.Environment.getExternalStorageState();
+                String status = MusicUtils.getSDState(TrackBrowserActivity.this);
                 if (status.equals(android.os.Environment.MEDIA_MOUNTED)) {
                     f = getString(R.string.delete_song_desc); 
                 } else {

@@ -343,7 +343,7 @@ public class AlbumBrowserActivity extends ListActivity
             case DELETE_ITEM: {
                 long [] list = MusicUtils.getSongListForAlbum(this, Long.parseLong(mCurrentAlbumId));
                 String f;
-                String status = android.os.Environment.getExternalStorageState();
+                String status = MusicUtils.getSDState(AlbumBrowserActivity.this);
                 if (status.equals(android.os.Environment.MEDIA_MOUNTED)) {
                     f = getString(R.string.delete_album_desc);
                 } else {

@@ -695,7 +695,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                         list[0] = MusicUtils.getCurrentAudioId();
                         Bundle b = new Bundle();
                         String f;
-                        String status = android.os.Environment.getExternalStorageState();
+                        String status = MusicUtils.getSDState(MediaPlaybackActivity.this);
                         if (status.equals(android.os.Environment.MEDIA_MOUNTED)) {
                             f = getString(R.string.delete_song_desc, mService.getTrackName());
                         } else {

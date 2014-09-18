@@ -469,7 +469,7 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
                 if (mCurrentArtistId != null) {
                     list = MusicUtils.getSongListForArtist(this, Long.parseLong(mCurrentArtistId));
                     String f;
-                    String status = android.os.Environment.getExternalStorageState();
+                    String status = MusicUtils.getSDState(ArtistAlbumBrowserActivity.this);
                     if (status.equals(android.os.Environment.MEDIA_MOUNTED)) {
                         f = getString(R.string.delete_artist_desc);
                     } else {
