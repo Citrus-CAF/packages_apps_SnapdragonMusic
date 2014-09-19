@@ -62,7 +62,10 @@ public class SysApplication extends Application {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            System.exit(0);
+            if (AudioPreview.getInstance() == null
+                    || AudioPreview.getInstance().isDestroyed()) {
+                System.exit(0);
+            }
         }
     }
 

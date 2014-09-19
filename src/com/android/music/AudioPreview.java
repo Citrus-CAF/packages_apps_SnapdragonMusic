@@ -81,11 +81,13 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     private int mSeekStopPosition;
     private boolean isCompleted = false;
     private Uri mMediaUri = null;
+    private static AudioPreview mAudioPreview;
 
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-        
+
+        mAudioPreview = this;
         Intent intent = getIntent();
         if (intent == null) {
             finish();
@@ -544,6 +546,9 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
             case KeyEvent.KEYCODE_MEDIA_STOP:
             case KeyEvent.KEYCODE_BACK:
                 stopPlayback();
+                if (MusicUtils.sService == null) {
+                    System.exit(0);
+                }
                 finish();
                 return true;
         }
@@ -583,6 +588,10 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         boolean isPrepared() {
             return mIsPrepared;
         }
+    }
+
+    public static AudioPreview getInstance(){
+        return mAudioPreview;
     }
 
 }
