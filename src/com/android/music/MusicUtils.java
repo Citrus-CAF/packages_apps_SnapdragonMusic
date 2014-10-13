@@ -886,6 +886,12 @@ public class MusicUtils {
 
             if (mPlayAllFromMenu){
                 sService.setShuffleMode(MediaPlaybackService.SHUFFLE_NONE);
+
+                //If the repeat mode is REPEAT_CURRENT, we should change mode to REPEAT_ALL
+                if (sService.getRepeatMode() == MediaPlaybackService.REPEAT_CURRENT) {
+                    sService.setRepeatMode(MediaPlaybackService.REPEAT_ALL);
+                }
+
                 mPlayAllFromMenu = false;
             }
 
