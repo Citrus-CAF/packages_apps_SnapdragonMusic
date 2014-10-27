@@ -700,6 +700,8 @@ public class MusicPicker extends ListActivity
                 getListView().invalidateViews();
             } catch (IOException e) {
                 Log.w("MusicPicker", "Unable to play track", e);
+            } catch (NullPointerException e) {
+                Log.w("MusicPicker", "The mSelectedUri is invalid", e);
             }
         } else if (mMediaPlayer != null) {
             stopMediaPlayer();
