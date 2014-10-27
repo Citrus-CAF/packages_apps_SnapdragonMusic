@@ -1633,6 +1633,10 @@ public class MediaPlaybackService extends Service {
     }
 
     private void stop(boolean remove_status_icon) {
+        if (remove_status_icon) {
+            mIsSupposedToBePlaying = false;
+            notifyChange(PLAYSTATE_CHANGED);
+        }
         if (mPlayer != null && mPlayer.isInitialized()) {
             mPlayer.stop();
         }
