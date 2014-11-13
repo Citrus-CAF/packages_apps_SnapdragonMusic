@@ -2199,9 +2199,14 @@ public class MediaPlaybackService extends Service {
     public int getShuffleMode() {
         return mShuffleMode;
     }
-    
+
     public void setRepeatMode(int repeatmode) {
         synchronized(this) {
+            /* mPlayList not initialized */
+            if (mPlayList == null) {
+                Log.e(LOGTAG, "mPlayList not initialized");
+                return;
+            }
             mRepeatMode = repeatmode;
             setNextTrack();
             notifyAttributeValues(PLAYERSETTINGS_RESPONSE,
