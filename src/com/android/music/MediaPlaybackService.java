@@ -647,7 +647,11 @@ public class MediaPlaybackService extends Service {
         }
         ed.putInt("curpos", mPlayPos);
         if (mPlayer.isInitialized()) {
-            ed.putLong("seekpos", mPlayer.position());
+            if (mPlayer.isComplete() && mControlInStatusBar) {
+                ed.putLong("seekpos", mPlayer.duration());
+            } else {
+                ed.putLong("seekpos", mPlayer.position());
+            }
         }
         ed.putInt("repeatmode", mRepeatMode);
         ed.putInt("shufflemode", mShuffleMode);
@@ -747,7 +751,7 @@ public class MediaPlaybackService extends Service {
             }
             
             long seekpos = mPreferences.getLong("seekpos", 0);
-            seek(seekpos >= 0 && seekpos < duration() ? seekpos : 0);
+            seek(seekpos >= 0 && seekpos <= duration() ? seekpos : 0);
             Log.d(LOGTAG, "restored queue, currently at position "
                     + position() + "/" + duration()
                     + " (requested " + seekpos + ")");
@@ -1542,6 +1546,16 @@ public class MediaPlaybackService extends Service {
         mAudioManager.registerRemoteControlClient(mRemoteControlClient);
 
         if (mPlayer.isInitialized()) {
+            // if we are at the end of the song, playing it again.
+            if (mControlInStatusBar) {
+                long duration = mPlayer.duration();
+                long currentpos = mPlayer.position();
+                if (mRepeatMode != REPEAT_CURRENT && mRepeatMode != REPEAT_ALL
+                        && mPlayPos >= mPlayListLen - 1 && currentpos > 0
+                        && currentpos == duration) {
+                    seek(0);
+                }
+            }
             mPlayer.start();
             // make sure we fade in, in case a previous fadein was stopped because
             // of another focus loss
