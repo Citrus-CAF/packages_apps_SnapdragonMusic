@@ -826,6 +826,10 @@ public class MediaPlaybackService extends Service {
 
     private void getNowPlayingEntries() {
         Log.i(LOGTAG,  "getNowPlayingEntries: num of items: " + mPlayListLen);
+        if (mPlayList == null) {
+            Log.i(LOGTAG,"getNowPlayingEntries: mPlayListLen is null");
+            return;
+        }
         synchronized (mPlayList) {
             mRemoteControlClient.updateNowPlayingEntries(mPlayList);
         }
