@@ -2189,13 +2189,13 @@ public class MediaPlaybackService extends Service {
     
     public void setShuffleMode(int shufflemode) {
         synchronized(this) {
+            notifyAttributeValues(PLAYERSETTINGS_RESPONSE,
+                            mAttributePairs, SET_ATTRIBUTE_VALUES,
+                            ATTRIBUTE_SHUFFLEMODE);
             if (mShuffleMode == shufflemode && mPlayListLen > 0) {
                 return;
             }
             mShuffleMode = shufflemode;
-            notifyAttributeValues(PLAYERSETTINGS_RESPONSE,
-                            mAttributePairs, SET_ATTRIBUTE_VALUES,
-                            ATTRIBUTE_SHUFFLEMODE);
             if (mShuffleMode == SHUFFLE_AUTO) {
                 if (makeAutoShuffleList()) {
                     mPlayListLen = 0;
