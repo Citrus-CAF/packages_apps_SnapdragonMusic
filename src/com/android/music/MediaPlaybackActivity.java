@@ -1660,7 +1660,17 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 String filePath = MusicUtils.getSelectAudioPath(
                         MediaPlaybackActivity.this, songid);
             }
-            mDuration = mService.duration();
+
+            // fetch clip duration from media database if available
+            Cursor cursor = MusicUtils.query(this,
+                    ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songid),
+                    new String [] { MediaStore.Audio.Media.DURATION}, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                mDuration = cursor.getInt(0);
+                cursor.close();
+            } else {
+                mDuration = mService.duration();
+            }
             mTotalTime.setText(MusicUtils
                     .makeTimeString(this, mDuration / 1000));
         } catch (RemoteException ex) {
