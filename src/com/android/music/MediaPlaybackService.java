@@ -2238,9 +2238,13 @@ public class MediaPlaybackService extends Service {
 
     public void setShuffleMode(int shufflemode) {
         synchronized(this) {
-            notifyAttributeValues(PLAYERSETTINGS_RESPONSE,
-                            mAttributePairs, SET_ATTRIBUTE_VALUES);
             if (mShuffleMode == shufflemode && mPlayListLen > 0) {
+            /**
+             * Some carkits send Shuffle Values same as our current
+             * values. In such cases we need to respond back to ck
+             */
+                notifyAttributeValues(PLAYERSETTINGS_RESPONSE,
+                            mAttributePairs, SET_ATTRIBUTE_VALUES);
                 return;
             }
             mShuffleMode = shufflemode;
@@ -2252,12 +2256,16 @@ public class MediaPlaybackService extends Service {
                     openCurrentAndNext();
                     play();
                     notifyChange(META_CHANGED);
+                    notifyAttributeValues(PLAYERSETTINGS_RESPONSE,
+                            mAttributePairs, SET_ATTRIBUTE_VALUES);
                     return;
                 } else {
                     // failed to build a list of files to shuffle
                     mShuffleMode = SHUFFLE_NONE;
                 }
             }
+            notifyAttributeValues(PLAYERSETTINGS_RESPONSE,
+                            mAttributePairs, SET_ATTRIBUTE_VALUES);
             notifyChange(SHUFFLE_CHANGED);
             saveQueue(false);
         }
