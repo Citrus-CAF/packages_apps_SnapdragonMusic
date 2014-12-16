@@ -36,6 +36,18 @@
             android:layout_marginEnd="15dip"
             android:layout_marginTop="12dip" />
 
+        <ImageView android:id="@+id/drm_lock"
+            android:background="#000000"
+            android:layout_width="wrap_content"
+            android:layout_marginLeft="-45dip"
+            android:layout_marginRight="2dip"
+            android:layout_marginBottom="10dip"
+            android:visibility="gone"
+            android:layout_height="wrap_content"
+            android:gravity="bottom"
+            android:layout_gravity="bottom"
+            android:src="@drawable/drm_image"/>
+
         <!-- This is the LinearLayout that contains function buttons and album/artist/track info -->
         <LinearLayout
             android:layout_width="0dip"

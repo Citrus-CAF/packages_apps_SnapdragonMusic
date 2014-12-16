@@ -20,16 +20,21 @@ import android.app.ListActivity;
 import android.content.AsyncQueryHandler;
 import android.content.BroadcastReceiver;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
+import android.drm.DrmManagerClient;
+import android.drm.DrmRights;
+import android.drm.DrmStore.DrmDeliveryType;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -46,6 +51,7 @@ import android.widget.RadioButton;
 import android.widget.SectionIndexer;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.text.Collator;
@@ -156,6 +162,8 @@ public class MusicPicker extends ListActivity
 
     /** This is used for playing previews of the music files. */
     MediaPlayer mMediaPlayer;
+
+    boolean mIsAsAlarm = false;
 
     /**
      * A special implementation of SimpleCursorAdapter that knows how to bind
@@ -420,6 +428,8 @@ public class MusicPicker extends ListActivity
 
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
+        mIsAsAlarm = getIntent().getBooleanExtra("mIsAsAlarm", false);
+
         int sortMode = TRACK_MENU;
         if (icicle == null) {
             mSelectedUri = getIntent().getParcelableExtra(
@@ -682,6 +692,22 @@ public class MusicPicker extends ListActivity
     void setSelected(Cursor c) {
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         long newId = mCursor.getLong(mCursor.getColumnIndex(MediaStore.Audio.Media._ID));
+
+        String data = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+        if (!mIsAsAlarm && (data.endsWith(".dcf") || data.endsWith(".dm"))) {
+            DrmManagerClient drmClient = new DrmManagerClient(this);
+            data = data.replace("/storage/emulated/0", "/storage/emulated/legacy");
+            ContentValues values = drmClient.getMetadata(data);
+            int drmType = values.getAsInteger("DRM-TYPE");
+            Log.d(TAG, "setSelected:drm type = " + Integer.toString(drmType));
+            if (drmType != DrmDeliveryType.SEPARATE_DELIVERY) { // Only SD files are sharable
+                Toast.makeText(MusicPicker.this, R.string.no_permission_for_drm,
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+            if (drmClient != null) drmClient.release();
+        }
+
         mSelectedUri = ContentUris.withAppendedId(uri, newId);
 
         mSelectedId = newId;

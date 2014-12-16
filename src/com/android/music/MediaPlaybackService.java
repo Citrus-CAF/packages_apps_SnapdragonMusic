@@ -32,6 +32,9 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
+import android.drm.DrmManagerClient;
+import android.drm.DrmStore.Action;
+import android.drm.DrmStore.RightsStatus;
 import android.graphics.Bitmap;
 import android.media.audiofx.AudioEffect;
 import android.media.AudioManager;
@@ -1516,7 +1519,8 @@ public class MediaPlaybackService extends Service {
             if (path == null) {
                 return false;
             }
-
+            String actualFilePath = "";
+            int status = 0;
             // if mCursor is null, try to associate path with a database cursor
             if (mCursor == null) {
 
@@ -1552,6 +1556,24 @@ public class MediaPlaybackService extends Service {
                 } catch (UnsupportedOperationException ex) {
                 }
             }
+
+            if (mCursor != null && (mCursor.getCount() != 0)) {
+                actualFilePath = mCursor.getString(mCursor
+                        .getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+            }
+            if (actualFilePath != null
+                    && (actualFilePath.endsWith(".dm")
+                            || actualFilePath.endsWith(".dcf"))) {
+                DrmManagerClient drmClient = new DrmManagerClient(this);
+                actualFilePath = actualFilePath.replace("/storage/emulated/0", "/storage/emulated/legacy");
+                status = drmClient.checkRightsStatus(actualFilePath, Action.PLAY);
+                if (RightsStatus.RIGHTS_VALID != status) {
+                    Toast.makeText(this, "Rights are expired for the previous song",
+                            Toast.LENGTH_SHORT).show();
+                }
+                if (drmClient != null) drmClient.release();
+            }
+
             mFileToPlay = path;
             mPlayer.setDataSource(mFileToPlay);
             if (mPlayer.isInitialized()) {

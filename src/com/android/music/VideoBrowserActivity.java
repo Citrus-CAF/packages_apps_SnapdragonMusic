@@ -20,13 +20,20 @@ import android.app.ListActivity;
 import android.app.SearchManager;
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.ActivityNotFoundException;
 import android.database.Cursor;
+import android.drm.DrmManagerClient;
+import android.drm.DrmRights;
+import android.drm.DrmStore.Action;
+import android.drm.DrmStore.DrmDeliveryType;
+import android.drm.DrmStore.RightsStatus;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.text.TextUtils;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -52,6 +59,11 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
     private static String EXTRA_ALL_VIDEO_FOLDER = "org.codeaurora.intent.extra.ALL_VIDEO_FOLDER";
     private static String EXTRA_ORDERBY = "org.codeaurora.intent.extra.VIDEO_LIST_ORDERBY";
     private static String DELETE_VIDEO_ITEM = "delete.video.file";
+
+    private String mCurrentVideoName;
+    private String mCurrentVideoPath;
+    private static final String LOGTAG = "VideoBrowser";
+    public static final String BUY_LICENSE = "android.drmservice.intent.action.BUY_LICENSE";
 
     public VideoBrowserActivity()
     {
@@ -218,6 +230,32 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
         Intent intent = new Intent(Intent.ACTION_VIEW);
         mCursor.moveToPosition(position);
         String type = mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Video.Media.MIME_TYPE));
+        String path = mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA));
+        Log.i(LOGTAG, "onListItemClick, path of the file is"+path);
+        if (path.endsWith(".dcf") || path.endsWith(".dm")) {
+            DrmManagerClient drmClient = new DrmManagerClient(VideoBrowserActivity.this);
+            path = path.replace("/storage/emulated/0", "/storage/emulated/legacy");
+            int status = drmClient.checkRightsStatus(path, Action.PLAY);
+            Log.i(LOGTAG, "onListItemClick:status fron drmClient.checkRightsStatus is " + Integer.toString(status));
+
+            ContentValues values = drmClient.getMetadata(path);
+
+            if (RightsStatus.RIGHTS_VALID != status) {
+                String address = values.getAsString("Rights-Issuer");
+                Intent drm_intent = new Intent(BUY_LICENSE);
+                drm_intent.putExtra("DRM_FILE_PATH", address);
+                this.sendBroadcast(drm_intent);
+                return;
+            }
+
+            int drmType = values.getAsInteger("DRM-TYPE");
+            Log.i(LOGTAG, "onListItemClick:DRM-TYPE = " + Integer.toString(drmType));
+            if (drmType > DrmDeliveryType.FORWARD_LOCK) { // Not FL
+                Toast.makeText(VideoBrowserActivity.this, R.string.action_consumes_rights,
+                        Toast.LENGTH_LONG).show();
+            }
+            if (drmClient != null) drmClient.release();
+        }
         intent.setDataAndType(ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id), type);
         intent.putExtra(EXTRA_ALL_VIDEO_FOLDER, true);
         if (mSortOrder != null) {

@@ -91,6 +91,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private int mTouchSlop;
     private ServiceToken mToken;
     private boolean mReceiverUnregistered = false;
+    private ImageView mDrmIcon;
 
     public MediaPlaybackActivity()
     {
@@ -148,6 +149,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mShuffleButton = ((ImageButton) findViewById(R.id.shuffle));
         mShuffleButton.setOnClickListener(mShuffleListener);
         mRepeatButton = ((ImageButton) findViewById(R.id.repeat));
+        mDrmIcon = (ImageView) findViewById(R.id.drm_lock);
         mRepeatButton.setOnClickListener(mRepeatListener);
         mSoundEffectButton = ((ImageButton) findViewById(R.id.sound_effect));
         mSoundEffectButton.setOnClickListener(mSoundEffectListener);
@@ -1504,6 +1506,16 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 mAlbumArtHandler.removeMessages(GET_ALBUM_ART);
                 mAlbumArtHandler.obtainMessage(GET_ALBUM_ART, new AlbumSongIdWrapper(albumid, songid)).sendToTarget();
                 mAlbum.setVisibility(View.VISIBLE);
+
+                String filePath = MusicUtils.getSelectAudioPath(MediaPlaybackActivity.this, songid);
+                if (mDrmIcon != null
+                        && filePath != null
+                        && (filePath.endsWith(".dcf") || filePath.endsWith(".dm"))) {
+                    mDrmIcon.setVisibility(View.VISIBLE);
+                } else if (mDrmIcon != null) {
+                    mDrmIcon.setVisibility(View.INVISIBLE);
+                }
+
             }
             mDuration = mService.duration();
             mTotalTime.setText(MusicUtils.makeTimeString(this, mDuration / 1000));
