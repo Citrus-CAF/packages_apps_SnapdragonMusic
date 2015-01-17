@@ -365,5 +365,9 @@
     <string name="more_music">More Music</string>
     <!-- Menu item that takes the user link to net to see more video -->
     <string name="more_video">More Video</string>
+    <!--gesture control playback status-->
+    <string name="music_gesture_play">"Play/pause audio"</string>
+    <string name="music_gesture_prev">"Play previous track"</string>
+    <string name="music_gesture_next">"Play next track"</string>
 </resources>
 

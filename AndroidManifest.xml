@@ -212,6 +212,26 @@
             </intent-filter>
 
         </activity-alias>
+
+        <activity android:name="GestureHandler"
+            android:theme="@android:style/Theme.NoDisplay">
+        </activity>
+        <activity-alias android:name="com.android.music.MusticGesturePlayActivity"
+            android:targetActivity="com.android.music.GestureHandler"
+            android:label="@string/music_gesture_play"
+            android:exported="true" >
+        </activity-alias>
+        <activity-alias android:name="com.android.music.MusticGesturePrevActivity"
+            android:targetActivity="com.android.music.GestureHandler"
+            android:label="@string/music_gesture_prev"
+            android:exported="true" >
+        </activity-alias>
+        <activity-alias android:name="com.android.music.MusticGestureNextActivity"
+            android:targetActivity="com.android.music.GestureHandler"
+            android:label="@string/music_gesture_next"
+            android:exported="true" >
+        </activity-alias>
+
         <activity android:name="com.android.music.VideoBrowserActivity"
             android:taskAffinity="android.task.video"
             android:label="@string/videobrowserlabel"

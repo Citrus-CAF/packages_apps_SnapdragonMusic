@@ -181,6 +181,9 @@
     <string name="close_music">"结束"</string>
     <string name="delete_video_item_message">"要删除“<xliff:g id="name">%s</xliff:g>”吗？"</string>
     <string name="video_deleted_message">"视频文件已删除。"</string>
+    <string name="music_gesture_play">"播放/暂停音频"</string>
+    <string name="music_gesture_prev">"播放上一首曲目"</string>
+    <string name="music_gesture_next">"播放下一首曲目"</string>
 
     <string name="more_music">更多音乐</string>
     <string name="more_video">更多视频</string>
