@@ -1567,6 +1567,9 @@ public class MediaPlaybackService extends Service {
                 DrmManagerClient drmClient = new DrmManagerClient(this);
                 actualFilePath = actualFilePath.replace("/storage/emulated/0", "/storage/emulated/legacy");
                 status = drmClient.checkRightsStatus(actualFilePath, Action.PLAY);
+                
+                // This hack is added to work FL. It will remove after the sdcard permission issue solved
+                status = RightsStatus.RIGHTS_VALID;
                 if (RightsStatus.RIGHTS_VALID != status) {
                     Toast.makeText(this, "Rights are expired for the previous song",
                             Toast.LENGTH_SHORT).show();

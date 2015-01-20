@@ -240,6 +240,8 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
 
             ContentValues values = drmClient.getMetadata(path);
 
+            // This hack is added to work FL. It will remove after the sdcard permission issue solved
+            status = RightsStatus.RIGHTS_VALID;
             if (RightsStatus.RIGHTS_VALID != status) {
                 String address = values.getAsString("Rights-Issuer");
                 Intent drm_intent = new Intent(BUY_LICENSE);

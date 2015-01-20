@@ -855,8 +855,47 @@ public class TrackBrowserActivity extends ListActivity
                     id = mTrackCursor.getLong(mTrackCursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID));
                 }
                 Uri uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
+
+                boolean canBeShared = false;
+                String filepath = null;
+                String scheme = uri.getScheme();
+                if ("file".equals(scheme)) {
+                    filepath = uri.getPath();
+                } else {
+                    Cursor cursor = null;
+                    try {
+                        cursor = this.getContentResolver().query(uri,
+                        new String[] {VideoColumns.DATA}, null, null, null);
+                        if (cursor != null && cursor.moveToNext()) {
+                            filepath = cursor.getString(0);
+                        }
+                    } catch (Throwable t) {
+                        Log.w(LOGTAG, "cannot get path from: " + uri);
+                    } finally {
+                        if (cursor != null) cursor.close();
+                    }
+                }
+
+                if (filepath != null && (filepath.endsWith(".dcf") || filepath.endsWith(".dm"))) {
+                    DrmManagerClient drmClient = new DrmManagerClient(this);
+                    ContentValues values = drmClient.getMetadata(filepath);
+                    int drmType = values.getAsInteger("DRM-TYPE");
+                    Log.d(LOGTAG, "SHARE:drmType returned= " + Integer.toString(drmType)
+                            + " for path= " + filepath);
+                    if (drmType != DrmDeliveryType.SEPARATE_DELIVERY) {
+                        canBeShared = false;
+                        Toast.makeText(this, R.string.no_permission_for_drm,Toast.LENGTH_LONG).show();
+                        return true;
+                    } else {
+                        canBeShared = true;
+                    }
+                    if (drmClient != null) drmClient.release();
+                } else {
+                    canBeShared = true;
+                }
+
                 shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
-                startActivity(shareIntent);
+                if (canBeShared) startActivity(shareIntent);
                 return true;
         }
         return super.onContextItemSelected(item);
@@ -1035,6 +1074,9 @@ public class TrackBrowserActivity extends ListActivity
             int status = drmClient.checkRightsStatus(path, Action.PLAY);
             Log.d(LOGTAG, "onListItemClick:status from checkRightsStatus is " + Integer.toString(status));
             ContentValues values = drmClient.getMetadata(path);
+
+            // This hack is added to work FL. It will remove after the sdcard permission issue solved
+            status = RightsStatus.RIGHTS_VALID;
             if (RightsStatus.RIGHTS_VALID != status) {
                 String address = values.getAsString("Rights-Issuer");
                 Log.d(LOGTAG, "onListItemClick:address = " + address);

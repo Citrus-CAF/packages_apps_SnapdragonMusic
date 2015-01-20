@@ -76,6 +76,8 @@ import java.util.Locale;
 import android.drm.DrmManagerClient;
 import android.drm.DrmRights;
 import android.drm.DrmStore;
+import android.drm.DrmStore.Action;
+import android.drm.DrmStore.RightsStatus;
 
 public class MusicUtils {
 
@@ -1254,13 +1256,17 @@ public class MusicUtils {
                     } catch (IOException e) {
                     }
 
+                    // This hack is added to work FL. It will remove after the sdcard permission issue solved
+                    int statusPlay = drmClient.checkRightsStatus(path, DrmStore.Action.PLAY);
+                    statusPlay = RightsStatus.RIGHTS_VALID;
+
                     if (count > 0) {
                         Toast.makeText(context, R.string.cant_set_ringtone_with_count_perm, Toast.LENGTH_SHORT).show();
                         return;
                     } else if (size > MAX_DRM_RING_TONE_SIZE) {
                         Toast.makeText(context, R.string.ring_tone_size_exceed, Toast.LENGTH_SHORT).show();
                         return;
-                    } else if (DrmStore.RightsStatus.RIGHTS_VALID != drmClient.checkRightsStatus(path, DrmStore.Action.PLAY)){
+                    } else if (DrmStore.RightsStatus.RIGHTS_VALID != statusPlay){
                         Toast.makeText(context, R.string.rights_expired, Toast.LENGTH_SHORT).show();
                         return;
                     }
