@@ -472,6 +472,9 @@ public class MediaPlaybackService extends Service {
         stopForeground(true);
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        int vol = SystemProperties.getInt("persist.power.music.volume", -1);
+        if (vol >= 0 && vol <= 15)
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, vol, 0);
         ComponentName rec = new ComponentName(getPackageName(),
                 MediaButtonIntentReceiver.class.getName());
         mAudioManager.registerMediaButtonEventReceiver(rec);
