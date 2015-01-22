@@ -369,5 +369,13 @@
     <string name="music_gesture_play">"Play/pause audio"</string>
     <string name="music_gesture_prev">"Play previous track"</string>
     <string name="music_gesture_next">"Play next track"</string>
+
+    <!-- DRM Related Strings -->
+    <string name="no_permission_for_drm">"Sorry, Drm file can not be shared"</string>
+    <string name="drm_license_info">Drm license info</string>
+    <string name="action_consumes_rights">Rights will be consumed for playing this media.</string>
+    <string name="rights_expired">Rights expired for the song.</string>
+    <string name="ring_tone_size_exceed">Drm ring tone size can\'t exceed 300kb.</string>
+    <string name="cant_set_ringtone_with_count_perm">Can\'t set DRM file with count permission to ringtone.</string>
 </resources>
 

@@ -64,6 +64,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,10 +73,15 @@ import java.util.Arrays;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Locale;
+import android.drm.DrmManagerClient;
+import android.drm.DrmRights;
+import android.drm.DrmStore;
 
 public class MusicUtils {
 
     private static final String TAG = "MusicUtils";
+
+    private final static long MAX_DRM_RING_TONE_SIZE = 300 * 1024; // 300KB
 
     public static boolean mPlayAllFromMenu = false;
     private static boolean mGroupByFolder = false;
@@ -103,8 +109,9 @@ public class MusicUtils {
         public final static int MORE_MUSIC = 14;
         public final static int MORE_VIDEO = 15;
         public final static int USE_AS_RINGTONE_2 = 16;
-        public final static int CHILD_MENU_BASE = 17;
-        public final static int CLOSE = 18; // this should be the last item;
+        public final static int DRM_LICENSE_INFO = 17;
+        public final static int CLOSE = 18;
+        public final static int CHILD_MENU_BASE = 19;// this should be the last item;
     }
 
     public static String makeAlbumsLabel(Context context, int numalbums, int numsongs, boolean isUnknown) {
@@ -1224,6 +1231,46 @@ public class MusicUtils {
                 // Set the system setting to make this the current ringtone
                 cursor.moveToFirst();
                 String message = context.getString(R.string.ringtone_set, cursor.getString(2));
+
+                Log.d(TAG, "---message" + message + "---data==" + cursor.getString(1));
+                String path = cursor.getString(1);
+                if (path.endsWith(".dm") || path.endsWith(".dcf")) {
+                    path = path.replace("/storage/emulated/0", "/storage/emulated/legacy");
+                    DrmManagerClient drmClient = new DrmManagerClient(context);
+                    ContentValues constraints = drmClient.getConstraints(path, 1);
+                    int count = 0;
+                    if (constraints.getAsInteger("valid") != 0 && constraints.getAsInteger("unlimited") == 0) {
+                        count = constraints.getAsInteger("count");
+                    }
+
+                    long size = 0;
+                    try {
+                        File file =  new File(path);
+                        if (file.exists()) {
+                            FileInputStream fis = null;
+                            fis = new FileInputStream(file);
+                            size = fis.available();
+                        }
+                    } catch (IOException e) {
+                    }
+
+                    if (count > 0) {
+                        Toast.makeText(context, R.string.cant_set_ringtone_with_count_perm, Toast.LENGTH_SHORT).show();
+                        return;
+                    } else if (size > MAX_DRM_RING_TONE_SIZE) {
+                        Toast.makeText(context, R.string.ring_tone_size_exceed, Toast.LENGTH_SHORT).show();
+                        return;
+                    } else if (DrmStore.RightsStatus.RIGHTS_VALID != drmClient.checkRightsStatus(path, DrmStore.Action.PLAY)){
+                        Toast.makeText(context, R.string.rights_expired, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+
+                Intent intent = new Intent("android.drmservice.intent.action.RING_TONE");
+                intent.putExtra("DRM_TYPE", "OMAV1");
+                intent.putExtra("DRM_FILE_PATH", path);
+                context.sendBroadcast(intent);
+
                 if (sub_id == RINGTONE_SUB_0) {
                     Settings.System.putString(resolver, Settings.System.RINGTONE , ringUri.toString());
                     if (TelephonyManager.getDefault().isMultiSimEnabled()) {
@@ -1550,5 +1597,33 @@ public class MusicUtils {
         StorageManager mStorageManager = (StorageManager) context
                 .getSystemService(Context.STORAGE_SERVICE);
         return mStorageManager.getVolumeState(getSDPath(context));
+    }
+
+    public static String getSelectAudioPath(Context context, long mSelectedId) {
+        String result = "";
+        if (null == context) {
+            return result;
+        }
+        try {
+            final String[] ccols = new String[] { MediaStore.Audio.Media.DATA };
+            String where = MediaStore.Audio.Media._ID + "='" + mSelectedId + "'";
+            Cursor cursor = query(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                  ccols, where, null, null);
+            if (null != cursor && 0 != cursor.getCount()) {
+                cursor.moveToFirst();
+
+               result = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+                cursor.close();
+                return result;
+            }
+
+            if (null != cursor) {
+                cursor.close();
+                return result;
+            }
+        } catch (Exception ex) {
+        }
+
+        return result;
     }
 }
