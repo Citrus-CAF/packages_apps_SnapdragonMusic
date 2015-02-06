@@ -24,7 +24,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.ActivityNotFoundException;
 import android.database.Cursor;
-import android.drm.DrmManagerClient;
+import android.drm.DrmManagerClientWrapper;
 import android.drm.DrmRights;
 import android.drm.DrmStore.Action;
 import android.drm.DrmStore.DrmDeliveryType;
@@ -233,15 +233,13 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
         String path = mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA));
         Log.i(LOGTAG, "onListItemClick, path of the file is"+path);
         if (path.endsWith(".dcf") || path.endsWith(".dm")) {
-            DrmManagerClient drmClient = new DrmManagerClient(VideoBrowserActivity.this);
+            DrmManagerClientWrapper drmClient = new DrmManagerClientWrapper(VideoBrowserActivity.this);
             path = path.replace("/storage/emulated/0", "/storage/emulated/legacy");
             int status = drmClient.checkRightsStatus(path, Action.PLAY);
             Log.i(LOGTAG, "onListItemClick:status fron drmClient.checkRightsStatus is " + Integer.toString(status));
 
             ContentValues values = drmClient.getMetadata(path);
 
-            // This hack is added to work FL. It will remove after the sdcard permission issue solved
-            status = RightsStatus.RIGHTS_VALID;
             if (RightsStatus.RIGHTS_VALID != status) {
                 String address = values.getAsString("Rights-Issuer");
                 Intent drm_intent = new Intent(BUY_LICENSE);
