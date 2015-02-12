@@ -821,7 +821,7 @@ public class TrackBrowserActivity extends ListActivity
                 Intent intent = new Intent();
                 intent.setClass(this, DeleteItems.class);
                 intent.putExtras(b);
-                startActivityForResult(intent, -1);
+                startActivityForResult(intent, DELETE_ITEM);
                 return true;
             }
             
@@ -1238,6 +1238,10 @@ public class TrackBrowserActivity extends ListActivity
                         MusicUtils.addToPlaylist(this, list, plid);
                     }
                 }
+                break;
+            case DELETE_ITEM:
+                ListView lv = getListView();
+                lv.setAdapter(lv.getAdapter());
                 break;
         }
     }
