@@ -26,7 +26,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
-import android.drm.DrmManagerClient;
+import android.drm.DrmManagerClientWrapper;
 import android.drm.DrmRights;
 import android.drm.DrmStore.DrmDeliveryType;
 import android.media.AudioManager;
@@ -695,7 +695,7 @@ public class MusicPicker extends ListActivity
 
         String data = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.DATA));
         if (!mIsAsAlarm && (data.endsWith(".dcf") || data.endsWith(".dm"))) {
-            DrmManagerClient drmClient = new DrmManagerClient(this);
+            DrmManagerClientWrapper drmClient = new DrmManagerClientWrapper(this);
             data = data.replace("/storage/emulated/0", "/storage/emulated/legacy");
             ContentValues values = drmClient.getMetadata(data);
             int drmType = values.getAsInteger("DRM-TYPE");

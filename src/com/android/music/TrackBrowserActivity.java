@@ -33,7 +33,7 @@ import android.content.ServiceConnection;
 import android.database.AbstractCursor;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
-import android.drm.DrmManagerClient;
+import android.drm.DrmManagerClientWrapper;
 import android.drm.DrmStore.Action;
 import android.drm.DrmStore.DrmDeliveryType;
 import android.drm.DrmStore.RightsStatus;
@@ -877,7 +877,7 @@ public class TrackBrowserActivity extends ListActivity
                 }
 
                 if (filepath != null && (filepath.endsWith(".dcf") || filepath.endsWith(".dm"))) {
-                    DrmManagerClient drmClient = new DrmManagerClient(this);
+                    DrmManagerClientWrapper drmClient = new DrmManagerClientWrapper(this);
                     ContentValues values = drmClient.getMetadata(filepath);
                     int drmType = values.getAsInteger("DRM-TYPE");
                     Log.d(LOGTAG, "SHARE:drmType returned= " + Integer.toString(drmType)
@@ -1069,7 +1069,7 @@ public class TrackBrowserActivity extends ListActivity
         }
         Log.d(LOGTAG, "onListItemClick:path = " + path);
         if (path.endsWith(".dcf") || path.endsWith(".dm")) {
-            DrmManagerClient drmClient = new DrmManagerClient(TrackBrowserActivity.this);
+            DrmManagerClientWrapper drmClient = new DrmManagerClientWrapper(TrackBrowserActivity.this);
             path = path.replace("/storage/emulated/0", "/storage/emulated/legacy");
             int status = drmClient.checkRightsStatus(path, Action.PLAY);
             Log.d(LOGTAG, "onListItemClick:status from checkRightsStatus is " + Integer.toString(status));
