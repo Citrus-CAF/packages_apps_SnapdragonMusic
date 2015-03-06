@@ -1597,6 +1597,7 @@ public class TrackBrowserActivity extends ListActivity
         int mArtistIdx;
         int mDurationIdx;
         int mAudioIdIdx;
+        int mDataIdx;
 
         private final StringBuilder mBuilder = new StringBuilder();
         private final String mUnknownArtist;
@@ -1616,6 +1617,7 @@ public class TrackBrowserActivity extends ListActivity
             ImageView play_indicator;
             CharArrayBuffer buffer1;
             char [] buffer2;
+            ImageView drm_icon;
         }
 
         class TrackQueryHandler extends AsyncQueryHandler {
@@ -1707,6 +1709,7 @@ public class TrackBrowserActivity extends ListActivity
                 
                     mIndexer = new MusicAlphabetIndexer(cursor, mTitleIdx, alpha);
                 }
+                mDataIdx = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
             }
         }
 
@@ -1723,6 +1726,7 @@ public class TrackBrowserActivity extends ListActivity
             vh.play_indicator = (ImageView) v.findViewById(R.id.play_indicator);
             vh.buffer1 = new CharArrayBuffer(100);
             vh.buffer2 = new char[200];
+            vh.drm_icon = (ImageView) v.findViewById(R.id.drm_icon);
             v.setTag(vh);
             return v;
         }
@@ -1764,6 +1768,16 @@ public class TrackBrowserActivity extends ListActivity
             vh.line2.setText(vh.buffer2, 0, len);
             // set textview color as original color "@android:color/dim_foreground_dark"
             vh.line2.setTextColor(0xffbebebe);
+
+            // Show DRM lock icon on track list
+            String data = cursor.getString(mDataIdx);
+            boolean isDrm = !TextUtils.isEmpty(data)
+                    && (data.endsWith(".dm") || data.endsWith(".dcf"));
+            if (isDrm) {
+                vh.drm_icon.setVisibility(View.VISIBLE);
+            } else {
+                vh.drm_icon.setVisibility(View.GONE);
+            }
 
             ImageView iv = vh.play_indicator;
             long id = -1;

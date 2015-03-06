@@ -44,6 +44,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -82,6 +83,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     private boolean isCompleted = false;
     private Uri mMediaUri = null;
     private static AudioPreview mAudioPreview;
+    private ImageView mImageViewDrmIcon;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -107,6 +109,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         mTextLine1 = (TextView) findViewById(R.id.line1);
         mTextLine2 = (TextView) findViewById(R.id.line2);
         mLoadingText = (TextView) findViewById(R.id.loading);
+        mImageViewDrmIcon = (ImageView) findViewById(R.id.drm_icon);
         if (scheme.equals("http")) {
             String msg = getString(R.string.streamloadingtext, mUri.getHost());
             mLoadingText.setText(msg);
@@ -175,6 +178,23 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
                     }
                 } else {
                     Log.w(TAG, "empty cursor");
+                }
+
+                // Show DRM lock icon on audio preview screen
+                String data = "";
+                try {
+                    int dataIdx = cursor
+                            .getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
+                    data = cursor.getString(dataIdx);
+                } catch (Exception e) {
+                    Log.i(TAG, "_data column not found");
+                }
+                boolean isDrm = !TextUtils.isEmpty(data)
+                        && (data.endsWith(".dm") || data.endsWith(".dcf"));
+                if (isDrm) {
+                    mImageViewDrmIcon.setVisibility(View.VISIBLE);
+                } else {
+                    mImageViewDrmIcon.setVisibility(View.GONE);
                 }
 
                 if (cursor != null) {
