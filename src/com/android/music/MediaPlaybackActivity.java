@@ -177,6 +177,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mArtistName = (TextView) findViewById(R.id.artistname);
         mAlbumName = (TextView) findViewById(R.id.albumname);
         mTrackName = (TextView) findViewById(R.id.trackname);
+        mDrmIcon = (ImageView) findViewById(R.id.drm_lock);
 
         View v = (View)mArtistName.getParent();
         v.setOnTouchListener(this);
@@ -1513,7 +1514,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                         && (filePath.endsWith(".dcf") || filePath.endsWith(".dm"))) {
                     mDrmIcon.setVisibility(View.VISIBLE);
                 } else if (mDrmIcon != null) {
-                    mDrmIcon.setVisibility(View.INVISIBLE);
+                    mDrmIcon.setVisibility(View.GONE);
                 }
 
             }

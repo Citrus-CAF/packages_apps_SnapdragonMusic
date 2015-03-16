@@ -38,6 +38,15 @@
         android:layout_alignBaseline="@+id/line1"
         android:singleLine="true" />
 
+    <ImageView android:id="@+id/drm_icon"
+        android:src="@drawable/drm_image"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dip"
+        android:visibility="gone" />
+
     <!-- The height is set to half the height of the parent, which is 64 dip -->
     <TextView android:id="@+id/line1"
         android:textAppearance="?android:attr/textAppearanceMedium"

@@ -27,26 +27,33 @@
         android:layout_weight="1"
         android:orientation="horizontal">
 
-        <ImageView
-            android:id="@+id/album"
-            android:background="@drawable/album_border_large"
+        <RelativeLayout
             android:layout_width="183dip"
             android:layout_height="183dip"
-            android:layout_marginStart="12dip"
             android:layout_marginEnd="15dip"
-            android:layout_marginTop="12dip" />
+            android:layout_marginStart="12dip"
+            android:layout_marginTop="12dip" >
 
-        <ImageView android:id="@+id/drm_lock"
-            android:background="#000000"
-            android:layout_width="wrap_content"
-            android:layout_marginLeft="-45dip"
-            android:layout_marginRight="2dip"
-            android:layout_marginBottom="10dip"
-            android:visibility="gone"
-            android:layout_height="wrap_content"
-            android:gravity="bottom"
-            android:layout_gravity="bottom"
-            android:src="@drawable/drm_image"/>
+            <ImageView
+                android:id="@+id/album"
+                android:layout_width="183dip"
+                android:layout_height="183dip"
+                android:layout_marginEnd="15dip"
+                android:layout_marginStart="12dip"
+                android:layout_marginTop="12dip"
+                android:background="@drawable/album_border_large" />
+
+            <ImageView
+                android:id="@+id/drm_lock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginBottom="16dip"
+                android:layout_marginRight="32dip"
+                android:src="@drawable/drm_image"
+                android:visibility="gone" />
+        </RelativeLayout>
 
         <!-- This is the LinearLayout that contains function buttons and album/artist/track info -->
         <LinearLayout

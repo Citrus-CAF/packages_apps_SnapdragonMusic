@@ -183,6 +183,7 @@ public class MusicPicker extends ListActivity
         private int mArtistIdx;
         private int mAlbumIdx;
         private int mDurationIdx;
+        private int mDataIdx;
 
         private boolean mLoading = true;
         private int mIndexerSortMode;
@@ -196,6 +197,7 @@ public class MusicPicker extends ListActivity
             ImageView play_indicator;
             CharArrayBuffer buffer1;
             char [] buffer2;
+            ImageView drm_icon;
         }
 
         TrackListAdapter(Context context, ListView listView, int layout,
@@ -236,6 +238,7 @@ public class MusicPicker extends ListActivity
             vh.play_indicator = (ImageView) v.findViewById(R.id.play_indicator);
             vh.buffer1 = new CharArrayBuffer(100);
             vh.buffer2 = new char[200];
+            vh.drm_icon = (ImageView) v.findViewById(R.id.drm_icon);
             v.setTag(vh);
             return v;
         }
@@ -295,6 +298,16 @@ public class MusicPicker extends ListActivity
             } else {
                 iv.setVisibility(View.GONE);
             }
+
+            // Show DRM lock icon on track list
+            String data = cursor.getString(mDataIdx);
+            boolean isDrm = !TextUtils.isEmpty(data)
+                    && (data.endsWith(".dm") || data.endsWith(".dcf"));
+            if (isDrm) {
+                vh.drm_icon.setVisibility(View.VISIBLE);
+            } else {
+                vh.drm_icon.setVisibility(View.GONE);
+            }
         }
 
         /**
@@ -317,6 +330,7 @@ public class MusicPicker extends ListActivity
                 mArtistIdx = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
                 mAlbumIdx = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM);
                 mDurationIdx = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
+                mDataIdx = cursor.getColumnIndex(MediaStore.Audio.Media.DATA);
 
                 // If the sort mode has changed, or we haven't yet created an
                 // indexer one, then create a new one that is indexing the
