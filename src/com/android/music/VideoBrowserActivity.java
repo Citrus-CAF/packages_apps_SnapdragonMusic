@@ -248,12 +248,6 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
                 return;
             }
 
-            int drmType = values.getAsInteger("DRM-TYPE");
-            Log.i(LOGTAG, "onListItemClick:DRM-TYPE = " + Integer.toString(drmType));
-            if (drmType > DrmDeliveryType.FORWARD_LOCK) { // Not FL
-                Toast.makeText(VideoBrowserActivity.this, R.string.action_consumes_rights,
-                        Toast.LENGTH_LONG).show();
-            }
             if (drmClient != null) drmClient.release();
         }
         intent.setDataAndType(ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id), type);

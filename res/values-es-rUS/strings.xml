@@ -155,4 +155,10 @@
     <string name="fast_scroll_alphabet" msgid="5548732936480723311">" ABCDEFGHIJKLMNOPQRSTUVWXYZ"</string>
     <string name="widget_initial_text" msgid="3166878738860903586">"Toca para elegir música."</string>
     <string name="effectspanel" msgid="8804547581593509614">"Efectos de sonido"</string>
+
+    <!-- DRM Related Strings -->
+    <string name="no_permission_for_drm">Los archivos DRM no pueden compartirse.</string>
+    <string name="drm_license_info">Información de licencia Drm</string>
+    <string name="drm_ringtone_error">No se puede configurar archivos CD / SD como tono de llamada</string>
+
 </resources>
