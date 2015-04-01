@@ -19,4 +19,6 @@
     <dimen name="normal_height">66dip</dimen>
     <!-- height of an expanded list item in edit playlist mode -->
     <dimen name="expanded_height">132dip</dimen>
+    <!-- width of albumartist name in status bar-->
+    <dimen name="statusbar_arlbumartist_width">90dip</dimen>
 </resources>
