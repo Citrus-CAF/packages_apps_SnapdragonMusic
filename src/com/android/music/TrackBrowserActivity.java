@@ -1085,11 +1085,7 @@ public class TrackBrowserActivity extends ListActivity
                 this.sendBroadcast(intent);
                 return;
             }
-            int drmType = values.getAsInteger("DRM-TYPE");
-            Log.d(LOGTAG, "onListItemClick: drmType= " + Integer.toString(drmType));
-            if (drmType > DrmDeliveryType.FORWARD_LOCK) {
-                Toast.makeText(TrackBrowserActivity.this, "Rights will be consumed for playing this media", Toast.LENGTH_LONG).show();
-            }
+
             if (drmClient != null) drmClient.release();
         }
 
