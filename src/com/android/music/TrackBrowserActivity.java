@@ -33,6 +33,7 @@ import android.content.ServiceConnection;
 import android.database.AbstractCursor;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
+import android.drm.DrmHelper;
 import android.drm.DrmManagerClientWrapper;
 import android.drm.DrmStore.Action;
 import android.drm.DrmStore.DrmDeliveryType;
@@ -1593,7 +1594,7 @@ public class TrackBrowserActivity extends ListActivity
         int mArtistIdx;
         int mDurationIdx;
         int mAudioIdIdx;
-        int mDataIdx;
+        int mDataIdx = -1;
 
         private final StringBuilder mBuilder = new StringBuilder();
         private final String mUnknownArtist;
@@ -1705,7 +1706,11 @@ public class TrackBrowserActivity extends ListActivity
                 
                     mIndexer = new MusicAlphabetIndexer(cursor, mTitleIdx, alpha);
                 }
-                mDataIdx = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
+                try {
+                    mDataIdx = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
+                } catch (IllegalArgumentException ex) {
+                    Log.w(LOGTAG, "_data column not found. Exception : " + ex);
+                }
             }
         }
 
@@ -1766,13 +1771,15 @@ public class TrackBrowserActivity extends ListActivity
             vh.line2.setTextColor(0xffbebebe);
 
             // Show DRM lock icon on track list
-            String data = cursor.getString(mDataIdx);
-            boolean isDrm = !TextUtils.isEmpty(data)
-                    && (data.endsWith(".dm") || data.endsWith(".dcf"));
-            if (isDrm) {
-                vh.drm_icon.setVisibility(View.VISIBLE);
-            } else {
-                vh.drm_icon.setVisibility(View.GONE);
+            if (mDataIdx != -1) {
+                String data = cursor.getString(mDataIdx);
+                boolean isDrm = !TextUtils.isEmpty(data)
+                        && (data.endsWith(".dm") || data.endsWith(".dcf"));
+                if (isDrm) {
+                    vh.drm_icon.setVisibility(View.VISIBLE);
+                } else {
+                    vh.drm_icon.setVisibility(View.GONE);
+                }
             }
 
             ImageView iv = vh.play_indicator;
