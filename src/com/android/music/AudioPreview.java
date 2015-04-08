@@ -516,12 +516,8 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
                     intent.setDataAndType(mMediaUri, "audio/*");
                     startActivity(intent);
                 } else {
-                    String path = mUri.getLastPathSegment();
-                    int id = MusicUtils.getAudioIDFromPath(this,path);
-                    Uri newUri = Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    String.valueOf(id));
                     Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setDataAndType(newUri, "audio/*");
+                    intent.setDataAndType(mUri, "audio/*");
                     startActivity(intent);
                 }
                 break;
