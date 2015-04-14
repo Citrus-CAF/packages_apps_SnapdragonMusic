@@ -237,10 +237,8 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
             path = path.replace("/storage/emulated/0", "/storage/emulated/legacy");
             int status = drmClient.checkRightsStatus(path, Action.PLAY);
             Log.i(LOGTAG, "onListItemClick:status fron drmClient.checkRightsStatus is " + Integer.toString(status));
-
-            ContentValues values = drmClient.getMetadata(path);
-
             if (RightsStatus.RIGHTS_VALID != status) {
+                ContentValues values = drmClient.getMetadata(path);
                 String address = values.getAsString("Rights-Issuer");
                 Intent drm_intent = new Intent(BUY_LICENSE);
                 drm_intent.putExtra("DRM_FILE_PATH", address);

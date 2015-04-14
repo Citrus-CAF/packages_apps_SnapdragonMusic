@@ -374,6 +374,7 @@
     <string name="no_permission_for_drm">"Sorry, Drm file can not be shared"</string>
     <string name="drm_license_info">Drm license info</string>
     <string name="drm_ringtone_error">Cannot set CD/SD files as ringtone</string>
+    <string name="drm_right_expired">DRM rights expired</string>
 
 </resources>
 

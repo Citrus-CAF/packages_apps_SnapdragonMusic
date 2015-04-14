@@ -1571,7 +1571,7 @@ public class MediaPlaybackService extends Service {
                 actualFilePath = actualFilePath.replace("/storage/emulated/0", "/storage/emulated/legacy");
                 status = drmClient.checkRightsStatus(actualFilePath, Action.PLAY);
                 if (RightsStatus.RIGHTS_VALID != status) {
-                    Toast.makeText(this, "Rights are expired for the previous song",
+                    Toast.makeText(this, R.string.drm_right_expired,
                             Toast.LENGTH_SHORT).show();
                 }
                 if (drmClient != null) drmClient.release();
