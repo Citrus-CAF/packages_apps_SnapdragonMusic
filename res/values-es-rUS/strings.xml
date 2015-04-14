@@ -160,5 +160,6 @@
     <string name="no_permission_for_drm">Los archivos DRM no pueden compartirse.</string>
     <string name="drm_license_info">Información de licencia Drm</string>
     <string name="drm_ringtone_error">No se puede configurar archivos CD / SD como tono de llamada</string>
+    <string name="drm_right_expired">Derechos DRM caducado</string>
 
 </resources>
