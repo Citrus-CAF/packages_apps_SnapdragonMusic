@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.RemoteViews;
 
@@ -148,6 +149,9 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
         
         CharSequence titleName = service.getTrackName();
         CharSequence artistName = service.getArtistName();
+        if (MediaStore.UNKNOWN_STRING.equals(artistName)) {
+            artistName = res.getString(R.string.unknown_artist_name);
+        }
         CharSequence errorState = null;
         
         // Format title string with track number, or show SD card message
