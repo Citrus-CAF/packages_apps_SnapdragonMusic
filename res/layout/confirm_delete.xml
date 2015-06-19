@@ -31,19 +31,22 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="6dip"
-        android:background="#ffffff" >
+        android:padding="6dip" >
 
         <Button android:id="@+id/cancel"
-            android:layout_width="140dip" android:layout_height="wrap_content"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="@string/cancel"
             android:layout_gravity="center_horizontal"
-            android:layout_alignParentStart="true" />
+            android:layout_toLeftOf="@+id/delete"
+            android:textColor="#009486"
+            android:background="@android:color/transparent" />
 
         <Button android:id="@+id/delete"
-            android:layout_width="140dip" android:layout_height="wrap_content"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="@string/delete_confirm_button_text"
-            android:layout_alignParentEnd="true" />
+            android:layout_alignParentEnd="true"
+            android:textColor="#009486"
+            android:background="@android:color/transparent" />
 
     </RelativeLayout>
 

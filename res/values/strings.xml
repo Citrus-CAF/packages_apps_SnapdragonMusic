@@ -50,9 +50,9 @@
     -->
     <skip/>
     <!-- Do not translate. Duration format for duration < 1 hour -->
-    <string translatable="false" name="durationformatshort"><xliff:g id="format">%2$d:%5$02d</xliff:g></string>
+    <string name="durationformatshort" translatable="false"><xliff:g id="format">%2$d:%5$02d</xliff:g></string>
     <!-- Do not translate. Duration format for duration >= 1 hour -->
-    <string translatable="false" name="durationformatlong"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
+    <string name="durationformatlong" translatable="false"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
 
     <!-- Menu item that takes the user back to the top level screen of the music player -->
     <string name="goto_start">Library</string>
@@ -65,8 +65,6 @@
     <!-- Menu item that deletes the currently selected item, which might be a single song, or a collection of songs.
          The user will be prompted to confirm before deletion actually takes place -->
     <string name="delete_item">Delete</string>
-    <!-- Menu item to play back all the songs in the currently showing list in shuffle mode -->
-    <string name="shuffle_all">Shuffle all</string>
     <!-- Menu item to play back all the songs in the currently showing list in list order -->
     <string name="play_all">Play all</string>
     <!-- Menu item to play song in music -->
@@ -104,6 +102,12 @@
     <!-- shown in dialog while the media scanner is starting up -->
     <string name="scanning_nosdcard">Scanning USB storage\u2026</string>
 
+    <string-array name="title_array">
+        <item>Artists</item>
+        <item>Albums</item>
+        <item>Songs</item>
+        <item>Playlists</item>
+    </string-array>
     <!-- title of the "current playlist" screen when not in party shuffle mode -->
     <string name="nowplaying_title">Now playing</string>
     <!-- title of the "current playlist" screen when in party shuffle mode-->
@@ -339,7 +343,7 @@
 
     <!-- Shown in the search box as a hint -->
     <string name="search_hint">Search Music</string>
-    <string name="search_hint_video" >Search Video</string>
+    <string name="search_hint_video">Search Video</string>
 
     <!--The fast scroll thumb will show one character from this string depending on the position in the list -->
     <string name="fast_scroll_alphabet">\u0020ABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
@@ -348,7 +352,7 @@
     <string name="widget_initial_text">Touch to choose music.</string>
 
     <!-- Menu text for the item controlling the audio effects panel [CHAR LIMIT=15] -->
-    <string name="effectspanel">Sound effects</string>
+    <string name="effectspanel">Snapdragon Audio+</string>
 
     <string name="duplicate_playlist_name_alert">There is already a playlist named \"<xliff:g id="name">%s</xliff:g>\". Please select a different name.</string>
     <string name="same_playlist_name_alert">Playlist \"<xliff:g id="name">%s</xliff:g>\" name is not changed. Please select a different name.</string>
@@ -375,6 +379,21 @@
     <string name="drm_license_info">Drm license info</string>
     <string name="drm_ringtone_error">Cannot set CD/SD files as ringtone</string>
     <string name="drm_right_expired">DRM rights expired</string>
+
+    <string name="action_consumes_rights">Rights will be consumed for playing this media.</string>
+    <string name="rights_expired">Rights expired for the song.</string>
+    <string name="ring_tone_size_exceed">Drm ring tone size can\'t exceed 300kb.</string>
+    <string name="cant_set_ringtone_with_count_perm">Can\'t set DRM file with count permission to ringtone.</string>
+
+    <string name="navigation_drawer_title">"Music"</string>
+    <string name="action_settings">Settings</string>
+    <string name="equalizer_button_text">Snapdragon Audio+</string>
+    <string name="action_settings1">Settings1</string>
+    <string name="action_settings2">Settings2</string>
+    <string name="action_one">One</string>
+    <string name="action_two">Two</string>
+    <string name="action_three">Three</string>
+    <string name="shuffle_all">SHUFFLE ALL</string>
 
 </resources>
 

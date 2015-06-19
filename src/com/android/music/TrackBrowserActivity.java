@@ -252,7 +252,7 @@ public class TrackBrowserActivity extends ListActivity
             }
         }
         if (!mEditMode) {
-            MusicUtils.updateNowPlaying(this);
+            MusicUtils.updateNowPlaying(this, false);
         }
     }
     
@@ -376,7 +376,7 @@ public class TrackBrowserActivity extends ListActivity
             if (action.equals(MediaPlaybackService.PLAYSTATE_CHANGED)) {
                 if (null != mAdapter)
                     getTrackCursor(mAdapter.getQueryHandler(), null,true);
-                    MusicUtils.updateNowPlaying(TrackBrowserActivity.this);
+                    MusicUtils.updateNowPlaying(TrackBrowserActivity.this, false);
             }
         }
     };
@@ -641,7 +641,7 @@ public class TrackBrowserActivity extends ListActivity
         @Override
         public void onReceive(Context context, Intent intent) {
             getListView().invalidateViews();
-            MusicUtils.updateNowPlaying(TrackBrowserActivity.this);
+            MusicUtils.updateNowPlaying(TrackBrowserActivity.this, false);
         }
     };
 
@@ -650,7 +650,7 @@ public class TrackBrowserActivity extends ListActivity
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(MediaPlaybackService.META_CHANGED)) {
                 getListView().invalidateViews();
-                MusicUtils.updateNowPlaying(TrackBrowserActivity.this);
+                MusicUtils.updateNowPlaying(TrackBrowserActivity.this, false);
             } else if (intent.getAction().equals(MediaPlaybackService.QUEUE_CHANGED)) {
                 if (mDeletedOneRow) {
                     // This is the notification for a single row that was

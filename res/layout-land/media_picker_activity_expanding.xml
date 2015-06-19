@@ -22,10 +22,8 @@
 
     <include layout="@layout/sd_error" />
 
-    <include layout="@layout/buttonbar" />
-
     <ExpandableListView
-        android:id="@android:id/list"
+        android:id="@+id/artist_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"

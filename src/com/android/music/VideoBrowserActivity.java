@@ -45,7 +45,6 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
-
 import java.lang.Integer;
 
 public class VideoBrowserActivity extends ListActivity implements MusicUtils.Defs
@@ -195,7 +194,7 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
 
         // Set the layout for this activity.  You can find it
         // in assets/res/any/layout/media_picker_activity.xml
-        setContentView(R.layout.media_picker_activity);
+        setContentView(R.layout.media_picker_activity_video);
         View listView = findViewById(R.id.buttonbar);
         listView.setVisibility(View.GONE);
         getListView().setOnCreateContextMenuListener(this); // Set OnCreateContextMenuListener interface
@@ -237,6 +236,7 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
             path = path.replace("/storage/emulated/0", "/storage/emulated/legacy");
             int status = drmClient.checkRightsStatus(path, Action.PLAY);
             Log.i(LOGTAG, "onListItemClick:status fron drmClient.checkRightsStatus is " + Integer.toString(status));
+
             if (RightsStatus.RIGHTS_VALID != status) {
                 ContentValues values = drmClient.getMetadata(path);
                 String address = values.getAsString("Rights-Issuer");

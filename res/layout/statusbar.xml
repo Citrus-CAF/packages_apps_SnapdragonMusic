@@ -19,21 +19,23 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal">
+    android:orientation="horizontal" >
 
     <ImageView
         android:id="@+id/icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:layout_gravity="center_vertical"
-        android:paddingEnd="20dip"
-        android:paddingStart="20dip">
+        android:layout_margin="5dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/albumart_mp_unknown" >
     </ImageView>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical" >
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -45,9 +47,11 @@
                 android:layout_width="230dip"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
+                android:alpha="0.54"
                 android:ellipsize="marquee"
                 android:focusable="true"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:textColor="#000000" />
 
             <RelativeLayout
                 android:layout_width="wrap_content"
@@ -67,7 +71,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal" >
 
             <TextView
                 android:id="@+id/artistalbum"
@@ -75,33 +79,46 @@
                 android:layout_width="@dimen/statusbar_arlbumartist_width"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
+                android:alpha="0.54"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:scrollHorizontally="true"/>
+                android:scrollHorizontally="true"
+                android:textColor="#000000" />
 
             <RelativeLayout
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:orientation="horizontal">
+                android:layout_marginEnd="20dp"
+                android:layout_marginStart="20dp"
+                android:orientation="horizontal" >
 
                 <ImageButton
                     android:id="@+id/prev"
-                    style="@android:style/MediaButton.Previous"
-                    android:layout_alignParentLeft="true"/>
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_centerVertical="true"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/notification_prev" />
 
                 <ImageButton
                     android:id="@+id/pause"
-                    style="@android:style/MediaButton.Pause"
-                    android:layout_centerHorizontal="true"/>
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:background="@android:color/transparent" />
 
                 <ImageButton
                     android:id="@+id/next"
-                    style="@android:style/MediaButton.Next"
-                    android:layout_alignParentRight="true"/>
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/notification_next" />
             </RelativeLayout>
-
         </LinearLayout>
-
     </LinearLayout>
 
 </LinearLayout>

@@ -77,6 +77,7 @@ public class TouchInterceptor extends ListView {
     private int mItemHeightExpanded;
     private int mItemHeightHalf;
     private Drawable mTrashcan;
+    public final int SCREEN_WIDTH = 5000;
 
     public TouchInterceptor(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -319,7 +320,7 @@ public class TouchInterceptor extends ListView {
             vv.setVisibility(visibility);
         }
     }
-    
+
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         if (mGestureDetector != null) {

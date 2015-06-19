@@ -210,7 +210,7 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
         @Override
         public void onReceive(Context context, Intent intent) {
             getExpandableListView().invalidateViews();
-            MusicUtils.updateNowPlaying(ArtistAlbumBrowserActivity.this);
+            MusicUtils.updateNowPlaying(ArtistAlbumBrowserActivity.this, false);
         }
     };
     private BroadcastReceiver mScanListener = new BroadcastReceiver() {
@@ -291,7 +291,6 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
         intent.setDataAndType(Uri.EMPTY, "vnd.android.cursor.dir/track");
         intent.putExtra("album", mCurrentAlbumId);
         Cursor c = (Cursor) getExpandableListAdapter().getChild(groupPosition, childPosition);
-        String album = c.getString(c.getColumnIndex(MediaStore.Audio.Albums.ALBUM));
         mArtistCursor.moveToPosition(groupPosition);
         mCurrentArtistId = mArtistCursor.getString(mArtistCursor.getColumnIndex(MediaStore.Audio.Artists._ID));
         intent.putExtra("artist", mCurrentArtistId);
@@ -320,7 +319,6 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Intent intent;
         Cursor cursor;
         switch (item.getItemId()) {
             case MORE_MUSIC:
@@ -923,7 +921,7 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
     private Cursor mArtistCursor;
 
     public void onServiceConnected(ComponentName name, IBinder service) {
-        MusicUtils.updateNowPlaying(this);
+        MusicUtils.updateNowPlaying(this, false);
     }
 
     public void onServiceDisconnected(ComponentName name) {

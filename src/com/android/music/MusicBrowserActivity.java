@@ -16,21 +16,67 @@
 
 package com.android.music;
 
+import java.util.ArrayList;
+
 import com.android.music.MusicUtils.ServiceToken;
+import com.codeaurora.music.custom.FragmentsFactory;
+import com.codeaurora.music.custom.MusicPanelLayout;
+import com.codeaurora.music.custom.MusicPanelLayout.ViewHookSlipListener;
+import com.codeaurora.music.custom.MusicPanelLayout.BoardState;
 
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.provider.MediaStore;
+import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.Window;
+import android.view.WindowManager;
+import android.webkit.WebView.FindListener;
+import android.widget.AdapterView;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.Toolbar;
+import android.widget.Toolbar.OnMenuItemClickListener;
 
-public class MusicBrowserActivity extends Activity
-    implements MusicUtils.Defs {
+public class MusicBrowserActivity extends MediaPlaybackActivity implements
+        MusicUtils.Defs {
 
     private ServiceToken mToken;
+    private ListView mDrawerListView;
+    private DrawerLayout mDrawerLayout;
+    public static boolean mIsparentActivityFInishing;
+    private ArrayList<Fragment> mMusicFragments;
+    private int activeTab;
+    static MediaPlaybackActivity mActivityInstance;
+    NavigationDrawerListAdapter mNavigationAdapter;
+    String mArtistID, mAlbumID;
 
     public MusicBrowserActivity() {
     }
@@ -41,20 +87,148 @@ public class MusicBrowserActivity extends Activity
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-        int activeTab = MusicUtils.getIntPref(this, "activetab", R.id.artisttab);
-        if (activeTab != R.id.artisttab
-                && activeTab != R.id.albumtab
-                && activeTab != R.id.songtab
-                && activeTab != R.id.foldertab
-                && activeTab != R.id.playlisttab) {
-            activeTab = R.id.artisttab;
-        }
-        MusicUtils.activateTab(this, activeTab);
-        
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        setContentView(R.layout.music_browser);
+        mActivityInstance = this;
+        init();
+        initView();
         String shuf = getIntent().getStringExtra("autoshuffle");
         if ("true".equals(shuf)) {
             mToken = MusicUtils.bindToService(this, autoshuffle);
         }
+    }
+
+    public void initView() {
+        mNowPlayingIcon = (ImageView) findViewById(R.id.nowplay_icon);
+        mNowPlayingIcon.setOnClickListener(mPauseListener);
+        mDrawerListView = (ListView) findViewById(R.id.navList);
+        RelativeLayout equalizerLayout = (RelativeLayout) findViewById(R.id.equalizer_btn_view);
+        mNavigationAdapter = new NavigationDrawerListAdapter(this);
+        mDrawerListView.setAdapter(mNavigationAdapter);
+        activeTab = MusicUtils.getIntPref(this, "activetab", 0);
+        mDrawerListView
+                .setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view,
+                            int position, long id) {
+                        if (isPanelExpanded) {
+                            getSlidingPanelLayout().setHookState(
+                                    BoardState.COLLAPSED);
+
+                        }
+                        activeTab = MusicUtils.getIntPref(
+                                MusicBrowserActivity.this, "activetab", 0);
+                        showScreen(position);
+                        mNavigationAdapter.setClickPosition(position);
+                        mDrawerListView.invalidateViews();
+                        mDrawerLayout.closeDrawer(Gravity.LEFT);
+                    }
+                });
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+
+        equalizerLayout.setOnClickListener(new OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                MusicUtils.startSoundEffectActivity(MusicBrowserActivity.this);
+                mDrawerLayout.closeDrawer(Gravity.LEFT);
+            }
+        });
+
+        if (mToolbar.getMenu() != null) {
+            mToolbar.getMenu().clear();
+        }
+        mToolbar.inflateMenu(R.menu.main);
+        mToolbar.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                // TODO Auto-generated method stub
+                mIsparentActivityFInishing = true;
+                Intent intent = new Intent(MusicBrowserActivity.this,
+                        QueryBrowserActivity.class);
+                startActivity(intent);
+                return false;
+            }
+        });
+        mToolbar.setNavigationOnClickListener(new OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                mDrawerLayout.openDrawer(Gravity.LEFT);
+            }
+        });
+        showScreen(activeTab);
+    }
+
+    @Override
+    public void onNewIntent(Intent intent) {
+        // TODO Auto-generated method stub
+        super.onNewIntent(intent);
+        if (getIntent() != null) {
+            mArtistID = getIntent().getStringExtra("artist");
+            mAlbumID = getIntent().getStringExtra("album");
+            initView();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        // TODO Auto-generated method stub
+        super.onResume();
+        updateNowPlaying(this);
+    }
+
+    private void showScreen(int position) {
+        if (position > 5) {
+            position = 0;
+        }
+        mNavigationAdapter.setClickPosition(position);
+        mDrawerListView.invalidateViews();
+        FragmentManager fragmentManager = getFragmentManager();
+        Fragment fragment = null;
+        mToolbar.setTitle(getResources().getStringArray(R.array.title_array)[position]);
+        mDrawerListView.setItemChecked(position, true);
+        mDrawerListView.setSelection(position);
+        FrameLayout fl = (FrameLayout) findViewById(R.id.fragment_page);
+        fl.setVisibility(View.VISIBLE);
+        findViewById(R.id.music_tool_bar).setVisibility(View.VISIBLE);
+        MusicUtils.setIntPref(this, "activetab", position);
+        if (mArtistID != null) {
+            fragment = new AlbumBrowserFragment();
+            Bundle bundle = new Bundle();
+            bundle.putString("artist", mArtistID);
+            fragment.setArguments(bundle);
+            mArtistID = null;
+        } else if (mAlbumID != null) {
+            fragment = new TrackBrowserFragment();
+            Bundle bundle = new Bundle();
+            bundle.putString("album", mAlbumID);
+            bundle.putBoolean("editValue", false);
+            fragment.setArguments(bundle);
+            mAlbumID = null;
+        } else {
+            fragment = FragmentsFactory.loadFragment(position);
+        }
+        if (!fragment.isAdded()) {
+            fragmentManager.beginTransaction()
+                    .replace(R.id.fragment_page, fragment).commit();
+        }
+    }
+
+    @Override
+    public void onStart() {
+        // TODO Auto-generated method stub
+        super.onStart();
+
+    }
+
+    @Override
+    public void onStop() {
+        // TODO Auto-generated method stub
+        super.onStop();
     }
 
     @Override
@@ -62,17 +236,8 @@ public class MusicBrowserActivity extends Activity
         if (mToken != null) {
             MusicUtils.unbindFromService(mToken);
         }
+        MusicUtils.clearAlbumArtCache();
         super.onDestroy();
-    }
-
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_UP &&
-                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            finish();
-            return true;
-        }
-        return super.dispatchKeyEvent(event);
     }
 
     private ServiceConnection autoshuffle = new ServiceConnection() {
@@ -82,7 +247,8 @@ public class MusicBrowserActivity extends Activity
                 unbindService(this);
             } catch (IllegalArgumentException e) {
             }
-            IMediaPlaybackService serv = IMediaPlaybackService.Stub.asInterface(obj);
+            IMediaPlaybackService serv = IMediaPlaybackService.Stub
+                    .asInterface(obj);
             if (serv != null) {
                 try {
                     serv.setShuffleMode(MediaPlaybackService.SHUFFLE_AUTO);
@@ -95,5 +261,40 @@ public class MusicBrowserActivity extends Activity
         }
     };
 
-}
+    static boolean isPanelExpanded = false;
 
+    /**
+     * No-op stubs for {@link PanelSlideListener}. If you only want to implement
+     * a subset of the listener methods you can extend this instead of implement
+     * the full interface.
+     */
+    public static class SimplePanelSlideListener implements
+            ViewHookSlipListener {
+
+        @Override
+        public void onViewSlip(View view, float slipOffset) {
+            mIsparentActivityFInishing = true;
+        }
+
+        @Override
+        public void onViewClosed(View view) {
+            isPanelExpanded = false;
+            MusicUtils.updateNowPlaying(mActivityInstance, isPanelExpanded);
+        }
+
+        @Override
+        public void onViewOpened(View view) {
+            isPanelExpanded = true;
+            MusicUtils.updateNowPlaying(mActivityInstance, isPanelExpanded);
+        }
+
+        @Override
+        public void onViewMainLined(View panel) {
+        }
+
+        @Override
+        public void onViewBackStacked(View panel) {
+        }
+    }
+
+}

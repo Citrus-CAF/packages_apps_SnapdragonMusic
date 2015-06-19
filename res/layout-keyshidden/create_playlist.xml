@@ -58,12 +58,16 @@
         <Button android:id="@+id/create"
             android:layout_width="120dip" android:layout_height="wrap_content" 
             android:text="@string/create_playlist_create_text"
-            android:layout_alignParentStart="true" />
+            android:layout_alignParentEnd="true"
+            android:textColor="#009486"
+            android:background="@android:color/transparent" />
 
         <Button android:id="@+id/cancel"
             android:layout_width="120dip" android:layout_height="wrap_content" 
             android:text="@string/cancel"
-            android:layout_alignParentEnd="true" />
+            android:textColor="#009486"
+            android:layout_toLeftOf="@+id/create"
+            android:background="@android:color/transparent" />
 
     </RelativeLayout>
 
