@@ -41,7 +41,7 @@
             android:layout_weight="1"
             android:layout_width="0dip"
             android:paddingStart="5dip"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -52,11 +52,11 @@
             android:layout_marginBottom="2dip"
             android:gravity="center">
 
-            <com.android.music.RepeatingImageButton android:id="@+id/prev" style="@android:style/MediaButton.Previous" />
+            <com.android.music.RepeatingImageButton android:id="@+id/prev" style="@android:style/MediaButton.Previous"/>
 
-            <ImageButton android:id="@+id/pause" style="@android:style/MediaButton.Play" />
+            <ImageButton android:id="@+id/pause" style="@android:style/MediaButton.Play"/>
 
-            <com.android.music.RepeatingImageButton android:id="@+id/next" style="@android:style/MediaButton.Next" />
+            <com.android.music.RepeatingImageButton android:id="@+id/next" style="@android:style/MediaButton.Next"/>
 
         </LinearLayout>
 
@@ -73,7 +73,7 @@
             android:layout_gravity="bottom"
             android:layout_weight="1"
             android:layout_width="0dip"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"/>
 
     </LinearLayout>
 
@@ -84,6 +84,6 @@
         android:layout_height="36dip"
         android:paddingStart="8dip"
         android:paddingEnd="8dip"
-        android:paddingBottom="4dip" />
+        android:paddingBottom="4dip"/>
 
 </merge>
