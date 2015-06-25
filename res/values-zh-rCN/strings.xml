@@ -74,6 +74,7 @@
     <string name="no_videos_title" msgid="6218814130364793104">"无视频"</string>
     <string name="no_playlists_title" msgid="4456351945617594418">"无播放列表"</string>
     <string name="delete_playlist_menu" msgid="8998637685583495247">"删除"</string>
+    <string name="edit_playlist_menu">"编辑"</string>
     <string name="rename_playlist_menu" msgid="3133463747389494668">"重命名"</string>
     <string name="clear_all_playlists_message">"要删除所有播放列表吗?"</string>
     <string name="delete_playlist_message">"要删除“<xliff:g id="name">%s</xliff:g>”吗？"</string>
