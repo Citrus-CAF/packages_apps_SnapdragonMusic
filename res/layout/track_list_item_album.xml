@@ -29,8 +29,9 @@
 -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="250dp"
-    android:paddingTop="@dimen/album_list_space">
+    android:layout_height="220dp"
+    android:layout_marginTop="@dimen/album_list_space"
+    android:background="@drawable/card_background">
 
     <include layout="@layout/track_list_item_common_album" />
 

@@ -103,7 +103,7 @@ public class QueryBrowserActivity extends ListActivity implements
         searchMenuItem.expandActionView();
 
         SearchView searchView = (SearchView) searchMenuItem.getActionView();
-        searchView.setSubmitButtonEnabled(true);
+        searchView.setSubmitButtonEnabled(false);
         searchView.setOnQueryTextListener(this);
 
         return true;
@@ -548,7 +548,9 @@ public class QueryBrowserActivity extends ListActivity implements
         @Override
         public Cursor runQueryOnBackgroundThread(CharSequence constraint) {
             String s = constraint.toString();
-            if (mConstraintIsValid && ((s == null && mConstraint == null) || (s != null && s.equals(mConstraint)))) {
+            if (mConstraintIsValid
+                    && ((s == null && mConstraint == null) || (s != null && s
+                            .equals(mConstraint)))) {
                 return getCursor();
             }
             Cursor c = mActivity.getQueryCursor(null, s);

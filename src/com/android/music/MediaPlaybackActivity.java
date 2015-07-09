@@ -188,7 +188,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mProgress.setMax(1000);
         mTouchSlop = ViewConfiguration.get(this).getScaledTouchSlop();
         mMenuOverFlow = (ImageButton) findViewById(R.id.menu_overflow_audio_header);
-        mMenuOverFlow.setOnClickListener(mPopUpMenuListener);
+        mMenuOverFlow.setOnClickListener(mActiveButtonPopUpMenuListener);
         setTouchDelegate(mMenuOverFlow);
         SysApplication.getInstance().addActivity(this);
 
@@ -446,6 +446,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             MusicBrowserActivity.mIsparentActivityFInishing = true;
             if (mAlbumIcon.getVisibility() == View.GONE) {
                 mAlbumIcon.setVisibility(View.VISIBLE);
+                mMenuOverFlow.setOnClickListener(mActiveButtonPopUpMenuListener);
                 mCurrentPlaylist.setImageResource(R.drawable.list);
                 if (mFragment != null)
                     getFragmentManager().beginTransaction().remove(mFragment)
@@ -453,10 +454,11 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             } else {
                 mAlbumIcon.setVisibility(View.GONE);
                 mCurrentPlaylist.setImageResource(R.drawable.list_active);
-
+                mMenuOverFlow.setOnClickListener(mPopUpMenuListener);
                 mFragment = new TrackBrowserFragment();
                 Bundle args = new Bundle();
                 args.putString("playlist", "nowplaying");
+                args.putBoolean("editValue", true);
                 mFragment.setArguments(args);
                 getFragmentManager()
                         .beginTransaction()
@@ -551,6 +553,45 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         }
     };
 
+    private View.OnClickListener mActiveButtonPopUpMenuListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            PopupMenu popup = new PopupMenu(mActivity, mMenuOverFlow);
+            // icon will be set in onPrepareOptionsMenu()
+            popup.getMenu().add(0, PARTY_SHUFFLE, 0, R.string.party_shuffle);
+            SubMenu sub = popup.getMenu().addSubMenu(0,
+                    ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
+            MusicUtils.makePlaylistMenu(MediaPlaybackActivity.this, sub);
+            if (TelephonyManager.getDefault().isMultiSimEnabled()) {
+                int[] ringtones = { USE_AS_RINGTONE, USE_AS_RINGTONE_2 };
+                int[] menuStrings = { R.string.ringtone_menu_1,
+                        R.string.ringtone_menu_2 };
+                for (int i = 0; i < TelephonyManager.getDefault()
+                        .getPhoneCount(); i++) {
+                    popup.getMenu().add(0, ringtones[i], 0,
+                            menuStrings[i]);
+                }
+            } else {
+                popup.getMenu().add(0, USE_AS_RINGTONE, 0,
+                        R.string.ringtone_menu);
+            }
+            Intent i = new Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL);
+            if (getPackageManager().resolveActivity(i, 0) != null) {
+                popup.getMenu().add(0, EFFECTS_PANEL, 0, R.string.effectspanel);
+            }
+            popup.getMenu()
+            .add(0, DELETE_ITEM, 0, R.string.delete_item);
+            popup.show();
+            popup.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    onOptionsItemSelected(item);
+                    return true;
+                }
+            });
+        }
+    };
+
     private RepeatingImageButton.RepeatListener mRewListener = new RepeatingImageButton.RepeatListener() {
         public void onRepeat(View v, long howlong, int repcnt) {
             scanBackward(repcnt, howlong);
@@ -571,8 +612,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             public void run() {
                 Rect r = new Rect();
                 v.getHitRect(r);
-                r.top -= 12;
-                r.bottom += 12;
+                r.top -= 24;
+                r.bottom += 24;
                 parent.setTouchDelegate(new TouchDelegate(r, v));
             }
         });
@@ -680,6 +721,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 
             case PARTY_SHUFFLE:
                 MusicUtils.togglePartyShuffle();
+                setShuffleButtonImage();
                 setRepeatButtonImage();
                 break;
 
@@ -700,7 +742,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 // We only clear the current playlist
                 MusicUtils.clearQueue();
                 if (MusicBrowserActivity.isPanelExpanded) {
-                    mSlidingPanelLayout.setHookState(BoardState.COLLAPSED);
+                    mSlidingPanelLayout.setHookState(BoardState.HIDDEN);
                     MusicBrowserActivity.isPanelExpanded = false;
                     mNowPlayingView.setVisibility(View.GONE);
                 }
@@ -1331,6 +1373,10 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 setShuffleButtonImage();
                 setPauseButtonImage();
                 return;
+            }
+            else{
+                mSlidingPanelLayout.setHookState(BoardState.HIDDEN);
+                mNowPlayingView.setVisibility(View.GONE);
             }
         } catch (RemoteException ex) {
         }

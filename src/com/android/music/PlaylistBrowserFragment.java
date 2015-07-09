@@ -672,8 +672,10 @@ public class PlaylistBrowserFragment extends Fragment implements
         }
         ArrayList<Object> recent = new ArrayList<Object>(2);
         recent.add(RECENTLY_ADDED_PLAYLIST);
-        recent.add(getString(R.string.recentlyadded));
-        autoplaylistscursor.addRow(recent);
+        if (isAdded()) {
+            recent.add(getResources().getString(R.string.recentlyadded));
+            autoplaylistscursor.addRow(recent);
+        }
 
         // check if there are any podcasts
         Cursor counter = MusicUtils.query(parentActivity,

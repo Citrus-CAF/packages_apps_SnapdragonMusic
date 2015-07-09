@@ -36,13 +36,13 @@
         android:textColor="#ffffffff" />
 
     <SeekBar android:id="@+id/progress"
-        android:background="#ff000000"
-        android:progressDrawable="@drawable/progress_horizontal"
-        android:thumb="@drawable/seek_thumb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="8dip"
         android:paddingEnd="8dip"
+        android:paddingStart="8dip"
+        android:progressBackgroundTint="@color/greycheck"
+        android:progressTint="@color/seekbarcolor"
+        android:thumbTint="@color/seekbarcolor"
         android:visibility="gone" />
 
     <LinearLayout

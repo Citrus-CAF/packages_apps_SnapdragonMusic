@@ -72,6 +72,8 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AlphabetIndexer;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -92,7 +94,7 @@ import java.text.Collator;
 import java.util.Arrays;
 
 public class TrackBrowserActivityFragment extends Fragment
-        implements MusicUtils.Defs, ServiceConnection
+        implements MusicUtils.Defs, ServiceConnection,OnItemClickListener
 {
     public static final String BUY_LICENSE = "android.drmservice.intent.action.BUY_LICENSE";
     private static final int Q_SELECTED = CHILD_MENU_BASE;
@@ -177,7 +179,6 @@ public class TrackBrowserActivityFragment extends Fragment
     public void onCreate(Bundle icicle)
     {
         super.onCreate(icicle);
-        System.out.println("@Nishanth4321 oncreate called");
         Intent intent = mParentActivity.getIntent();
         if (intent != null) {
             if (intent.getBooleanExtra("withtabs", false)) {
@@ -334,14 +335,13 @@ public class TrackBrowserActivityFragment extends Fragment
         } else {
             mTrackList.setTextFilterEnabled(true);
         }
-      //  mAdapter = (TrackListAdapter) parentActivity.getLastNonConfigurationInstance();
-
         if (mAdapter != null) {
             mAdapter.setActivity(this);
             setListAdapter(mAdapter);
         }
         mToken = MusicUtils.bindToService(mParentActivity, this);
-
+        //attaching listview listener
+        mTrackList.setOnItemClickListener(this);
         // don't set the album art until after the view has been layed out
         mTrackList.post(new Runnable() {
 
@@ -389,7 +389,7 @@ public class TrackBrowserActivityFragment extends Fragment
              mAdapter = new TrackListAdapter(
                     mParentActivity.getApplication(), // need to use application context to avoid leaks
                     this,
-                    /*mEditMode ? R.layout.edit_track_list_item :*/ R.layout.track_list_item_common1,
+                    R.layout.track_list_item_common1,
                     null, // cursor
                     new String[] {},
                     new int[] {},
@@ -430,6 +430,13 @@ public class TrackBrowserActivityFragment extends Fragment
         mAdapterSent = true;
         return a;
     }*/
+
+    @Override
+    public void onDetach() {
+        // TODO Auto-generated method stub
+        super.onDetach();
+        mParentActivity = null;
+    }
 
     @Override
     public void onDestroy() {
@@ -1242,6 +1249,44 @@ public class TrackBrowserActivityFragment extends Fragment
     }
 
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        switch (requestCode) {
+        case SCAN_DONE:
+            if (resultCode == mParentActivity.RESULT_CANCELED) {
+                mParentActivity.finish();
+            } else {
+                getTrackCursor(mAdapter.getQueryHandler(), null, true);
+            }
+            break;
+
+        case NEW_PLAYLIST:
+            if (resultCode == mParentActivity.RESULT_OK) {
+                Uri uri = intent.getData();
+                if (uri != null) {
+                    long[] list = new long[] { mSelectedId };
+                    MusicUtils.addToPlaylist(mParentActivity, list,
+                            Integer.valueOf(uri.getLastPathSegment()));
+                }
+            }
+            break;
+
+        case SAVE_AS_PLAYLIST:
+            if (resultCode == mParentActivity.RESULT_OK) {
+                Uri uri = intent.getData();
+                if (uri != null) {
+                    long[] list = MusicUtils.getSongListForCursor(mTrackCursor);
+                    int plid = Integer.parseInt(uri.getLastPathSegment());
+                    MusicUtils.addToPlaylist(mParentActivity, list, plid);
+                }
+            }
+            break;
+        case DELETE_ITEM:
+            mTrackList.setAdapter(mTrackList.getAdapter());
+            break;
+        }
+    }
+
     private boolean onCreateOptionsMenu(PopupMenu menu) {
          /*This activity is used for a number of different browsing modes, and the menu can
          * be different for each of them:
@@ -1879,7 +1924,7 @@ public class TrackBrowserActivityFragment extends Fragment
             String songName = cursor.getString(mSongIdx);
             vh.line1.setText(String.valueOf(cursor.getPosition()+1)+". "+songName);
             vh.mCurrentTrackName = songName;
-            vh.mSelectedId = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID));
+            vh.mSelectedId = cursor.getLong(mAudioIdIdx);
             String albumName = cursor.getString(mAlbumIdx);
             mActivity.mTextView1.setText(albumName);
             vh.line1.setTextColor(Color.BLACK);
@@ -1956,7 +2001,7 @@ public class TrackBrowserActivityFragment extends Fragment
             // playlist mode (except when you're viewing the "current playlist",
             // which is not really a playlist)
             if ( (mIsNowPlaying && cursor.getPosition() == id) ||
-                 (!mIsNowPlaying && !mDisableNowPlayingIndicator && cursor.getLong(mAudioIdIdx) == id)) {
+                 (!mIsNowPlaying && cursor.getLong(mAudioIdIdx) == id)) {
                 // We set different icon according to different play state
                 if (MusicUtils.isPlaying()) {
                     iv.setVisibility(View.VISIBLE);
@@ -2022,5 +2067,13 @@ public class TrackBrowserActivityFragment extends Fragment
         public int getSectionForPosition(int position) {
             return 0;
         }
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position,
+            long id) {
+            // play the track
+         MusicUtils.playAll(mParentActivity, mTrackCursor, position);
+         mAdapter.notifyDataSetChanged();
     }
 }

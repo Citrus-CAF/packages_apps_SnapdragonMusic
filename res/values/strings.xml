@@ -352,7 +352,7 @@
     <string name="widget_initial_text">Touch to choose music.</string>
 
     <!-- Menu text for the item controlling the audio effects panel [CHAR LIMIT=15] -->
-    <string name="effectspanel">Snapdragon Audio+</string>
+    <string name="effectspanel">Equalizer</string>
 
     <string name="duplicate_playlist_name_alert">There is already a playlist named \"<xliff:g id="name">%s</xliff:g>\". Please select a different name.</string>
     <string name="same_playlist_name_alert">Playlist \"<xliff:g id="name">%s</xliff:g>\" name is not changed. Please select a different name.</string>
@@ -393,7 +393,6 @@
     <string name="action_one">One</string>
     <string name="action_two">Two</string>
     <string name="action_three">Three</string>
-    <string name="shuffle_all">SHUFFLE ALL</string>
-
+    <string name="shuffle_all">Shuffle All</string>
 </resources>
 
