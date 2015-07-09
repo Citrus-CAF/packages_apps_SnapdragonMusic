@@ -1911,15 +1911,15 @@ public class TrackBrowserActivityFragment extends Fragment
             builder.delete(0, builder.length());
 
             String name = cursor.getString(mArtistIdx);
-            mActivity.mTextView2.setText(name);
             if (name == null || name.equals(MediaStore.UNKNOWN_STRING)) {
                 // Reload the "unknown_artist_name" string in order to
                 // avoid that this string doesn't change when user
                 // changes the system language setting.
-                builder.append(context.getString(R.string.unknown_artist_name));
-            } else {
-                builder.append(name);
+                name = context.getString(R.string.unknown_artist_name);
             }
+            builder.append(name);
+            mActivity.mTextView2.setText(name);
+
             int len = builder.length();
             if (vh.buffer2.length < len) {
                 vh.buffer2 = new char[len];
