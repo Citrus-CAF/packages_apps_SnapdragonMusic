@@ -531,7 +531,7 @@ public class TrackBrowserFragment extends Fragment implements
         if (mTrackCursor.getCount() == 0) {
             mShuffleLayout.setVisibility(View.GONE);
             mSdErrorMessageView.setVisibility(View.VISIBLE);
-            mSdErrorMessageView.setText("No Music Found");
+            mSdErrorMessageView.setText(R.string.no_music_found);
         }
         setTitle();
 
