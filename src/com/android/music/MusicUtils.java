@@ -127,6 +127,8 @@ public class MusicUtils {
     public static HashMap<Integer, Cursor> cur = new HashMap<Integer, Cursor>();
     static Bitmap mAlbumArtsArray[];
 
+    public static boolean mIsScreenOff = false;
+
     public interface Defs {
         public final static int OPEN_URL = 0;
         public final static int ADD_TO_PLAYLIST = 1;
@@ -1791,7 +1793,7 @@ public class MusicUtils {
                     if (childCursor != null && !childCursor.isClosed())
                         childCursor.close();
                     addDateToCache(artistName, mAlbumArtsArray);
-                    if (handler != null)
+                    if (handler != null && !mIsScreenOff)
                         handler.sendEmptyMessage(0);
 
                 } while (artistCursor.moveToNext());
@@ -1849,6 +1851,7 @@ public class MusicUtils {
         @Override
         public void run() {
             super.run();
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
             MusicUtils.getAlbumArtsForArtist(ctx, (BitmapDrawable) ctx
                     .getResources().getDrawable(R.drawable.unknown_artists),
                     fromPosition, toPosition, handler);
@@ -1877,18 +1880,18 @@ public class MusicUtils {
         @Override
         public void run() {
             super.run();
-            System.out.println("OMNS run");
-            final Drawable d = MusicUtils.getCachedArtwork(context.getBaseContext(), artIndex,
-                    defaultArtwork);
-            context.runOnUiThread(new Runnable() {
-
-                @Override
-                public void run() {
-                    // TODO Auto-generated method stub
-                    img.setImageDrawable(d);
-                }
-            });
-
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            final Drawable d = MusicUtils.getCachedArtwork(
+                    context.getBaseContext(), artIndex, defaultArtwork);
+            if (img != null && !mIsScreenOff) {
+                context.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        // TODO Auto-generated method stub
+                        img.setImageDrawable(d);
+                    }
+                });
+            }
         }
     }
 

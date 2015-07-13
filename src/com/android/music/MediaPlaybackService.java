@@ -567,6 +567,11 @@ public class MediaPlaybackService extends Service {
         commandFilter.addAction(EXIT_ACTION);
         registerReceiver(mIntentReceiver, commandFilter);
 
+
+        IntentFilter s = new IntentFilter();
+        s.addAction(Intent.ACTION_SCREEN_ON);
+        s.addAction(Intent.ACTION_SCREEN_OFF);
+        registerReceiver(mScreenTimeoutListener, s);
         //Updating notification after language has been changed.
         IntentFilter localeFilter = new IntentFilter();
         localeFilter.addAction(Intent.ACTION_LOCALE_CHANGED);
@@ -583,6 +588,19 @@ public class MediaPlaybackService extends Service {
 
         mControlInStatusBar = getApplicationContext().getResources().getBoolean(R.bool.control_in_statusbar);
     }
+
+    private BroadcastReceiver mScreenTimeoutListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
+                MusicUtils.mIsScreenOff = false;
+            }
+
+            else if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
+                MusicUtils.mIsScreenOff = true;
+            }
+        }
+    };
 
     @Override
     public void onDestroy() {
@@ -629,6 +647,9 @@ public class MediaPlaybackService extends Service {
         if (mAttributePairs != null) {
             mAttributePairs.clear();
         }
+
+        if (mScreenTimeoutListener != null)
+            unregisterReceiver(mScreenTimeoutListener);
 
         //notify music widget update state
         //because of service is died, so can not use performUpdate
