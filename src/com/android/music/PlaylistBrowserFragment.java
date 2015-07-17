@@ -785,14 +785,11 @@ public class PlaylistBrowserFragment extends Fragment implements
 
             final int id = cursor.getInt(cursor
                     .getColumnIndexOrThrow(MediaStore.Audio.Playlists._ID));
-            ImageView imageViews[] = new ImageView[] { vh.albumArtIcon1, vh.albumArtIcon2, vh.albumArtIcon3,
-                    vh.albumArtIcon4 };
+            new DownloadAlbumArt(id).run();
+            ImageView imageViews[] = new ImageView[] { vh.albumArtIcon1,
+                    vh.albumArtIcon2, vh.albumArtIcon3, vh.albumArtIcon4 };
             Bitmap[] albumartArray = null;
             albumartArray = PlaylistBrowserFragment.playlistMap.get(id);
-
-            if (albumartArray == null)
-                new DownloadAlbumArt(id, view).execute();
-
             if (albumartArray != null) {
                 if (albumartArray.length == 1) {
                     if (albumartArray[0] != null) {
@@ -915,35 +912,19 @@ public class PlaylistBrowserFragment extends Fragment implements
             return c;
         }
 
-        private class CustomObject{
-            Bitmap albumArt;
-            int position;
-            public CustomObject(Bitmap albumart, int position) {
-                this.albumArt = albumart;
-                this.position = position;
-            }
-        }
-
-        HashMap<Long, CustomObject> mDrawables;
-
-        private class DownloadAlbumArt extends
-                AsyncTask<DownloadAlbumArt, CustomObject, CustomObject> {
+        private class DownloadAlbumArt implements Runnable {
             String[] mPlaylistMemberCols1 = new String[] {
                     MediaStore.Audio.Media.ALBUM_ID,
                     MediaStore.Audio.Media.ARTIST };
             int id;
-            View view;
-            CustomObject co;
             Bitmap[] mAlbumArtArray;
 
-            public DownloadAlbumArt(int id, View view) {
+            public DownloadAlbumArt(int id) {
                 this.id = id;
-                this.view = view;
             }
 
             @Override
-            protected CustomObject doInBackground(DownloadAlbumArt... params) {
-                // TODO Auto-generated method stub
+            public void run() {
                 try {
                     if (id != -1) {
                         Uri uri = MediaStore.Audio.Playlists.Members
@@ -951,10 +932,11 @@ public class PlaylistBrowserFragment extends Fragment implements
                         Cursor ret = parentActivity.getContentResolver().query(
                                 uri, mPlaylistMemberCols1, null, null, null);
                         if (ret.moveToFirst()) {
-                            int c = ret.getCount();
-                            if(c >4) c = 4;
-                            mAlbumArtArray = new Bitmap[c];
-                            for (int j = 0; j < ret.getCount(); j++) {
+                            int count = ret.getCount();
+                            if (count > 4)
+                                count = 4;
+                            mAlbumArtArray = new Bitmap[count];
+                            for (int j = 0; j < count; j++) {
                                 long albumId = ret
                                         .getLong(ret
                                                 .getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID));
@@ -967,9 +949,6 @@ public class PlaylistBrowserFragment extends Fragment implements
                                     b = mDefaultAlbumIcon.getBitmap();
                                 }
                                 mAlbumArtArray[j] = b;
-                                co = new CustomObject(b, j);
-
-                                publishProgress(co);
                                 ret.moveToNext();
                             }
                         }
@@ -985,7 +964,8 @@ public class PlaylistBrowserFragment extends Fragment implements
                                 MediaStore.Audio.Media.DEFAULT_SORT_ORDER);
                         try {
                             int len = cursor.getCount();
-                            if(len > 4) len =4;
+                            if (len > 4)
+                                len = 4;
                             mAlbumArtArray = new Bitmap[len];
                             String[] list = new String[4];
                             for (int i = 0; i < list.length; i++) {
@@ -1003,8 +983,6 @@ public class PlaylistBrowserFragment extends Fragment implements
                                         b = mDefaultAlbumIcon.getBitmap();
                                     }
                                     mAlbumArtArray[i] = b;
-                                    co = new CustomObject(b, i);
-                                    publishProgress(co);
                                 }
                             }
                         } catch (SQLiteException ex) {
@@ -1015,42 +993,9 @@ public class PlaylistBrowserFragment extends Fragment implements
                     System.out.println("Exception caught" + e.getMessage());
                     e.printStackTrace();
                 }
-                return null;
+
             }
-
-            @Override
-            protected void onProgressUpdate(CustomObject... values) {
-                // TODO Auto-generated method stub
-                super.onProgressUpdate(values);
-                ViewHolder vh = (ViewHolder) view.getTag();
-                switch (values[0].position) {
-                case 0:
-                    vh.albumArtIcon1.setImageBitmap(values[0].albumArt);
-                    break;
-                case 1:
-                    vh.albumArtIcon2.setImageBitmap(values[0].albumArt);
-                    break;
-                case 2:
-                    vh.albumArtIcon3.setImageBitmap(values[0].albumArt);
-                    break;
-                case 3:
-                    vh.albumArtIcon4.setImageBitmap(values[0].albumArt);
-                    break;
-
-                default:
-                    break;
-                }
-            }
-
-            @Override
-            protected void onPostExecute(CustomObject result) {
-                // TODO Auto-generated method stub
-                super.onPostExecute(result);
-            }
-
         }
-
     }
-
     private Cursor mPlaylistCursor;
 }
