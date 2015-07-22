@@ -934,6 +934,7 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
                     // mFragment.mCurrentArtistId = vh.mCurrentArtistID;
                     mFragment.mCurrentArtistName = vh.mCurrentArtistName;
                     mFragment.mCurrentAlbumName = vh.mCurrentAlbumName;
+                    mFragment.mCurrentAlbumId = vh.mCurrentAlbumID;
                     mFragment.mCurrentArtistId = null;
                     PopupMenu popup = new PopupMenu(mFragment
                             .getParentActivity(), vh.play_indicator);

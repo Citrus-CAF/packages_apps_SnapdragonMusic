@@ -607,8 +607,7 @@ public class MusicPanelLayout extends ViewGroup {
             throw new IllegalArgumentException(
                     "Panel state cannot be null or DRAGGING.");
         }
-        if (!isEnabled() || (!mPrimaryLayout && mSlippingView == null)
-                || state == mSlipState || mSlipState == BoardState.DRAGGING)
+        if (!isEnabled() || (mPrimaryLayout && mSlippingView == null))
             return;
 
         if (mPrimaryLayout) {
@@ -634,13 +633,6 @@ public class MusicPanelLayout extends ViewGroup {
                 smoothSlipTo(computeSlideOffset(newTop), 0, false);
                 break;
             }
-        }
-    }
-
-    public void enableSlipLayout() {
-        if (mSlipState == BoardState.HIDDEN) {
-            mSlippingView.setVisibility(View.VISIBLE);
-            requestLayout();
         }
     }
 
@@ -815,7 +807,8 @@ public class MusicPanelLayout extends ViewGroup {
 
     @Override
     public Parcelable onSaveInstanceState() {
-        HookInstanceSavedState ss = new HookInstanceSavedState(super.onSaveInstanceState());
+        HookInstanceSavedState ss = new HookInstanceSavedState(
+                super.onSaveInstanceState());
         if (BoardState.DRAGGING == mSlipState)
             ss.mSlipState = mPreviuosStoppedDraggingSlipState;
         else

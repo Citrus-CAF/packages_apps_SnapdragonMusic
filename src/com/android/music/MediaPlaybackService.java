@@ -116,11 +116,11 @@ public class MediaPlaybackService extends Service {
     public static final String CMDGET = "get";
     public static final String CMDSET = "set";
 
-    public static final String TOGGLEPAUSE_ACTION = "com.android.music.musicservicecommand.togglepause";
-    public static final String PAUSE_ACTION = "com.android.music.musicservicecommand.pause";
-    public static final String PREVIOUS_ACTION = "com.android.music.musicservicecommand.previous";
-    public static final String NEXT_ACTION = "com.android.music.musicservicecommand.next";
-    public static final String EXIT_ACTION = "exit";
+    public static final String TOGGLEPAUSE_ACTION = "org.codeaurora.android.music.musicservicecommand.togglepause";
+    public static final String PAUSE_ACTION = "org.codeaurora.android.music.musicservicecommand.pause";
+    public static final String PREVIOUS_ACTION = "org.codeaurora.android.music.musicservicecommand.previous";
+    public static final String NEXT_ACTION = "org.codeaurora.android.music.musicservicecommand.next";
+    public static final String EXIT_ACTION = "org.codeaurora.android.music.musicservicecommand.exit";
     private static final String PLAYSTATUS_REQUEST = "org.codeaurora.android.music.playstatusrequest";
     private static final String PLAYSTATUS_RESPONSE = "org.codeaurora.music.playstatusresponse";
     private static final String PLAYERSETTINGS_REQUEST = "org.codeaurora.music.playersettingsrequest";
@@ -1698,7 +1698,7 @@ public class MediaPlaybackService extends Service {
     private void updateNotification() {
         views = new RemoteViews(getPackageName(), R.layout.statusbar);
         Bitmap icon = MusicUtils.getArtwork(this, getAudioId(), getAlbumId(),
-                false);
+                true);
         views.setImageViewBitmap(R.id.icon, icon);
         Intent prevIntent = new Intent(PREVIOUS_ACTION);
         PendingIntent prevPendingIntent = PendingIntent.getBroadcast(this,

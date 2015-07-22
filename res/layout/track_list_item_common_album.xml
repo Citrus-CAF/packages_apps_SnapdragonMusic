@@ -45,8 +45,7 @@
         android:layout_alignParentBottom="true"
         android:layout_width="match_parent"
         android:layout_height="80dp"
-        android:padding="@dimen/album_left_margin"
-        android:background="@drawable/card_background">
+        android:padding="@dimen/album_left_margin">
 
     <ImageView android:id="@+id/list_menu_button"
         android:layout_width="wrap_content"
@@ -100,6 +99,7 @@
         android:layout_above="@id/album_card"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:padding="2dp"
         android:scaleType="fitXY"/>
     <!-- <ImageView android:id="@+id/play_indicator"
         android:layout_alignParentEnd="true"

@@ -34,6 +34,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -124,6 +125,7 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
             mArtistId = getArguments().getString("artist");
         }
         mAlbumList = (GridView) rootView.findViewById(R.id.album_list);
+        arrangeGridColums(mParentActivity.getResources().getConfiguration());
         mAlbumList.setOnItemClickListener(new OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
                     int position, long id) {
@@ -158,6 +160,20 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
         outcicle.putString("selectedalbum", mCurrentAlbumId);
         outcicle.putString("artist", mArtistId);
         super.onSaveInstanceState(outcicle);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        arrangeGridColums(newConfig);
+    }
+
+    public void arrangeGridColums(Configuration newConfig) {
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            mAlbumList.setNumColumns(3);
+        } else {
+            mAlbumList.setNumColumns(2);
+        }
     }
 
     @Override

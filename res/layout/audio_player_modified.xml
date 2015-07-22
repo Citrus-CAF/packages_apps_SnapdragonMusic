@@ -40,7 +40,7 @@
             android:id="@+id/current_queue_view"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_marginBottom="5dp" >
+            android:layout_marginBottom="15dp" >
 
             <ImageView
                 android:id="@+id/album_icon_view"
@@ -57,10 +57,10 @@
             android:layout_gravity="bottom"
             android:layout_marginLeft="-15dp"
             android:layout_marginRight="-15dp"
-            android:maxHeight="3dp"
-            android:minHeight="3dp"
-            android:progressDrawable="@drawable/progress_horizontal"
-            android:thumb="@drawable/seekthumb" />
+            android:progressBackgroundTint="@color/greycheck"
+            android:indeterminateTint="@color/seekbarcolor"
+            android:progressTint="@color/seekbarcolor"
+            android:thumbTint="@color/seekbarcolor" />
     </FrameLayout>
 
     <RelativeLayout
