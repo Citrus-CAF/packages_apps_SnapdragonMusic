@@ -23,6 +23,7 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.KeyguardManager;
+import android.app.NotificationManager;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -1625,6 +1626,11 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         try {
             String path = mService.getPath();
             if (path == null) {
+                MusicBrowserActivity.isPanelExpanded = false;
+                mSlidingPanelLayout.setHookState(BoardState.HIDDEN);
+                NotificationManager nm = (NotificationManager)
+                        getSystemService(Context.NOTIFICATION_SERVICE);
+                nm.cancel(MediaPlaybackService.PLAYBACKSERVICE_STATUS);
                 return;
             }
 
