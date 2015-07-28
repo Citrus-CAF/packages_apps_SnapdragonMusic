@@ -1323,7 +1323,7 @@ public class TrackBrowserFragment extends Fragment implements
             }
         }
 
-        if (mEditMode && !mPlaylist.equals("nowplaying")) {
+        if (mEditMode && mPlaylist != null && !mPlaylist.equals("nowplaying")) {
             MusicUtils.setPlayListId(Long.valueOf(mPlaylist));
         }
         if (prevV != null) {
