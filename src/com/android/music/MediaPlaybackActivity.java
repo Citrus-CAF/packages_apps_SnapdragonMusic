@@ -1685,6 +1685,18 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         } catch (NullPointerException ex) {
             // we might not actually have the service yet
             ex.printStackTrace();
+        } catch (IllegalStateException istateex) {
+            Log.e(TAG,
+                    "IllegalStateException in query uri. " + istateex.getMessage());
+            if (mService == null) {
+                Log.e(TAG, " service is null");
+                return;
+            }
+            try {
+                mService.next();
+            } catch (RemoteException ex) {
+                Log.e(TAG, " remote exception in playing song");
+            }
         }
     }
 
