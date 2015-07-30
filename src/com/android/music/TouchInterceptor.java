@@ -154,7 +154,7 @@ public class TouchInterceptor extends ListView {
                             return false;
                         }
                     }
-                    else if (x < 64) {
+                    else if (x < 128) {
                         // The left side of the item is the grabber for dragging the item
                         item.setDrawingCacheEnabled(true);
                         // Create a copy of the drawing cache so that it does not get recycled
@@ -327,7 +327,7 @@ public class TouchInterceptor extends ListView {
             mGestureDetector.onTouchEvent(ev);
         }
         if ((mDragListener != null || mDropListener != null) && mDragView != null) {
-            int action = ev.getAction(); 
+            int action = ev.getAction();
             switch (action) {
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_CANCEL:

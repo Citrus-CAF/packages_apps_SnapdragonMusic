@@ -76,12 +76,17 @@ public class MusicPanelLayout extends ViewGroup {
     private int mSlipViewResId = -1;
     private View mSlippingView;
     private View mInitialView;
+    public static View  mSeekBarView;
+    public static View mSongsQueueView;
+    private int[] mSeekBarCoordinate =  new int[2];
+    private int[] mSongsQueueCoordinate = new int[2];
 
     public enum BoardState {
         EXPANDED, COLLAPSED, ANCHORED, HIDDEN, DRAGGING
     }
 
     public BoardState mSlipState = BoardState.COLLAPSED;
+    public boolean mIsQueueEnabled = false;
     private BoardState mPreviuosStoppedDraggingSlipState = null;
     private float mSlipOffset;
     private int mSlipRange;
@@ -545,6 +550,12 @@ public class MusicPanelLayout extends ViewGroup {
         final float x = ev.getX();
         final float y = ev.getY();
 
+        mSeekBarView.getLocationOnScreen(mSeekBarCoordinate);
+        mSongsQueueView.getLocationOnScreen(mSongsQueueCoordinate);
+        if(mIsQueueEnabled && (y > mSongsQueueCoordinate[1])
+                           && (y < mSeekBarCoordinate[1])) {
+           return false;
+        }
         switch (action) {
         case MotionEvent.ACTION_DOWN: {
             mIsCanNotDrag = false;
