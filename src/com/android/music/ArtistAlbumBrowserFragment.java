@@ -295,7 +295,7 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
         hideDatabaseError();
         if (mArtistCursor.getCount() == 0) {
             mSdErrorMessageView.setVisibility(View.VISIBLE);
-            mSdErrorMessageView.setText("No Music Found");
+            mSdErrorMessageView.setText(R.string.no_music_found);
             mExpandableListView.setVisibility(View.GONE);
         }
     }

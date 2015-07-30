@@ -394,5 +394,7 @@
     <string name="action_two">Two</string>
     <string name="action_three">Three</string>
     <string name="shuffle_all">Shuffle All</string>
+
+    <string name="no_music_found">No Music Found</string>
 </resources>
 
