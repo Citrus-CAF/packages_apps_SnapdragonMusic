@@ -240,6 +240,16 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        mScreenOff = false;
+        if (!isCompleted) {
+            mProgressRefresher.removeCallbacksAndMessages(null);
+            mProgressRefresher.post(new ProgressRefresher());
+        }
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
         IntentFilter f = new IntentFilter();
