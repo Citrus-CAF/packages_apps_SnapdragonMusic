@@ -33,7 +33,7 @@
     android:layout_width="@dimen/icon_size"
     android:layout_height="@dimen/icon_size"
     android:background="#e1e1e1"
-    android:paddingLeft="8dp"
+    android:paddingStart="8dp"
     android:columnCount="2"
     android:rowCount="2"
     android:id="@+id/iconTabbedView">

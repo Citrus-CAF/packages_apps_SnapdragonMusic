@@ -28,8 +28,7 @@
     -->
     <item android:id="@android:id/progress">
         <clip xmlns:android="http://schemas.android.com/apk/res/android"
-            android:clipOrientation="horizontal"
-            android:gravity="left">
+            android:clipOrientation="horizontal">
             <nine-patch android:src="@drawable/progress" android:dither="true"/>
         </clip>
     </item>

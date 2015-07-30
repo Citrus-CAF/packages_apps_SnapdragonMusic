@@ -35,7 +35,7 @@
             android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="@string/cancel"
             android:layout_gravity="center_horizontal"
-            android:layout_toLeftOf="@+id/delete"
+            android:layout_toStartOf="@+id/delete"
             android:textColor="#009486"
             android:background="@android:color/transparent" />
 
