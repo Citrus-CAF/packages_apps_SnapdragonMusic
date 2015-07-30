@@ -103,6 +103,8 @@ import android.drm.DrmStore;
 import android.drm.DrmStore.Action;
 import android.drm.DrmStore.RightsStatus;
 
+import com.codeaurora.music.custom.MusicPanelLayout.BoardState;
+
 public class MusicUtils {
 
     private static final String TAG = "MusicUtils";
@@ -1469,6 +1471,11 @@ public class MusicUtils {
             return;
         }
         try {
+            String path = sService.getPath();
+            if (path == null) {
+                ((MediaPlaybackActivity) a).getSlidingPanelLayout().setHookState(BoardState.HIDDEN);
+                return;
+            }
             boolean withtabs = false;
             Intent intent = a.getIntent();
             if (intent != null) {
