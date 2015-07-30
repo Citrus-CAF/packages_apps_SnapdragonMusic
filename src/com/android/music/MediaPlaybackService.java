@@ -1645,6 +1645,12 @@ public class MediaPlaybackService extends Service {
      * Starts playback of a previously opened file.
      */
     public void play() {
+
+        if (MusicUtils.isTelephonyCallInProgress()) {
+            Log.d(LOGTAG, "CS/CSVT Call is in progress, can't play music");
+            return;
+        }
+
         mAudioManager.requestAudioFocus(mAudioFocusListener, AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN);
         mAudioManager.registerMediaButtonEventReceiver(new ComponentName(this.getPackageName(),

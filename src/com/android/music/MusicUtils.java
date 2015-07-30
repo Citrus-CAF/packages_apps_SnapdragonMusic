@@ -57,6 +57,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
+import android.telephony.SubscriptionManager;
 import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.Log;
@@ -1893,6 +1894,25 @@ public class MusicUtils {
                 });
             }
         }
+    }
+
+    public static boolean isTelephonyCallInProgress() {
+        TelephonyManager telephonyManager = TelephonyManager.getDefault();
+        Log.d(TAG, "Phone Count - " + telephonyManager.getPhoneCount());
+
+        for (int i = 0; i < telephonyManager.getPhoneCount(); i++) {
+            int[] subId = SubscriptionManager.getSubId(i);
+            if (subId != null && subId.length > 0) {
+                int telephony_state = telephonyManager.getCallState(subId[0]);
+
+                if (telephony_state == TelephonyManager.CALL_STATE_OFFHOOK
+                        || telephony_state == TelephonyManager.CALL_STATE_RINGING) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
 }
