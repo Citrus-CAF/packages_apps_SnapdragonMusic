@@ -30,9 +30,13 @@
 package com.codeaurora.music.custom;
 
 import java.util.HashMap;
+
 import android.app.Fragment;
+
 import com.android.music.AlbumBrowserFragment;
 import com.android.music.ArtistAlbumBrowserFragment;
+import com.android.music.FolderBrowserFragment;
+import com.android.music.MusicUtils;
 import com.android.music.PlaylistBrowserFragment;
 import com.android.music.TrackBrowserActivityFragment;
 import com.android.music.TrackBrowserFragment;
@@ -40,11 +44,13 @@ import com.android.music.TrackBrowserFragment;
 public class FragmentsFactory {
 
     private static HashMap<Integer, Fragment> frg = new HashMap<Integer, Fragment>();
+
     static enum FragmentEnum {
-        ARTIST_FRAG, ALBUM_FRAG, TRACK_FRAG, PLAYLIST_FRAG, TRACK_BROWSER
+        ARTIST_FRAG, ALBUM_FRAG, TRACK_FRAG, FOLDER_FRAG, PLAYLIST_FRAG, TRACK_BROWSER
     };
 
     public static Fragment loadFragment(int pos) {
+
         if (frg.get(pos) == null) {
             frg.put(pos, createFrag(pos));
         }
@@ -60,6 +66,11 @@ public class FragmentsFactory {
             return new AlbumBrowserFragment();
         case TRACK_FRAG:
             return new TrackBrowserFragment();
+        case FOLDER_FRAG:
+            if (MusicUtils.isGroupByFolder()) {
+                return new FolderBrowserFragment();
+            }
+            return new PlaylistBrowserFragment();
         case PLAYLIST_FRAG:
             return new PlaylistBrowserFragment();
         case TRACK_BROWSER:

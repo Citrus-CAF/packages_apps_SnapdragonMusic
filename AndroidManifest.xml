@@ -24,6 +24,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.BROADCAST_STICKY" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
@@ -59,6 +60,12 @@
                 <data android:mimeType="application/ogg"/>
                 <data android:mimeType="application/x-ogg"/>
                 <data android:mimeType="application/itunes"/>
+                <data android:mimeType="vnd.android.cursor.dir/playlist"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.EDIT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="vnd.android.cursor.dir/playlist"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="com.android.music.PLAYBACK_VIEWER" />
@@ -160,7 +167,7 @@
             </intent-filter>
         </activity>
         <activity-alias android:name="com.android.music.PlaylistShortcutActivity"
-            android:targetActivity="com.android.music.PlaylistBrowserActivity"
+            android:targetActivity="com.android.music.MusicBrowserActivity"
             android:label="@string/musicshortcutlabel"
             android:icon="@drawable/ic_launcher_shortcut_music_playlist"
             android:exported="true">

@@ -866,32 +866,13 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
                     .getInt(cursor
                             .getColumnIndexOrThrow(MediaStore.Audio.Albums.NUMBER_OF_SONGS_FOR_ARTIST));
 
-            final StringBuilder builder = mBuffer;
-            builder.delete(0, builder.length());
+            //final StringBuilder builder = mBuffer;
+            //builder.delete(0, builder.length());
             if (unknown) {
                 numsongs = numartistsongs;
             }
-
-            if (numsongs == 1) {
-                builder.append(context.getString(R.string.onesong));
-            } else {
-                if (numsongs == numartistsongs) {
-                    final Object[] args = mFormatArgs;
-                    args[0] = numsongs;
-                    builder.append(mResources.getQuantityString(
-                            R.plurals.Nsongs, numsongs, args));
-                } else {
-                    final Object[] args = mFormatArgs3;
-                    args[0] = numsongs;
-                    args[1] = numartistsongs;
-                    args[2] = cursor
-                            .getString(cursor
-                                    .getColumnIndexOrThrow(MediaStore.Audio.Artists.ARTIST));
-                    builder.append(mResources.getQuantityString(
-                            R.plurals.Nsongscomp, numsongs, args));
-                }
-            }
-            vh.line2.setText(builder.toString());
+            String albumSongNoString = MusicUtils.makeArtistAlbumsSongsLabel(context, numartistsongs);
+            vh.line2.setText(albumSongNoString);
 
             ImageView iv = vh.icon;
             // We don't actually need the path to the thumbnail file,

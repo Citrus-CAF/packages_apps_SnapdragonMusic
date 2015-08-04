@@ -421,10 +421,8 @@ public class MusicPanelViewDragHelper {
             if (dy != 0) {
                 mCalculatedLayout.offsetTopAndBottom(dy);
             }
-            if (dx != 0 || dy != 0) {
-                mCallback.onPanelPositionChanged(mCalculatedLayout, x, y, dx,
-                        dy);
-            }
+
+            mCallback.onPanelPositionChanged(mCalculatedLayout, x, y, dx, dy);
 
             if (keepGoing && x == mScrollableView.getFinalX()
                     && y == mScrollableView.getFinalY()) {

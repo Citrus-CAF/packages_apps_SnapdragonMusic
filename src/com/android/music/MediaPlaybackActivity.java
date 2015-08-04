@@ -43,6 +43,8 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.audiofx.AudioEffect;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -87,7 +89,7 @@ import com.codeaurora.music.custom.MusicPanelLayout.ViewHookSlipListener;
 import com.codeaurora.music.custom.MusicPanelLayout.BoardState;
 
 public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
-        ServiceConnection {
+        ServiceConnection, OnCompletionListener {
     private static final int USE_AS_RINGTONE = CHILD_MENU_BASE;
     private static final int SAVE_AS_PLAYLIST = CHILD_MENU_BASE + 2;
     private static final int CLEAR_PLAYLIST = CHILD_MENU_BASE + 4;
@@ -455,10 +457,15 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 mAlbumIcon.setVisibility(View.VISIBLE);
                 mMenuOverFlow.setOnClickListener(mActiveButtonPopUpMenuListener);
                 mCurrentPlaylist.setImageResource(R.drawable.list);
-                if (mFragment != null)
+                TrackBrowserFragment.mEditMode = MusicUtils.mEditMode;
+                TrackBrowserFragment.mPause = MusicUtils.mPause;
+                if (mFragment != null) {
+                    MusicUtils.isFragmentRemoved = true;
                     getFragmentManager().beginTransaction().remove(mFragment)
                             .commit();
+                }
             } else {
+                MusicUtils.isFragmentRemoved = false;
                 mSlidingPanelLayout.mIsQueueEnabled = true;
                 mAlbumIcon.setVisibility(View.GONE);
                 mCurrentPlaylist.setImageResource(R.drawable.list_active);
@@ -814,10 +821,13 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             if (resultCode == RESULT_OK) {
                 Uri uri = intent.getData();
                 if (uri != null) {
-                    long[] list = new long[1];
-                    list[0] = MusicUtils.getCurrentAudioId();
+                    Cursor c = updateTrackCursor();
+                    if (c != null) {
+                        long[] list = MusicUtils
+                                .getSongListForCursor(updateTrackCursor());
                     int playlist = Integer.parseInt(uri.getLastPathSegment());
                     MusicUtils.addToPlaylist(this, list, playlist);
+                    }
                 }
             }
             break;
@@ -889,8 +899,15 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             getFragmentManager().beginTransaction()
                     .replace(R.id.fragment_page, fragment).commit();
             mToolbar.setVisibility(View.VISIBLE);
-            mToolbar.setTitle(getResources()
-                    .getStringArray(R.array.title_array)[MusicUtils.navigatingTabPosition]);
+            if (MusicUtils.isGroupByFolder()) {
+                mToolbar.setTitle(getResources().getStringArray(
+                        R.array.title_array_folder)[MusicUtils.navigatingTabPosition]);
+            } else {
+                mToolbar.setTitle(getResources().getStringArray(
+                        R.array.title_array_songs)[MusicUtils.navigatingTabPosition]);
+
+            }
+
         }
     }
 
@@ -1478,7 +1495,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             if ((pos >= 0) && (mDuration > 0)) {
                 mCurrentTime.setText(MusicUtils
                         .makeTimeString(this, pos / 1000));
-                int progress = (int) (1000 * pos / mDuration);
+                int progress = (int) (mProgress.getMax() * pos / mDuration);
                 mProgress.setProgress(progress);
                 if (mService.isComplete()) {
                     mCurrentTime.setText(MusicUtils.makeTimeString(this,
@@ -1664,8 +1681,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                         new AlbumSongIdWrapper(albumid, songid)).sendToTarget();
                 mAlbum.setVisibility(View.VISIBLE);
 
-                String filePath = MusicUtils.getSelectAudioPath(
-                        MediaPlaybackActivity.this, songid);
             }
 
             // fetch clip duration from media database if available
@@ -1674,6 +1689,11 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                     new String [] { MediaStore.Audio.Media.DURATION}, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
                 mDuration = cursor.getInt(0);
+                // if duration in media database is not valid,
+                // fall back to media service duration
+                if (mDuration <= 0) {
+                    mDuration = mService.duration();
+                }
                 cursor.close();
             } else {
                 mDuration = mService.duration();
@@ -1685,6 +1705,18 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         } catch (NullPointerException ex) {
             // we might not actually have the service yet
             ex.printStackTrace();
+        } catch (IllegalStateException istateex) {
+            Log.e(TAG,
+                    "IllegalStateException in query uri. " + istateex.getMessage());
+            if (mService == null) {
+                Log.e(TAG, " service is null");
+                return;
+            }
+            try {
+                mService.next();
+            } catch (RemoteException ex) {
+                Log.e(TAG, " remote exception in playing song");
+            }
         }
     }
 
@@ -1766,4 +1798,13 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             mLooper.quit();
         }
     }
+
+	@Override
+	public void onCompletion(MediaPlayer mp) {
+        // Leave 100ms for mediaplayer to change state.
+        SystemClock.sleep(100);
+        // isCompleted = true;
+        mProgress.setProgress(mProgress.getMax());
+        //updatePlayPause();
+        }
 }

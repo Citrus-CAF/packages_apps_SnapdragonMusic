@@ -102,7 +102,14 @@
     <!-- shown in dialog while the media scanner is starting up -->
     <string name="scanning_nosdcard">Scanning USB storage\u2026</string>
 
-    <string-array name="title_array">
+    <string-array name="title_array_folder">
+        <item>Artists</item>
+        <item>Albums</item>
+        <item>Songs</item>
+        <item>Folder</item>
+        <item>Playlists</item>
+    </string-array>
+    <string-array name="title_array_songs">
         <item>Artists</item>
         <item>Albums</item>
         <item>Songs</item>
