@@ -809,13 +809,7 @@ public class TrackBrowserActivity extends ListActivity
                 long [] list = new long[1];
                 list[0] = (int) mSelectedId;
                 Bundle b = new Bundle();
-                String f;
-                String status = MusicUtils.getSDState(TrackBrowserActivity.this);
-                if (status.equals(android.os.Environment.MEDIA_MOUNTED)) {
-                    f = getString(R.string.delete_song_desc); 
-                } else {
-                    f = getString(R.string.delete_song_desc_nosdcard); 
-                }
+                String f = getString(R.string.delete_song_desc);
                 String desc = String.format(f, mCurrentTrackName);
                 b.putString("description", desc);
                 b.putLongArray("items", list);

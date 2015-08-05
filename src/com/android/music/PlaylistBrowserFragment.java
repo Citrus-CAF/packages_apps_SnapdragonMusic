@@ -77,27 +77,27 @@ import com.android.music.MusicUtils.ServiceToken;
 
 public class PlaylistBrowserFragment extends Fragment implements
         View.OnCreateContextMenuListener, MusicUtils.Defs {
-    private static final String TAG = "PlaylistBrowserActivity";
-    private static final int DELETE_PLAYLIST = CHILD_MENU_BASE + 1;
-    private static final int EDIT_PLAYLIST = CHILD_MENU_BASE + 2;
-    private static final int RENAME_PLAYLIST = CHILD_MENU_BASE + 3;
-    private static final int CHANGE_WEEKS = CHILD_MENU_BASE + 4;
-    private static final int CLEAR_ALL_PLAYLISTS = CHILD_MENU_BASE + 5;
-    private static final long RECENTLY_ADDED_PLAYLIST = -1;
-    private static final long ALL_SONGS_PLAYLIST = -2;
-    private static final long PODCASTS_PLAYLIST = -3;
+    private final String TAG = "PlaylistBrowserActivity";
+    private final int DELETE_PLAYLIST = CHILD_MENU_BASE + 1;
+    private final int EDIT_PLAYLIST = CHILD_MENU_BASE + 2;
+    private final int RENAME_PLAYLIST = CHILD_MENU_BASE + 3;
+    private final int CHANGE_WEEKS = CHILD_MENU_BASE + 4;
+    private final int CLEAR_ALL_PLAYLISTS = CHILD_MENU_BASE + 5;
+    private final long RECENTLY_ADDED_PLAYLIST = -1;
+    private final long ALL_SONGS_PLAYLIST = -2;
+    private final long PODCASTS_PLAYLIST = -3;
     private PlaylistListAdapter mAdapter;
     private boolean mAdapterSent;
-    private static int mLastListPosCourse = -1;
+    private int mLastListPosCourse = -1;
     private CharSequence mTitle;
     private boolean mCreateShortcut;
     private ServiceToken mToken;
     private GridView mGridView;
-    private static MediaPlaybackActivity parentActivity;
+    private MediaPlaybackActivity parentActivity;
     private TextView sdErrorMessageView;
     private View sdErrorMessageIcon;
     private BitmapDrawable mDefaultAlbumIcon;
-    private static int mLastSelectedPosition = -1;
+    private int mLastSelectedPosition = -1;
     private String[] mPlaylistMemberCols;
     private String[] mPlaylistMemberCols1;
     private Toolbar mToolbar;
@@ -124,8 +124,8 @@ public class PlaylistBrowserFragment extends Fragment implements
         parentActivity = (MusicBrowserActivity) getActivity();
         final Intent intent = parentActivity.getIntent();
         final String action = intent.getAction();
-        if (Intent.ACTION_CREATE_SHORTCUT.equals(action)) {
-            mCreateShortcut = true;
+        if (getArguments() != null) {
+            mCreateShortcut = getArguments().getBoolean("isFromShortcut");
         }
         mPlaylistMemberCols = new String[] {
                 MediaStore.Audio.Playlists.Members._ID,
@@ -231,8 +231,6 @@ public class PlaylistBrowserFragment extends Fragment implements
                 mToolbar.setTitle(vh.tv.getText().toString());
                 Fragment fragment = null;
                 mLastSelectedPosition = position;
-                fragment = new TrackBrowserFragment();
-                Bundle args = new Bundle();
                 if (mCreateShortcut) {
                     final Intent shortcut = new Intent();
                     shortcut.setAction(Intent.ACTION_EDIT);
@@ -256,6 +254,8 @@ public class PlaylistBrowserFragment extends Fragment implements
                     parentActivity.finish();
                     return;
                 }
+                fragment = new TrackBrowserFragment();
+                Bundle args = new Bundle();
                 if (id == RECENTLY_ADDED_PLAYLIST) {
                     args.putString("playlist", "recentlyadded");
                     fragment.setArguments(args);
@@ -700,7 +700,7 @@ public class PlaylistBrowserFragment extends Fragment implements
         return cc;
     }
 
-    static class PlaylistListAdapter extends SimpleCursorAdapter {
+      class PlaylistListAdapter extends SimpleCursorAdapter {
         int mTitleIdx;
         int mIdIdx;
         Cursor mCursor;
@@ -710,7 +710,7 @@ public class PlaylistBrowserFragment extends Fragment implements
         private String mConstraint = null;
         private boolean mConstraintIsValid = false;
 
-        static class ViewHolder {
+          class ViewHolder {
             ImageView albumArtIcon1, albumArtIcon2, albumArtIcon3, albumArtIcon4;
             TextView tv;
             CharSequence mTitle;

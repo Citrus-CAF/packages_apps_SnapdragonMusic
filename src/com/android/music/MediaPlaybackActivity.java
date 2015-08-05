@@ -449,6 +449,17 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         }
     };
 
+    public void closeQueuePanel(){
+        mSlidingPanelLayout.mIsQueueEnabled = false;
+        mAlbumIcon.setVisibility(View.VISIBLE);
+        mMenuOverFlow.setOnClickListener(mActiveButtonPopUpMenuListener);
+        mCurrentPlaylist.setImageResource(R.drawable.list);
+        if (mFragment != null) {
+            MusicUtils.isFragmentRemoved = true;
+            getFragmentManager().beginTransaction().remove(mFragment).commit();
+        }
+    }
+
     private View.OnClickListener mQueueListener = new View.OnClickListener() {
         public void onClick(View v) {
             MusicBrowserActivity.mIsparentActivityFInishing = true;
@@ -457,8 +468,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 mAlbumIcon.setVisibility(View.VISIBLE);
                 mMenuOverFlow.setOnClickListener(mActiveButtonPopUpMenuListener);
                 mCurrentPlaylist.setImageResource(R.drawable.list);
-                TrackBrowserFragment.mEditMode = MusicUtils.mEditMode;
-                TrackBrowserFragment.mPause = MusicUtils.mPause;
                 if (mFragment != null) {
                     MusicUtils.isFragmentRemoved = true;
                     getFragmentManager().beginTransaction().remove(mFragment)
@@ -770,16 +779,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                     long[] list = new long[1];
                     list[0] = MusicUtils.getCurrentAudioId();
                     Bundle bundle = new Bundle();
-                    String filter;
-                    String status = MusicUtils
-                            .getSDState(MediaPlaybackActivity.this);
-                    if (status.equals(android.os.Environment.MEDIA_MOUNTED)) {
-                        filter = getString(R.string.delete_song_desc,
-                                mService.getTrackName());
-                    } else {
-                        filter = getString(R.string.delete_song_desc_nosdcard,
-                                mService.getTrackName());
-                    }
+                    String filter = getString(R.string.delete_song_desc,
+                            mService.getTrackName());
                     bundle.putString("description", filter);
                     bundle.putLongArray("items", list);
                     intent = new Intent();
@@ -1362,8 +1363,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                     if (mService.getAudioId() >= 0 || mService.isPlaying()
                             || mService.getPath() != null) {
                         mNowPlayingView.setVisibility(View.VISIBLE);
-                        if (mSlidingPanelLayout.getHookState() != BoardState.EXPANDED) {
-                            mSlidingPanelLayout
+                        if (mSlidingPanelLayout.getHookState() != BoardState.EXPANDED
+                                      && (mSlidingPanelLayout.getHookState() != BoardState.COLLAPSED)) {
+                           mSlidingPanelLayout
                                     .setHookState(BoardState.COLLAPSED);
                         }
                     }
@@ -1686,7 +1688,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             // fetch clip duration from media database if available
             Cursor cursor = MusicUtils.query(this,
                     ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songid),
-                    new String [] { MediaStore.Audio.Media.DURATION}, null, null, null);
+                    new String [] { MediaStore.Audio.Media.DURATION }, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
                 mDuration = cursor.getInt(0);
                 // if duration in media database is not valid,

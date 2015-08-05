@@ -122,7 +122,7 @@ public class TrackBrowserFragment extends Fragment implements
     private String[] mCursorCols;
     private String[] mPlaylistMemberCols;
     private boolean mDeletedOneRow = false;
-    public static boolean mEditMode = false;
+    private boolean mEditMode = false;
     private String mCurrentTrackName;
     private String mCurrentAlbumName;
     private String mCurrentArtistNameForAlbum;
@@ -135,23 +135,24 @@ public class TrackBrowserFragment extends Fragment implements
     private String mPlaylist;
     private String mGenre;
     private String mSortOrder;
-    private static int mParent = -1;
-    private static String mRootPath;
+    private int mParent = -1;
+    private String mRootPath;
     private int mSelectedPosition;
     private long mSelectedId;
-    private static int mLastListPosCourse = -1;
-    private static int mLastListPosFine = -1;
+    private int mLastListPosCourse = -1;
+    private int mLastListPosFine = -1;
     private boolean mUseLastListPos = false;
     private ServiceToken mToken;
     private SubMenu mSubMenu = null;
-    private static MediaPlaybackActivity mParentActivity;
+    private MediaPlaybackActivity mParentActivity;
     private TextView mSdErrorMessageView;
     private View mSdErrorMessageIcon;
     private RelativeLayout mShuffleLayout;
-    private static AnimationDrawable mCurrPlayAnimation;
-    private static ImageView mAnimView;
-    public static boolean mPause = false;
+    private AnimationDrawable mCurrPlayAnimation;
+    private ImageView mAnimView;
+    public boolean mPause = false;
     private String mFolderName;
+    private boolean mCreateShortcut = false;
 
     public TrackBrowserFragment() {
     }
@@ -167,7 +168,7 @@ public class TrackBrowserFragment extends Fragment implements
     public void onStop() {
         // TODO Auto-generated method stub
         super.onStop();
-        if (MusicUtils.isGroupByFolder()) {
+        if (MusicUtils.isGroupByFolder() && mParent != -1) {
             mParentActivity.mToolbar.setNavigationContentDescription("drawer");
             mParentActivity.mToolbar
                     .setNavigationIcon(R.drawable.ic_material_light_navigation_drawer);
@@ -194,33 +195,11 @@ public class TrackBrowserFragment extends Fragment implements
             }
         }
         mParentActivity.setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        if (icicle != null) {
-            mSelectedId = icicle.getLong("selectedtrack");
-            mAlbumId = icicle.getString("album");
-            mArtistId = icicle.getString("artist");
-            mPlaylist = icicle.getString("playlist");
-            mGenre = icicle.getString("genre");
-            if (MusicUtils.isGroupByFolder()) {
-                mParent = icicle.getInt("parent", -1);
-                mRootPath = icicle.getString("rootPath");
-            }
-            mEditMode = icicle.getBoolean("editmode", false);
-        } else {
-            mAlbumId = intent.getStringExtra("album");
-            // If we have an album, show everything on the album, not just stuff
-            // by a particular artist.
-            mArtistId = intent.getStringExtra("artist");
-            mPlaylist = intent.getStringExtra("playlist");
-            mGenre = intent.getStringExtra("genre");
-            if (MusicUtils.isGroupByFolder()) {
-                mParent = intent.getIntExtra("parent", -1);
-                mRootPath = intent.getStringExtra("rootPath");
-            }
-        }
         if (getArguments() != null) {
             mEditMode = getArguments().getBoolean("editValue");
             mPlaylist = getArguments().getString("playlist");
             mAlbumId = getArguments().getString("album");
+            mCreateShortcut = getArguments().getBoolean("isFromShortcut");
             if (MusicUtils.isGroupByFolder()) {
                 mParent = getArguments().getInt("parent", -1);
                 mRootPath = getArguments().getString("rootPath");
@@ -581,39 +560,11 @@ public class TrackBrowserFragment extends Fragment implements
         IntentFilter f = new IntentFilter();
         f.addAction(MediaPlaybackService.META_CHANGED);
         f.addAction(MediaPlaybackService.QUEUE_CHANGED);
-        if ("nowplaying".equals(mPlaylist)) {
-            try {
-                mShuffleLayout.setVisibility(View.GONE);
-                int cur = MusicUtils.sService.getQueuePosition();
-                mTrackList.setSelection(cur);
-                mParentActivity.registerReceiver(mNowPlayingListener,
-                        new IntentFilter(f));
-                mNowPlayingListener.onReceive(mParentActivity, new Intent(
-                        MediaPlaybackService.META_CHANGED));
-            } catch (RemoteException ex) {
-            }
-        } else {
-            String key = mParentActivity.getIntent().getStringExtra("artist");
-            if (key != null) {
-                int keyidx = mTrackCursor
-                        .getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID);
-                mTrackCursor.moveToFirst();
-                while (!mTrackCursor.isAfterLast()) {
-                    String artist = mTrackCursor.getString(keyidx);
-                    if (artist.equals(key)) {
-                        mTrackList.setSelection(mTrackCursor.getPosition());
-                        break;
-                    }
-                    mTrackCursor.moveToNext();
-                }
-            }
             mParentActivity.registerReceiver(mTrackListListener,
                     new IntentFilter(f));
             mTrackListListener.onReceive(mParentActivity, new Intent(
                     MediaPlaybackService.META_CHANGED));
-        }
     }
-
     private void setAlbumArtBackground() {
         if (!mEditMode) {
             try {
@@ -718,8 +669,8 @@ public class TrackBrowserFragment extends Fragment implements
         if (fancyName != null) {
             if ("My recordings".equals(fancyName)) {
                 mParentActivity.setTitle(R.string.audio_db_playlist_name);
-            } else {
-                mParentActivity.setTitle(fancyName);
+            } else if(mCreateShortcut) {
+               mParentActivity.mToolbar.setTitle(fancyName);
             }
         } else {
             if (MusicUtils.isGroupByFolder() && mFolderName != null) {
@@ -1044,13 +995,7 @@ public class TrackBrowserFragment extends Fragment implements
             long[] list = new long[1];
             list[0] = (int) mSelectedId;
             Bundle b = new Bundle();
-            String f;
-            String status = MusicUtils.getSDState(mParentActivity);
-            if (status.equals(android.os.Environment.MEDIA_MOUNTED)) {
-                f = getString(R.string.delete_song_desc);
-            } else {
-                f = getString(R.string.delete_song_desc_nosdcard);
-            }
+            String f = getString(R.string.delete_song_desc);
             String desc = String.format(f, mCurrentTrackName);
             b.putString("description", desc);
             b.putLongArray("items", list);
@@ -1366,16 +1311,16 @@ public class TrackBrowserFragment extends Fragment implements
         MusicUtils.playAll(mParentActivity, mTrackCursor, position);
     }
 
-    private static void setCurrPlayAnimation(AnimationDrawable anim) {
+    private void setCurrPlayAnimation(AnimationDrawable anim) {
         stopAnimation();
         mCurrPlayAnimation = anim;
     }
 
-    private static void startAnimation() {
+    private void startAnimation() {
         mCurrPlayAnimation.start();
     }
 
-    private static void stopAnimation() {
+    private void stopAnimation() {
         if (mAnimView != null) {
             mAnimView.clearAnimation();
         if (mPause) {
@@ -1767,7 +1712,7 @@ public class TrackBrowserFragment extends Fragment implements
         private IMediaPlaybackService mService;
     }
 
-    static class TrackListAdapter extends android.widget.SimpleCursorAdapter
+    class TrackListAdapter extends android.widget.SimpleCursorAdapter
             implements android.widget.SectionIndexer {
         boolean mIsNowPlaying;
         boolean mDisableNowPlayingIndicator;
@@ -1792,7 +1737,7 @@ public class TrackBrowserFragment extends Fragment implements
         private boolean mConstraintIsValid = false;
         HashMap<View, Integer> mPositionMap;
 
-        static class ViewHolder {
+        class ViewHolder {
             TextView line1;
             TextView line2;
             TextView duration;

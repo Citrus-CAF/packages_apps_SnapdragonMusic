@@ -615,8 +615,7 @@ public class MusicPanelLayout extends ViewGroup {
 
     public void setHookState(BoardState state) {
         if (state == null || state == BoardState.DRAGGING) {
-            throw new IllegalArgumentException(
-                    "Panel state cannot be null or DRAGGING.");
+           return;
         }
         if (!isEnabled() || (mPrimaryLayout && mSlippingView == null))
             return;
@@ -878,18 +877,18 @@ public class MusicPanelLayout extends ViewGroup {
                         }
                         sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
                     }
-                } else if (mSlipState != BoardState.ANCHORED) {
-                    refreshObscuredViewVisibility();
-                    mSlipState = BoardState.ANCHORED;
-                    if (mHookSlipListener != null) {
-                        mHookSlipListener.onViewMainLined(mSlippingView);
-                    }
-                    sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
                 } else if (mSlipOffset < 0) {
                     mSlipState = BoardState.HIDDEN;
                     mSlippingView.setVisibility(View.INVISIBLE);
                     if (mHookSlipListener != null) {
                         mHookSlipListener.onViewBackStacked(mSlippingView);
+                    }
+                    sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
+                } else if (mSlipState != BoardState.ANCHORED) {
+                    refreshObscuredViewVisibility();
+                    mSlipState = BoardState.ANCHORED;
+                    if (mHookSlipListener != null) {
+                        mHookSlipListener.onViewMainLined(mSlippingView);
                     }
                     sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
                 }

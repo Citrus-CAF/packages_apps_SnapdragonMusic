@@ -97,6 +97,7 @@ public class TrackBrowserActivityFragment extends Fragment
         implements MusicUtils.Defs, ServiceConnection,OnItemClickListener
 {
     public static final String BUY_LICENSE = "android.drmservice.intent.action.BUY_LICENSE";
+    private static final String TAG = "TrackBrowserActivityFragment";
     private static final int Q_SELECTED = CHILD_MENU_BASE;
     private static final int Q_ALL = CHILD_MENU_BASE + 1;
     private static final int SAVE_AS_PLAYLIST = CHILD_MENU_BASE + 2;
@@ -329,7 +330,7 @@ public class TrackBrowserActivityFragment extends Fragment
 
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     public boolean onMenuItemClick(MenuItem item) {
-                        onContextItemSelected(item, 0);
+                        onOptionsItemSelected(item);
                         return true;
                     }
                 });
@@ -870,16 +871,6 @@ public class TrackBrowserActivityFragment extends Fragment
         return ismusic;
     }
 
-    /*@Override
-    public void onUserLeaveHint() {
-        if (sub != null) {
-            sub.close();
-        }
-        super.onUserLeaveHint();
-    }*/
-
-
-
     private void onCreatePopupMenu(PopupMenu menu) {
         menu.getMenu().add(0, PLAY_SELECTION, 0, R.string.play_selection);
         SubMenu sub = menu.getMenu().addSubMenu(0, ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
@@ -942,22 +933,15 @@ public class TrackBrowserActivityFragment extends Fragment
 
             case DELETE_ITEM: {
                 long [] list = new long[1];
-                if (mSelectedId == Long.valueOf(mAlbumId) ||
-                                   mSelectedId == Long.valueOf(mArtistId)) {
+                if (mSelectedId == Long.valueOf(mAlbumId)) {
                     list =  MusicUtils.getSongListForAlbum(
                             mParentActivity, mSelectedId);
                 } else {
                     list = new long[] { mSelectedId };
                 }
                 Bundle b = new Bundle();
-                String f;
-                String status = MusicUtils.getSDState(mParentActivity);
-                if (status.equals(android.os.Environment.MEDIA_MOUNTED)) {
-                    f = getString(R.string.delete_song_desc);
-                } else {
-                    f = getString(R.string.delete_song_desc_nosdcard);
-                }
-                String desc = String.format(f, mCurrentAlbumName);
+                String f = getString(R.string.delete_song_desc);
+                String desc = String.format(f, mCurrentTrackName);
                 b.putString("description", desc);
                 b.putLongArray("items", list);
                 Intent intent = new Intent();
@@ -1074,34 +1058,6 @@ public class TrackBrowserActivityFragment extends Fragment
 
         startActivity(Intent.createChooser(i, title));
     }
-
-    // In order to use alt-up/down as a shortcut for moving the selected item
-    // in the list, we need to override dispatchKeyEvent, not onKeyDown.
-    // (onKeyDown never sees these events, since they are handled by the list)
-/*    @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        int curpos = mTrackList.getSelectedItemPosition();
-        if (mPlaylist != null && !mPlaylist.equals("recentlyadded") && curpos >= 0 &&
-                event.getMetaState() != 0 && event.getAction() == KeyEvent.ACTION_DOWN) {
-            switch (event.getKeyCode()) {
-                case KeyEvent.KEYCODE_DPAD_UP:
-                    moveItem(true);
-                    return true;
-                case KeyEvent.KEYCODE_DPAD_DOWN:
-                    moveItem(false);
-                    return true;
-                case KeyEvent.KEYCODE_DEL:
-                    removeItem();
-                    return true;
-            }
-        } else if (event.getAction() == KeyEvent.ACTION_UP &&
-                       event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            parentActivity.finish();
-            return true;
-        }
-
-        return super.dispatchKeyEvent(event);
-    }*/
 
     private void removeItem() {
         int curcount = mTrackCursor != null ? mTrackCursor.getCount() : 0;
@@ -1307,15 +1263,18 @@ public class TrackBrowserActivityFragment extends Fragment
                 Uri uri = intent.getData();
                 if (uri != null) {
                     long[] list;
-                    if (mSelectedId == Long.valueOf(mAlbumId) ||
-                            mSelectedId == Long.valueOf(mArtistId)) {
-                        list =  MusicUtils.getSongListForAlbum(
-                                mParentActivity, mSelectedId);
-                    } else {
-                        list = new long[] { mSelectedId };
+                    try {
+                        if (mSelectedId == Long.valueOf(mAlbumId)) {
+                            list =  MusicUtils.getSongListForAlbum(
+                                    mParentActivity, mSelectedId);
+                        } else {
+                            list = new long[] { mSelectedId };
+                        }
+                        MusicUtils.addToPlaylist(mParentActivity, list,
+                                Integer.valueOf(uri.getLastPathSegment()));
+                    } catch (NumberFormatException execption) {
+                        Log.w(TAG,"Invalid albumID "+ mAlbumId);
                     }
-                    MusicUtils.addToPlaylist(mParentActivity, list,
-                            Integer.valueOf(uri.getLastPathSegment()));
                 }
             }
             break;
@@ -1367,34 +1326,59 @@ public class TrackBrowserActivityFragment extends Fragment
         Intent intent;
         Cursor cursor;
         switch (item.getItemId()) {
-            case MORE_MUSIC:
-                Uri MoreUri = Uri
-                        .parse(getResources().getString(R.string.def_music_add_more_music));
-                Intent MoreIntent = new Intent(Intent.ACTION_VIEW, MoreUri);
-                startActivity(MoreIntent);
-                break;
+            case PLAY_SELECTION: {
+            // play the track
+                MusicUtils.playAll(mParentActivity, mTrackCursor, 0);
+                mAdapter.notifyDataSetChanged();
+                return true;
+            }
             case PLAY_ALL: {
                 MusicUtils.playAll(mParentActivity, mTrackCursor);
                 return true;
             }
 
-            case PARTY_SHUFFLE:
-                MusicUtils.togglePartyShuffle();
-                AudioManager audioManager = (AudioManager) mParentActivity.getSystemService(Context.AUDIO_SERVICE);
-                audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK);
-                break;
-
-            case SHUFFLE_ALL:
-                // Should 'shuffle all' shuffle ALL, or only the tracks shown?
-                cursor = MusicUtils.query(mParentActivity, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                        new String [] { MediaStore.Audio.Media._ID},
-                        MediaStore.Audio.Media.IS_MUSIC + "=1", null,
-                        MediaStore.Audio.Media.DEFAULT_SORT_ORDER);
-                if (cursor != null) {
-                    MusicUtils.shuffleAll(mParentActivity, cursor);
-                    cursor.close();
-                }
+            case QUEUE: {
+                long [] list =  MusicUtils.getSongListForAlbum(
+                        mParentActivity, mSelectedId);
+                MusicUtils.addToCurrentPlaylist(mParentActivity, list);
+                MusicUtils.addToPlaylist(mParentActivity, list, MusicUtils.getPlayListId());
                 return true;
+            }
+
+            case NEW_PLAYLIST: {
+                intent = new Intent();
+                intent.setClass(mParentActivity, CreatePlaylist.class);
+                startActivityForResult(intent, NEW_PLAYLIST);
+                return true;
+            }
+
+            case PLAYLIST_SELECTED: {
+                long [] list =  MusicUtils.getSongListForAlbum(
+                        mParentActivity, mSelectedId);;
+                long playlist = item.getIntent().getLongExtra("playlist", 0);
+                MusicUtils.addToPlaylist(mParentActivity, list, playlist);
+                return true;
+            }
+
+            case DELETE_ITEM: {
+                long [] list = new long[1];
+                if (mSelectedId == Long.valueOf(mAlbumId)) {
+                    list =  MusicUtils.getSongListForAlbum(
+                            mParentActivity, mSelectedId);
+                } else {
+                    list = new long[] { mSelectedId };
+                }
+                Bundle b = new Bundle();
+                String f = getString(R.string.delete_song_desc);
+                String desc = String.format(f, mCurrentAlbumName);
+                b.putString("description", desc);
+                b.putLongArray("items", list);
+                intent = new Intent();
+                intent.setClass(mParentActivity, DeleteItems.class);
+                intent.putExtras(b);
+                startActivityForResult(intent, DELETE_ITEM);
+                return true;
+            }
 
             case SAVE_AS_PLAYLIST:
                 intent = new Intent();
@@ -1402,26 +1386,6 @@ public class TrackBrowserActivityFragment extends Fragment
                 startActivityForResult(intent, SAVE_AS_PLAYLIST);
                 return true;
 
-            case CLEAR_PLAYLIST:
-                if (mPlaylist.equals("nowplaying")) {
-                    // We only clear the current playlist
-                    MusicUtils.clearQueue();
-                } else {
-                    Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external",
-                            Long.valueOf(mPlaylist));
-                    mParentActivity.getContentResolver().delete(uri, null, null);
-                }
-                return true;
-
-            case CLOSE:
-                try {
-                    if (MusicUtils.sService != null) {
-                        MusicUtils.sService.stop();
-                    }
-                } catch (RemoteException ex) {
-                }
-                SysApplication.getInstance().exit();
-                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -2089,7 +2053,9 @@ public class TrackBrowserActivityFragment extends Fragment
 
         @Override
         public void changeCursor(Cursor cursor) {
-            if (mActivity.getParentActivity().isFinishing() && cursor != null) {
+            if (mActivity.getParentActivity() != null
+                    && mActivity.getParentActivity().isFinishing()
+                    && cursor != null) {
                 cursor.close();
                 cursor = null;
             }

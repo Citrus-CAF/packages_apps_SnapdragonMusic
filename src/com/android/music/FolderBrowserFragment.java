@@ -443,7 +443,7 @@ public class FolderBrowserFragment extends Fragment
         }
     }
 
-    static class FolderListAdapter extends SimpleCursorAdapter implements SectionIndexer {
+     class FolderListAdapter extends SimpleCursorAdapter implements SectionIndexer {
 
         private Drawable mNowPlaying;
         private final BitmapDrawable mDefaultAlbumIcon;
@@ -459,7 +459,7 @@ public class FolderBrowserFragment extends Fragment
         private boolean mConstraintIsValid = false;
         private final Object[] mFormatArgs = new Object[1];
 
-        static class ViewHolder {
+        class ViewHolder {
             TextView line1;
             TextView line2;
             ImageView play_indicator;
@@ -593,7 +593,9 @@ public class FolderBrowserFragment extends Fragment
 
         @Override
         public void changeCursor(Cursor cursor) {
-            if (mFragment.getActivity().isFinishing() && cursor != null) {
+            if (mFragment.getParentActivity() != null
+                    && mFragment.getParentActivity().isFinishing()
+                    && cursor != null) {
                 cursor.close();
                 cursor = null;
             }

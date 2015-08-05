@@ -1700,6 +1700,10 @@ public class MusicUtils {
         return mStorageManager.getVolumeState(getSDPath(context));
     }
 
+    public static String getInternalSdCardPath() {
+        return android.os.Environment.getExternalStorageDirectory().getPath();
+    }
+
     public static String getSelectAudioPath(Context context, long mSelectedId) {
         String result = "";
         if (null == context) {

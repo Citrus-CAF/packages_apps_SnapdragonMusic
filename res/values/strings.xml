@@ -73,19 +73,13 @@
     <string name="share">Share</string>
 
     <!-- Delete confirmation dialog when deleting an entire artist -->
-    <string name="delete_artist_desc">Permanently delete all songs by <xliff:g id="artist">%s</xliff:g> from the SD card?</string>
-    <!-- Delete confirmation dialog when deleting an entire artist -->
-    <string name="delete_artist_desc_nosdcard">Permanently delete all songs by <xliff:g id="artist">%s</xliff:g> from USB storage?</string>
+    <string name="delete_artist_desc">Permanently delete all songs by <xliff:g id="artist">%s</xliff:g>?</string>
 
     <!-- Delete confirmation dialog when deleting an entire album -->
-    <string name="delete_album_desc">Permanently delete the entire album \"<xliff:g id="album">%s</xliff:g>\" from the SD card?</string>
-    <!-- Delete confirmation dialog when deleting an entire album -->
-    <string name="delete_album_desc_nosdcard">Permanently delete the entire album \"<xliff:g id="album">%s</xliff:g>\" from USB storage?</string>
+    <string name="delete_album_desc">Permanently delete the entire album \"<xliff:g id="album">%s</xliff:g>\"?</string>
 
     <!-- Delete confirmation dialog when deleting a single song -->
-    <string name="delete_song_desc">Permanently delete \"<xliff:g id="song">%s</xliff:g>\" from the SD card?</string>
-    <!-- Delete confirmation dialog when deleting a single song -->
-    <string name="delete_song_desc_nosdcard">Permanently delete \"<xliff:g id="song">%s</xliff:g>\" from USB storage?</string>
+    <string name="delete_song_desc">Permanently delete \"<xliff:g id="song">%s</xliff:g>\"?</string>
 
     <!-- Delete confirmation dialog, confirmation button text -->
     <string name="delete_confirm_button_text">OK</string>

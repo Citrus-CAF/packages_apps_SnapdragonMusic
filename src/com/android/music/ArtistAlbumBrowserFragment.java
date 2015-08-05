@@ -384,26 +384,12 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
             if (mCurrentArtistId != null) {
                 list = MusicUtils.getSongListForArtist(mActivity,
                         Long.parseLong(mCurrentArtistId));
-                String f;
-                String status = MusicUtils.getSDState(mActivity);
-                if (status.equals(android.os.Environment.MEDIA_MOUNTED)) {
-                    f = getString(R.string.delete_artist_desc);
-                } else {
-                    f = getString(R.string.delete_artist_desc_nosdcard);
-                }
+                String f = getString(R.string.delete_artist_desc);
                 desc = String.format(f, mCurrentArtistName);
             } else {
                 list = MusicUtils.getSongListForAlbum(mActivity,
                         Long.parseLong(mCurrentAlbumId));
-                String f;
-                String status = android.os.Environment
-                        .getExternalStorageState();
-                if (status.equals(android.os.Environment.MEDIA_MOUNTED)) {
-                    f = getString(R.string.delete_album_desc);
-                } else {
-                    f = getString(R.string.delete_album_desc_nosdcard);
-                }
-
+                String f = getString(R.string.delete_album_desc);
                 desc = String.format(f, mCurrentAlbumName);
             }
             Bundle b = new Bundle();

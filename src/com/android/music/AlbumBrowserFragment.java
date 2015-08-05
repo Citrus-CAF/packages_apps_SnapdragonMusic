@@ -304,13 +304,7 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
         case DELETE_ITEM: {
             long[] list = MusicUtils.getSongListForAlbum(mParentActivity,
                     Long.parseLong(mCurrentAlbumId));
-            String f;
-            String status = MusicUtils.getSDState(mParentActivity);
-            if (status.equals(android.os.Environment.MEDIA_MOUNTED)) {
-                f = getString(R.string.delete_album_desc);
-            } else {
-                f = getString(R.string.delete_album_desc_nosdcard);
-            }
+            String f = getString(R.string.delete_album_desc);
             String desc = String.format(f, mCurrentAlbumName);
             Bundle b = new Bundle();
             b.putString("description", desc);

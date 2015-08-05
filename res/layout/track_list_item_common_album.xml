@@ -44,7 +44,7 @@
         <RelativeLayout android:id="@+id/album_card"
         android:layout_alignParentBottom="true"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="65dp"
         android:padding="@dimen/album_left_margin">
 
     <ImageView android:id="@+id/list_menu_button"
@@ -67,7 +67,7 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:layout_width="wrap_content"
         android:maxLength="25"
-        android:paddingStart="@dimen/album_card_text_margin"
+        android:paddingStart="@dimen/album_card_text_space"
         android:layout_height="wrap_content"
         android:textSize="@dimen/album_name"
         android:textColor="@color/album_text"
