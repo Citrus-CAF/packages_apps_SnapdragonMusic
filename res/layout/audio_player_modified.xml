@@ -148,6 +148,4 @@
             android:background="@android:color/transparent"
             android:src="@drawable/random" />
     </LinearLayout>
-    <!-- <include layout="@layout/audio_player_common" /> -->
-
 </LinearLayout>

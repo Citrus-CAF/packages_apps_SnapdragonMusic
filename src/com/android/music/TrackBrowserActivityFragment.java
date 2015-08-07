@@ -140,6 +140,9 @@ public class TrackBrowserActivityFragment extends Fragment
     private ImageView mImageView;
     private boolean mIsparentActivityFInishing;
     private BitmapDrawable mDefaultAlbumIcon;
+    private static AnimationDrawable mCurrPlayAnimation;
+    private static ImageView mAnimView;
+    private static boolean mPause = false;
 
     public TrackBrowserActivityFragment()
     {
@@ -256,6 +259,12 @@ public class TrackBrowserActivityFragment extends Fragment
         if(getArguments()!=null){
             mAlbumId = getArguments().getString("album");
             mArtistId = getArguments().getString("artist");
+
+            if (MusicUtils.isGroupByFolder()) {
+                mParent = getArguments().getInt("parent", -1);
+                mRootPath = getArguments().getString("rootPath");
+            }
+
         }
         mListView = (ListView)rootView. findViewById(R.id.media_list);
         mTextView1 = (TextView) rootView.findViewById(R.id.textView1);
@@ -302,6 +311,11 @@ public class TrackBrowserActivityFragment extends Fragment
             @Override
             public void onClick(View v) {
                 // TODO Auto-generated method stub
+                if (mAlbumId != null) {
+                    mSelectedId = Long.valueOf(mAlbumId);
+                } else {
+                    mSelectedId = Long.valueOf(mArtistId);
+                }
                 PopupMenu popup = new PopupMenu(mParentActivity, v);
                 popup.getMenu().add(0, PLAY_SELECTION, 0, R.string.play_selection);
                 mSub = popup.getMenu().addSubMenu(0, ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
@@ -499,6 +513,7 @@ public class TrackBrowserActivityFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
+        mPause = false;
         if (mTrackCursor != null) {
             getListView().invalidateViews();
         }
@@ -520,6 +535,8 @@ public class TrackBrowserActivityFragment extends Fragment
     public void onPause() {
         mReScanHandler.removeCallbacksAndMessages(null);
         mParentActivity.unregisterReceiver(mStatusListener);
+        mPause = true;
+        stopAnimation();
         super.onPause();
     }
 
@@ -925,7 +942,13 @@ public class TrackBrowserActivityFragment extends Fragment
 
             case DELETE_ITEM: {
                 long [] list = new long[1];
-                list[0] = (int) mSelectedId;
+                if (mSelectedId == Long.valueOf(mAlbumId) ||
+                                   mSelectedId == Long.valueOf(mArtistId)) {
+                    list =  MusicUtils.getSongListForAlbum(
+                            mParentActivity, mSelectedId);
+                } else {
+                    list = new long[] { mSelectedId };
+                }
                 Bundle b = new Bundle();
                 String f;
                 String status = MusicUtils.getSDState(mParentActivity);
@@ -934,7 +957,7 @@ public class TrackBrowserActivityFragment extends Fragment
                 } else {
                     f = getString(R.string.delete_song_desc_nosdcard);
                 }
-                String desc = String.format(f, mCurrentTrackName);
+                String desc = String.format(f, mCurrentAlbumName);
                 b.putString("description", desc);
                 b.putLongArray("items", list);
                 Intent intent = new Intent();
@@ -1243,11 +1266,30 @@ public class TrackBrowserActivityFragment extends Fragment
         vh.anim_icon.setVisibility(View.VISIBLE);
         vh.anim_icon.setBackgroundResource(R.drawable.animation_list);
         vh.mMusicAnimation = (AnimationDrawable) vh.anim_icon.getBackground();
-        vh.mMusicAnimation.start();
+        setCurrPlayAnimation(vh.mMusicAnimation);
+        startAnimation();
         vh.mMusicAnimation.setVisible(true, true);
         prevV= v;
     }
 
+    private static void setCurrPlayAnimation(AnimationDrawable anim) {
+        stopAnimation();
+        mCurrPlayAnimation = anim;
+    }
+
+    private static void startAnimation() {
+        mCurrPlayAnimation.start();
+    }
+
+    private static void stopAnimation() {
+        if (mAnimView != null) {
+            mAnimView.clearAnimation();
+            if (mPause) {
+                mAnimView.setBackgroundDrawable(null);
+            }
+        }
+        mCurrPlayAnimation = null;
+   }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
@@ -1264,7 +1306,14 @@ public class TrackBrowserActivityFragment extends Fragment
             if (resultCode == mParentActivity.RESULT_OK) {
                 Uri uri = intent.getData();
                 if (uri != null) {
-                    long[] list = new long[] { mSelectedId };
+                    long[] list;
+                    if (mSelectedId == Long.valueOf(mAlbumId) ||
+                            mSelectedId == Long.valueOf(mArtistId)) {
+                        list =  MusicUtils.getSongListForAlbum(
+                                mParentActivity, mSelectedId);
+                    } else {
+                        list = new long[] { mSelectedId };
+                    }
                     MusicUtils.addToPlaylist(mParentActivity, list,
                             Integer.valueOf(uri.getLastPathSegment()));
                 }
@@ -1927,6 +1976,7 @@ public class TrackBrowserActivityFragment extends Fragment
             vh.mSelectedId = cursor.getLong(mAudioIdIdx);
             String albumName = cursor.getString(mAlbumIdx);
             mActivity.mTextView1.setText(albumName);
+            mActivity.mCurrentAlbumName = albumName;
             vh.line1.setTextColor(Color.BLACK);
             vh.playMenu.setTag(cursor.getPosition());
             vh.playMenu.setOnClickListener(new OnClickListener() {
@@ -1987,7 +2037,8 @@ public class TrackBrowserActivityFragment extends Fragment
                 }
             }
 
-            ImageView iv = vh.animation;
+           mAnimView = null;
+           mAnimView = vh.animation;
 
             // Determining whether and where to show the "now playing indicator
             // is tricky, because we don't actually keep track of where the songs
@@ -2003,22 +2054,38 @@ public class TrackBrowserActivityFragment extends Fragment
             if ( (mIsNowPlaying && cursor.getPosition() == id) ||
                  (!mIsNowPlaying && cursor.getLong(mAudioIdIdx) == id)) {
                 // We set different icon according to different play state
+                mAnimView.setVisibility(View.VISIBLE);
                 if (MusicUtils.isPlaying()) {
-                    iv.setVisibility(View.VISIBLE);
-                    iv.setBackgroundResource(R.drawable.animation_list);
-                    vh.mMusicAnimation = (AnimationDrawable) iv.getBackground();
-                    vh.mMusicAnimation.start();
+                    clearAnimation();
+                    mAnimView.setBackgroundResource(R.drawable.animation_list);
+                    vh.mMusicAnimation = null;
+                    vh.mMusicAnimation = (AnimationDrawable) mAnimView
+                            .getBackground();
+                    setCurrPlayAnimation(vh.mMusicAnimation);
+                    startAnimation();
                     vh.mMusicAnimation.setVisible(true, true);
                 } else {
-                    iv.setBackgroundResource(R.drawable.wave_stop);
-                    if(vh.mMusicAnimation!=null && vh.mMusicAnimation.isRunning())
-                        vh.mMusicAnimation.stop();
+                    mAnimView.setBackgroundDrawable(null);
+                    mAnimView.setBackgroundResource(R.drawable.wave_stop);
+                    mAnimView.clearAnimation();
+
+                    if (vh.mMusicAnimation != null
+                            && vh.mMusicAnimation.isRunning()) {
+                        stopAnimation();
+                    }
                 }
             } else {
-                iv.setVisibility(View.INVISIBLE);
+                clearAnimation();
+                mAnimView.setVisibility(View.INVISIBLE);
             }
         }
 
+        private void clearAnimation() {
+            if (mAnimView != null) {
+                mAnimView.clearAnimation();
+                mAnimView.setBackgroundDrawable(null);
+            }
+        }
 
         @Override
         public void changeCursor(Cursor cursor) {

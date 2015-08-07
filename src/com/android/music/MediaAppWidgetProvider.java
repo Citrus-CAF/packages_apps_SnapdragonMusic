@@ -216,7 +216,7 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
         final ComponentName serviceName = new ComponentName(context, MediaPlaybackService.class);
         
         if (playerActive) {
-            intent = new Intent(context, MediaPlaybackActivity.class);
+            intent = new Intent(context, MusicBrowserActivity.class);
             pendingIntent = PendingIntent.getActivity(context,
                     0 /* no requestCode */, intent, 0 /* no flags */);
             views.setOnClickPendingIntent(R.id.album_appwidget, pendingIntent);

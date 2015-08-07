@@ -508,7 +508,7 @@ public class MusicPanelLayout extends ViewGroup {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        smoothSlipTo(ZERO, ZERO, true);
+        setHookState(getHookState());
         if (h != oldh) {
             mPrimaryLayout = true;
         }
