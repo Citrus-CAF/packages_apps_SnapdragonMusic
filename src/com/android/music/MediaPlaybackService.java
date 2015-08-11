@@ -1736,6 +1736,14 @@ public class MediaPlaybackService extends Service {
         }
     }
 
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        NotificationManager nm = (NotificationManager) getSystemService
+                (Context.NOTIFICATION_SERVICE);
+        nm.cancel(PLAYBACKSERVICE_STATUS);
+    }
+
     private void updateNotification() {
         views = new RemoteViews(getPackageName(), R.layout.statusbar);
         Bitmap icon = MusicUtils.getArtwork(this, getAudioId(), getAlbumId(),
