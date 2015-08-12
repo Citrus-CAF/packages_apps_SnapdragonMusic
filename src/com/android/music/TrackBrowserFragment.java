@@ -1007,7 +1007,7 @@ public class TrackBrowserFragment extends Fragment implements
         }
 
         case REMOVE:
-            removePlaylistItem(mSelectedPosition);
+            removePlaylistItem(position);
             return true;
 
         case DRM_LICENSE_INFO:
@@ -1970,6 +1970,10 @@ public class TrackBrowserFragment extends Fragment implements
                     PopupMenu popup = new PopupMenu(mFragment.getActivity(), iv);
                     popup.getMenu().add(0, PLAY_SELECTION, 0,
                             R.string.play_selection);
+                    if (mEditMode && !("nowplaying".equals(mPlaylist))) {
+                        popup.getMenu().add(0, REMOVE, 0,
+                                R.string.remove_from_playlist);
+                    }
                     SubMenu sub = popup.getMenu().addSubMenu(0,
                             ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
                     MusicUtils.makePlaylistMenu(mFragment.getActivity(), sub);
