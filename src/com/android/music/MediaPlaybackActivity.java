@@ -820,15 +820,24 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         switch (requestCode) {
         case NEW_PLAYLIST:
             if (resultCode == RESULT_OK) {
+                long songID = -1;
                 Uri uri = intent.getData();
-                if (uri != null) {
-                    Cursor c = updateTrackCursor();
-                    if (c != null) {
-                        long[] list = MusicUtils
-                                .getSongListForCursor(updateTrackCursor());
-                    int playlist = Integer.parseInt(uri.getLastPathSegment());
-                    MusicUtils.addToPlaylist(this, list, playlist);
+                try {
+                    if (mService != null) {
+                        songID = mService.getAudioId();
+                        if (songID != -1) {
+                            if (uri != null) {
+                                long[] list = new long[] { songID };
+                                int playlist = Integer.parseInt(uri
+                                        .getLastPathSegment());
+                                MusicUtils.addToPlaylist(this, list, playlist);
+                            }
+                        } else {
+                            Log.e(TAG,"Audio ID is -1");
+                        }
                     }
+                } catch (RemoteException e) {
+                    Log.e(TAG,"Remote Exception is caught");
                 }
             }
             break;
