@@ -396,7 +396,7 @@ public class TouchInterceptor extends ListView {
         stopDragging();
 
         mWindowParams = new WindowManager.LayoutParams();
-        mWindowParams.gravity = Gravity.TOP | Gravity.LEFT;
+        mWindowParams.gravity = Gravity.TOP | Gravity.START;
         mWindowParams.x = x - mDragPointX + mXOffset;
         mWindowParams.y = y - mDragPointY + mYOffset;
 

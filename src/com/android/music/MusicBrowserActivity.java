@@ -150,7 +150,7 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
                         showScreen(position);
                         mNavigationAdapter.setClickPosition(position);
                         mDrawerListView.invalidateViews();
-                        mDrawerLayout.closeDrawer(Gravity.LEFT);
+                        mDrawerLayout.closeDrawer(Gravity.START);
                     }
                 });
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
@@ -160,7 +160,7 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
             @Override
             public void onClick(View v) {
                 MusicUtils.startSoundEffectActivity(MusicBrowserActivity.this);
-                mDrawerLayout.closeDrawer(Gravity.LEFT);
+                mDrawerLayout.closeDrawer(Gravity.START);
             }
         });
 
@@ -186,7 +186,7 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
             @Override
             public void onClick(View v) {
                 if (mToolbar.getNavigationContentDescription().equals("drawer")) {
-                    mDrawerLayout.openDrawer(Gravity.LEFT);
+                    mDrawerLayout.openDrawer(Gravity.START);
                 }else {
                     showScreen(3);
                     mToolbar.setNavigationContentDescription("drawer");

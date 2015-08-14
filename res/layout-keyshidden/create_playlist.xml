@@ -66,7 +66,7 @@
             android:layout_width="120dip" android:layout_height="wrap_content" 
             android:text="@string/cancel"
             android:textColor="#009486"
-            android:layout_toLeftOf="@+id/create"
+            android:layout_toStartOf="@+id/create"
             android:background="@android:color/transparent" />
 
     </RelativeLayout>

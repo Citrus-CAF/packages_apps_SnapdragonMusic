@@ -287,8 +287,8 @@ public class MusicPanelLayout extends ViewGroup {
         if (getChildCount() == ZERO) {
             return;
         }
-        int rBound = getWidth() - getPaddingRight();
-        int lBound = getPaddingLeft();
+        int rBound = getWidth() - getPaddingEnd();
+        int lBound = getPaddingStart();
         int bBound = getHeight() - getPaddingBottom();
         int tBound = getPaddingTop();
 
@@ -376,7 +376,7 @@ public class MusicPanelLayout extends ViewGroup {
             mSlipState = BoardState.HIDDEN;
         }
 
-        int lWidth = wSize - getPaddingLeft() - getPaddingRight();
+        int lWidth = wSize - getPaddingStart() - getPaddingEnd();
         int lHeight = hSize - getPaddingTop() - getPaddingBottom();
 
         for (int k = 0; k < cCount; k++) {
@@ -441,7 +441,7 @@ public class MusicPanelLayout extends ViewGroup {
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         int pTop = getPaddingTop();
         int cCount = getChildCount();
-        int pLeft = getPaddingLeft();
+        int pLeft = getPaddingStart();
 
         if (mPrimaryLayout) {
             switch (mSlipState) {

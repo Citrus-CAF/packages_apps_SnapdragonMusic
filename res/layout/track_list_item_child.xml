@@ -28,7 +28,7 @@
     <RelativeLayout  android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/iconLayout"
-        android:paddingLeft="20dip"
+        android:paddingStart="20dip"
          >
         <ImageView android:id="@+id/icon"
             android:layout_width="48dp"
@@ -38,8 +38,8 @@
     <!-- The height is set to half the height of the parent, which is 64 dip -->
     <RelativeLayout android:layout_height="48dip"
         android:layout_width="wrap_content"
-        android:layout_toRightOf="@+id/iconLayout"
-        android:paddingLeft="8dip" >
+        android:layout_toEndOf="@+id/iconLayout"
+        android:paddingStart="8dip" >
         <TextView android:id="@+id/line1"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:layout_width="wrap_content"
