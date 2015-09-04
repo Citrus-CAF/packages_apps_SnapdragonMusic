@@ -36,7 +36,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
-import android.drm.DrmManagerClientWrapper;
+//import android.drm.DrmManagerClientWrapper;
 import android.drm.DrmStore.Action;
 import android.drm.DrmStore.RightsStatus;
 import android.graphics.Bitmap;
@@ -1650,18 +1650,19 @@ public class MediaPlaybackService extends Service {
                 actualFilePath = mCursor.getString(mCursor
                         .getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
             }
-            if (actualFilePath != null
-                    && (actualFilePath.endsWith(".dm")
-                            || actualFilePath.endsWith(".dcf"))) {
-                DrmManagerClientWrapper drmClient = new DrmManagerClientWrapper(this);
-                actualFilePath = actualFilePath.replace("/storage/emulated/0", "/storage/emulated/legacy");
-                status = drmClient.checkRightsStatus(actualFilePath, Action.PLAY);
-                if (RightsStatus.RIGHTS_VALID != status) {
-                    Toast.makeText(this, R.string.drm_right_expired,
-                            Toast.LENGTH_SHORT).show();
-                }
-                if (drmClient != null) drmClient.release();
-            }
+            //TODO: DRM changes here.
+//            if (actualFilePath != null
+//                    && (actualFilePath.endsWith(".dm")
+//                            || actualFilePath.endsWith(".dcf"))) {
+//                DrmManagerClientWrapper drmClient = new DrmManagerClientWrapper(this);
+//                actualFilePath = actualFilePath.replace("/storage/emulated/0", "/storage/emulated/legacy");
+//                status = drmClient.checkRightsStatus(actualFilePath, Action.PLAY);
+//                if (RightsStatus.RIGHTS_VALID != status) {
+//                    Toast.makeText(this, R.string.drm_right_expired,
+//                            Toast.LENGTH_SHORT).show();
+//                }
+//                if (drmClient != null) drmClient.release();
+//            }
             mFileToPlay = path;
             mPlayer.setDataSource(mFileToPlay);
             if (mPlayer.isInitialized()) {

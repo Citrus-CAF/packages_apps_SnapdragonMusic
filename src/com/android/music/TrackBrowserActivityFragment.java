@@ -38,9 +38,9 @@ import android.content.res.Resources;
 import android.database.AbstractCursor;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
-import android.drm.DrmManagerClientWrapper;
+//import android.drm.DrmManagerClientWrapper;
 import android.drm.DrmStore.Action;
-import android.drm.DrmStore.DrmDeliveryType;
+//import android.drm.DrmStore.DrmDeliveryType;
 import android.drm.DrmStore.RightsStatus;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -987,7 +987,7 @@ public class TrackBrowserActivityFragment extends Fragment
                 Uri uri = ContentUris.withAppendedId(
                                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
 
-                boolean canBeShared = false;
+                boolean canBeShared = true;
                 String filepath = null;
                 String scheme = uri.getScheme();
                 if ("file".equals(scheme)) {
@@ -1007,25 +1007,26 @@ public class TrackBrowserActivityFragment extends Fragment
                     }
                 }
 
-                if (filepath != null && (filepath.endsWith(".dcf") || filepath.endsWith(".dm"))) {
-                    DrmManagerClientWrapper drmClient = new DrmManagerClientWrapper(mParentActivity);
-                    ContentValues values = drmClient.getMetadata(filepath);
-                    int drmType = values.getAsInteger("DRM-TYPE");
-                    Log.d(LOGTAG, "SHARE:drmType returned= " + Integer.toString(drmType)
-                            + " for path= " + filepath);
-                    if (drmType != DrmDeliveryType.SEPARATE_DELIVERY) {
-                        canBeShared = false;
-                        Toast.makeText(mParentActivity,
-                                        R.string.no_permission_for_drm,Toast.LENGTH_LONG)
-                             .show();
-                        return true;
-                    } else {
-                        canBeShared = true;
-                    }
-                    if (drmClient != null) drmClient.release();
-                } else {
-                    canBeShared = true;
-                }
+//TODO: DRM changes here.
+//                if (filepath != null && (filepath.endsWith(".dcf") || filepath.endsWith(".dm"))) {
+//                    DrmManagerClientWrapper drmClient = new DrmManagerClientWrapper(mParentActivity);
+//                    ContentValues values = drmClient.getMetadata(filepath);
+//                    int drmType = values.getAsInteger("DRM-TYPE");
+//                    Log.d(LOGTAG, "SHARE:drmType returned= " + Integer.toString(drmType)
+//                            + " for path= " + filepath);
+//                    if (drmType != DrmDeliveryType.SEPARATE_DELIVERY) {
+//                        canBeShared = false;
+//                        Toast.makeText(mParentActivity,
+//                                        R.string.no_permission_for_drm,Toast.LENGTH_LONG)
+//                             .show();
+//                        return true;
+//                    } else {
+//                        canBeShared = true;
+//                    }
+//                    if (drmClient != null) drmClient.release();
+//                } else {
+//                    canBeShared = true;
+//                }
 
                 shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
                 if (canBeShared) startActivity(shareIntent);
@@ -1175,24 +1176,25 @@ public class TrackBrowserActivityFragment extends Fragment
            }
            cursor.close();
         }
-        Log.d(LOGTAG, "onListItemClick:path = " + path);
-        if (path.endsWith(".dcf") || path.endsWith(".dm")) {
-            DrmManagerClientWrapper drmClient = new DrmManagerClientWrapper(mParentActivity);
-            path = path.replace("/storage/emulated/0", "/storage/emulated/legacy");
-            int status = drmClient.checkRightsStatus(path, Action.PLAY);
-            Log.d(LOGTAG, "onListItemClick:status from checkRightsStatus is " + Integer.toString(status));
-            if (RightsStatus.RIGHTS_VALID != status) {
-                ContentValues values = drmClient.getMetadata(path);
-                String address = values.getAsString("Rights-Issuer");
-                Log.d(LOGTAG, "onListItemClick:address = " + address);
-                Intent intent = new Intent(BUY_LICENSE);
-                intent.putExtra("DRM_FILE_PATH", address);
-                mParentActivity.sendBroadcast(intent);
-                return;
-            }
-
-            if (drmClient != null) drmClient.release();
-        }
+        //TODO: DRM changes here.
+//        Log.d(LOGTAG, "onListItemClick:path = " + path);
+//        if (path.endsWith(".dcf") || path.endsWith(".dm")) {
+//            DrmManagerClientWrapper drmClient = new DrmManagerClientWrapper(mParentActivity);
+//            path = path.replace("/storage/emulated/0", "/storage/emulated/legacy");
+//            int status = drmClient.checkRightsStatus(path, Action.PLAY);
+//            Log.d(LOGTAG, "onListItemClick:status from checkRightsStatus is " + Integer.toString(status));
+//            if (RightsStatus.RIGHTS_VALID != status) {
+//                ContentValues values = drmClient.getMetadata(path);
+//                String address = values.getAsString("Rights-Issuer");
+//                Log.d(LOGTAG, "onListItemClick:address = " + address);
+//                Intent intent = new Intent(BUY_LICENSE);
+//                intent.putExtra("DRM_FILE_PATH", address);
+//                mParentActivity.sendBroadcast(intent);
+//                return;
+//            }
+//
+//            if (drmClient != null) drmClient.release();
+//        }
 
         // When selecting a track from the queue, just jump there instead of
         // reloading the queue. This is both faster, and prevents accidentally

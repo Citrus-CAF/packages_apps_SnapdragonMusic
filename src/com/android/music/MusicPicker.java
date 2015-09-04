@@ -26,9 +26,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
-import android.drm.DrmManagerClientWrapper;
+//import android.drm.DrmManagerClientWrapper;
 import android.drm.DrmRights;
-import android.drm.DrmStore.DrmDeliveryType;
+//import android.drm.DrmStore.DrmDeliveryType;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
@@ -708,19 +708,20 @@ public class MusicPicker extends ListActivity
         long newId = mCursor.getLong(mCursor.getColumnIndex(MediaStore.Audio.Media._ID));
 
         String data = mCursor.getString(mCursor.getColumnIndex(MediaStore.Audio.Media.DATA));
-        if (!mIsAsAlarm && (data.endsWith(".dcf") || data.endsWith(".dm"))) {
-            DrmManagerClientWrapper drmClient = new DrmManagerClientWrapper(this);
-            data = data.replace("/storage/emulated/0", "/storage/emulated/legacy");
-            ContentValues values = drmClient.getMetadata(data);
-            int drmType = values.getAsInteger("DRM-TYPE");
-            Log.d(TAG, "setSelected:drm type = " + Integer.toString(drmType));
-            if (drmType != DrmDeliveryType.SEPARATE_DELIVERY) { // Only SD files are sharable
-                Toast.makeText(MusicPicker.this, R.string.no_permission_for_drm,
-                        Toast.LENGTH_LONG).show();
-                return;
-            }
-            if (drmClient != null) drmClient.release();
-        }
+        //TODO: DRM changes here.
+//        if (!mIsAsAlarm && (data.endsWith(".dcf") || data.endsWith(".dm"))) {
+//            DrmManagerClientWrapper drmClient = new DrmManagerClientWrapper(this);
+//            data = data.replace("/storage/emulated/0", "/storage/emulated/legacy");
+//            ContentValues values = drmClient.getMetadata(data);
+//            int drmType = values.getAsInteger("DRM-TYPE");
+//            Log.d(TAG, "setSelected:drm type = " + Integer.toString(drmType));
+//            if (drmType != DrmDeliveryType.SEPARATE_DELIVERY) { // Only SD files are sharable
+//                Toast.makeText(MusicPicker.this, R.string.no_permission_for_drm,
+//                        Toast.LENGTH_LONG).show();
+//                return;
+//            }
+//            if (drmClient != null) drmClient.release();
+//        }
 
         mSelectedUri = ContentUris.withAppendedId(uri, newId);
 
