@@ -31,6 +31,7 @@
     <application android:icon="@drawable/app_music"
         android:label="@string/musicbrowserlabel"
         android:taskAffinity="android.task.music"
+        android:hardwareAccelerated="true"
         android:allowTaskReparenting="true"
         android:usesCleartextTraffic="true">
         <meta-data
