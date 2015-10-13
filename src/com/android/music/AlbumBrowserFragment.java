@@ -42,6 +42,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -596,6 +597,33 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
             return v;
         }
 
+        class BitmapDownload extends AsyncTask {
+            ImageView img = null;
+            String art = null;
+            String name = null;
+
+            public BitmapDownload(ImageView img, String art, String name) {
+                this.img = img;
+                this.art = art;
+                this.name = name;
+            }
+
+            @Override
+            protected Object doInBackground(Object... params) {
+                Bitmap albumArt[] = new Bitmap[1];
+                albumArt[0] = BitmapFactory.decodeFile(art);
+                MusicUtils.mArtCache.put(name, albumArt);
+                return albumArt[0];
+            }
+
+            @Override
+            protected void onPostExecute(Object result) {
+                super.onPostExecute(result);
+                img.setImageBitmap((Bitmap) result);
+
+            }
+        }
+
         @Override
         public void bindView(View view, Context context, final Cursor cursor) {
             final ViewHolder vh = (ViewHolder) view.getTag();
@@ -627,13 +655,10 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
                 iv.setImageDrawable(null);
             } else {
                 if (albumArt == null || albumArt[0] == null) {
-                    albumArt = new Bitmap[1];
-                    albumArt[0] = BitmapFactory.decodeFile(art);
-                    MusicUtils.mArtCache.put(name, albumArt);
-
+                    new BitmapDownload(iv, art, name).execute();
+                } else {
+                    iv.setImageBitmap(albumArt[0]);
                 }
-                iv.setImageBitmap(albumArt[0]);
-
             }
 
             vh.popup_menu_button.setOnClickListener(new OnClickListener() {

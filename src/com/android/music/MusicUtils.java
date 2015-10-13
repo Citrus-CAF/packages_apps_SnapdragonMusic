@@ -1064,6 +1064,12 @@ public class MusicUtils {
         }
     }
 
+    public static Drawable getsArtCachedDrawable(Context context, long artIndex) {
+        synchronized (sArtCache) {
+            return sArtCache.get(artIndex);
+        }
+    }
+
     public static Drawable getCachedArtwork(Context context, long artIndex,
             BitmapDrawable defaultArtwork) {
         Drawable d = null;
@@ -1283,6 +1289,10 @@ public class MusicUtils {
     }
 
     static void setRingtone(Context context, long id, int sub_id) {
+        if (context == null) {
+            Log.e(TAG, "context is null");
+            return;
+        }
         ContentResolver resolver = context.getContentResolver();
         // Set the flag in the database to mark this as a ringtone
         Uri ringUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
@@ -1535,15 +1545,10 @@ public class MusicUtils {
         try {
             String path = sService.getPath();
             if (path == null) {
-                ((MediaPlaybackActivity) a).getSlidingPanelLayout().setHookState(BoardState.HIDDEN);
                 return;
             }
-            boolean withtabs = false;
-            Intent intent = a.getIntent();
-            if (intent != null) {
-                withtabs = intent.getBooleanExtra("withtabs", false);
-            }
-            if (true && MusicUtils.sService != null && MusicUtils.sService.getAudioId() != -1) {
+            if (true && MusicUtils.sService != null
+                    && MusicUtils.sService.getAudioId() != -1) {
                 nowPlayingView.setVisibility(View.VISIBLE);
                 nowPlayingView.invalidate();
                 nowPlayingView.requestLayout();
@@ -1554,16 +1559,18 @@ public class MusicUtils {
                 ImageButton currPlaylist = (ImageButton) nowPlayingView.findViewById(R.id.animViewcurrPlaylist);
                 ImageButton overflow = (ImageButton) nowPlayingView.findViewById(R.id.menu_overflow_audio_header);
                 View layout = nowPlayingView.findViewById(R.id.header_layout);
-                if(isExpanded) {
+                if (isExpanded) {
                     image.setVisibility(View.GONE);
                     currPlaylist.setVisibility(View.VISIBLE);
                     overflow.setVisibility(View.VISIBLE);
                     layout.setBackgroundResource(R.drawable.playingbar_bg_rev);
-                }else {
+                    title.setSelected(true);
+                } else {
                     image.setVisibility(View.VISIBLE);
                     currPlaylist.setVisibility(View.GONE);
                     overflow.setVisibility(View.GONE);
                     layout.setBackgroundResource(R.drawable.playingbar_bg);
+                    title.setSelected(false);
                     if (isPlaying()) {
                         image.setImageResource(R.drawable.play_pause);
                     } else {
@@ -1577,6 +1584,9 @@ public class MusicUtils {
                 }
                 artist.setText(artistName);
                 return;
+            } else if(MusicUtils.sService.getAudioId() == -1) {
+                // we might get an audio id as -1 which will result in a blank/white screen.
+                return;
             }
         } catch (RemoteException ex) {
         } catch (NullPointerException ex) {
@@ -1584,7 +1594,7 @@ public class MusicUtils {
             ex.printStackTrace();
             return ;
         }
-        nowPlayingView.setVisibility(View.GONE);
+        ((MediaPlaybackActivity) a).getSlidingPanelLayout().setHookState(BoardState.HIDDEN);
     }
 
     static void setBackground(final View v, Bitmap bm) {
@@ -1745,6 +1755,62 @@ public class MusicUtils {
         return android.os.Environment.getExternalStorageDirectory().getPath();
     }
 
+    public static void startSoundEffectActivity(Activity activity) {
+        Intent i = new Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL);
+        try {
+            i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, sService.getAudioSessionId());
+        } catch (RemoteException ex) {
+        }
+        activity.startActivityForResult(i, Defs.EFFECTS_PANEL);
+    }
+
+
+    public static void loadSongsListDrawables(Context context, Cursor cursor, int from, int to,
+            android.os.Handler handler) {
+
+        BitmapDrawable defaultArtwork = (BitmapDrawable) context.getResources()
+                .getDrawable(R.drawable.unknown_artists);
+
+        if (cursor.moveToPosition(from)) {
+
+            do {
+
+                if (TrackBrowserFragment.isScrolling) {
+                    break;
+                }
+
+                from++;
+                int artIndex = cursor
+                        .getColumnIndex(MediaStore.Audio.Media.ALBUM_ID);
+                int mTitleIdx = cursor
+                        .getColumnIndex(MediaStore.Audio.Media.TITLE);
+                long index = cursor.getLong(artIndex);
+                final Bitmap icon = defaultArtwork.getBitmap();
+                int w = icon.getWidth();
+                int h = icon.getHeight();
+                Bitmap b = MusicUtils.getArtworkQuick(context, index, w, h);
+                if (b != null) {
+                    Drawable d = new FastBitmapDrawable(b);
+                    synchronized (sArtCache) {
+                        if (sArtCache.get(index) == null) {
+                            sArtCache.put(index, d);
+
+                            if (handler != null && !mIsScreenOff) {
+                                handler.sendEmptyMessage(0);
+                            }
+                        }
+                    }
+                }
+
+            } while (from <= to && cursor.moveToNext());
+
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+    }
+
     public static String getSelectAudioPath(Context context, long mSelectedId) {
         String result = "";
         if (null == context) {
@@ -1771,15 +1837,6 @@ public class MusicUtils {
         }
 
         return result;
-    }
-
-    public static void startSoundEffectActivity(Activity activity) {
-        Intent i = new Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL);
-        try {
-            i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, sService.getAudioSessionId());
-        } catch (RemoteException ex) {
-        }
-        activity.startActivityForResult(i, Defs.EFFECTS_PANEL);
     }
 
     public static void getAlbumArtsForArtist(Context context,
@@ -1915,7 +1972,7 @@ public class MusicUtils {
         int toPosition;
         int fromPosition;
         final int BUFFER_POS = 5;
-        Context ctx = null;;
+        Context ctx = null;
         Handler handler = null;
 
         public BitmapDownloadThread(Context ctx, Handler handler, int from,
@@ -1946,39 +2003,29 @@ public class MusicUtils {
 
     static class AlbumBitmapDownloadThread extends Thread {
 
+        int toPosition;
+        int fromPosition;
+        Context context = null;;
         Handler handler = null;
-        BitmapDrawable defaultArtwork;
-        private long artIndex;
-        ImageView img;
-        Activity context;
+        Cursor cursor;
 
-        public AlbumBitmapDownloadThread(Activity context,
-                long artIndex, BitmapDrawable defaultArtwork, ImageView img,
-                Handler handler) {
-            this.defaultArtwork = defaultArtwork;
-            this.artIndex = artIndex;
-            this.img = img;
-            this.handler = handler;
+        public AlbumBitmapDownloadThread(Context context, Cursor cursor,
+                Handler handler, int from, int to) {
+            this.toPosition = to;
+            this.fromPosition = from;
             this.context = context;
+            this.handler = handler;
+            this.cursor = cursor;
         }
 
         @Override
         public void run() {
             super.run();
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-            final Drawable d = MusicUtils.getCachedArtwork(
-                    context.getBaseContext(), artIndex, defaultArtwork);
-            if (img != null && !mIsScreenOff) {
-                context.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        // TODO Auto-generated method stub
-                        img.setImageDrawable(d);
-                    }
-                });
-            }
-        }
+            MusicUtils.loadSongsListDrawables(context, cursor, fromPosition, toPosition, handler);
+         }
     }
+
     static class FolderBitmapThread extends Thread {
 
         // Handler handler = null;

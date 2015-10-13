@@ -106,7 +106,7 @@ import java.util.HashMap;
 
 public class TrackBrowserFragment extends Fragment implements
         View.OnCreateContextMenuListener, MusicUtils.Defs, ServiceConnection,
-        OnItemClickListener {
+        OnItemClickListener, OnScrollListener {
     public static final String BUY_LICENSE = "android.drmservice.intent.action.BUY_LICENSE";
     private static final int Q_SELECTED = CHILD_MENU_BASE;
     private static final int Q_ALL = CHILD_MENU_BASE + 1;
@@ -118,6 +118,7 @@ public class TrackBrowserFragment extends Fragment implements
     private static final int SHARE = CHILD_MENU_BASE + 7; // Menu to share audio
 
     private static final String LOGTAG = "TrackBrowser";
+    private final static int TOTAL_LIST_ITEMS = 10;
 
     private String[] mCursorCols;
     private String[] mPlaylistMemberCols;
@@ -153,6 +154,8 @@ public class TrackBrowserFragment extends Fragment implements
     public boolean mPause = false;
     private String mFolderName;
     private boolean mCreateShortcut = false;
+    public static volatile boolean isScrolling = false;
+    private int lastVisiblePos = 0;
 
     public TrackBrowserFragment() {
     }
@@ -269,6 +272,7 @@ public class TrackBrowserFragment extends Fragment implements
             }
         });
         mTrackList.setOnItemClickListener(this);
+        mTrackList.setOnScrollListener(this);
         ImageButton shuffleAll = (ImageButton) rootView
                 .findViewById(R.id.shuffleAll);
         shuffleAll.setOnClickListener(new OnClickListener() {
@@ -354,7 +358,12 @@ public class TrackBrowserFragment extends Fragment implements
                 getTrackCursor(mAdapter.getQueryHandler(), null, true);
             }
         }
+
         mParentActivity.updateNowPlaying(mParentActivity);
+
+        Cursor cursor = getTrackCursor(mAdapter.getQueryHandler(), null, false);
+        new MusicUtils.AlbumBitmapDownloadThread(getParentActivity(), cursor,handler,
+                lastVisiblePos, lastVisiblePos + TOTAL_LIST_ITEMS).start();
     }
 
     public void onServiceDisconnected(ComponentName name) {
@@ -443,10 +452,19 @@ public class TrackBrowserFragment extends Fragment implements
         stateIntentfilter.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         mParentActivity.registerReceiver(mStatusListener, stateIntentfilter);
         mParentActivity.updateNowPlaying(mParentActivity);
+
+        if (mAdapter != null) {
+            Cursor cursor = getTrackCursor(mAdapter.getQueryHandler(), null,
+                    false);
+            new MusicUtils.AlbumBitmapDownloadThread(getParentActivity(),
+                    cursor, handler, lastVisiblePos, lastVisiblePos + TOTAL_LIST_ITEMS)
+                    .start();
+        }
     }
 
     @Override
     public void onPause() {
+        lastVisiblePos = mTrackList.getFirstVisiblePosition();
         mReScanHandler.removeCallbacksAndMessages(null);
         mParentActivity.unregisterReceiver(mStatusListener);
         mPause = true;
@@ -670,7 +688,7 @@ public class TrackBrowserFragment extends Fragment implements
         if (fancyName != null) {
             if ("My recordings".equals(fancyName)) {
                 mParentActivity.setTitle(R.string.audio_db_playlist_name);
-            } else if(mCreateShortcut) {
+            } else if (mCreateShortcut) {
                mParentActivity.mToolbar.setTitle(fancyName);
             }
         } else {
@@ -1033,7 +1051,7 @@ public class TrackBrowserFragment extends Fragment implements
             long id;
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.setType("audio/*");
-            mTrackCursor.moveToPosition(mSelectedPosition);
+            mTrackCursor.moveToPosition(position);
             if (mEditMode
                     && (mPlaylist != null && !mPlaylist.equals("nowplaying"))) {
                 id = mTrackCursor
@@ -1438,11 +1456,13 @@ public class TrackBrowserFragment extends Fragment implements
                         where.toString(), null, mSortOrder, async);
             }
         } else if (MusicUtils.isGroupByFolder() && mParent >= 0) {
-            String uriString = "content://media/external/audio/folder/"
-                    + mParent;
-            Uri uri = Uri.parse(uriString);
-            where.append(" AND " + MediaStore.Audio.Media.IS_MUSIC + "=1");
-            ret = queryhandler.doQuery(uri, null, where.toString(), null,
+            String uriString = "content://media/external/file";
+            String[] projection = {MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media._ID,
+                    MediaStore.Audio.Media.IS_MUSIC,"parent", MediaStore.Audio.Media.TITLE,
+                    MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.DURATION,
+                    MediaStore.Audio.Media.ALBUM_ID};
+            String selection = "is_music=1 AND parent = '" + mParent + "'";
+            ret = queryhandler.doQuery(Uri.parse(uriString), projection, selection, null,
                     mSortOrder, async);
             return ret;
         } else {
@@ -1911,8 +1931,6 @@ public class TrackBrowserFragment extends Fragment implements
             builder.delete(0, builder.length());
             String name = cursor.getString(mArtistIdx);
             long aid = cursor.getLong(mAlbumIdx);
-            final Drawable d = MusicUtils.getCachedArtwork(context, aid,
-                    mDefaultAlbumIcon);
             if (MusicUtils.isGroupByFolder() && !mEditMode && mParent != -1) {
                 long l = cursor.getLong(1);
                 if (vh.icon.getTag() != (Integer)vh.icon.getId()) {
@@ -1921,9 +1939,13 @@ public class TrackBrowserFragment extends Fragment implements
                     vh.icon.setTag(vh.icon.getId());
                 }
             } else {
-                if (vh.icon.getTag() != (Integer)vh.icon.getId()) {
-                    new MusicUtils.AlbumBitmapDownloadThread(mParentActivity, aid,
-                            mDefaultAlbumIcon, vh.icon, null).start();
+                if (vh.icon.getTag() != (Integer) vh.icon.getId()) {
+                    Drawable drawable = MusicUtils.getsArtCachedDrawable(context, aid);
+                    if (drawable != null) {
+                        vh.icon.setImageDrawable(drawable);
+                    } else {
+                        vh.icon.setImageDrawable(mDefaultAlbumIcon);
+                    }
                     vh.icon.setTag(vh.icon.getId());
                 }
             }
@@ -2122,5 +2144,40 @@ public class TrackBrowserFragment extends Fragment implements
         public int getSectionForPosition(int position) {
             return 0;
         }
+    }
+
+    Handler handler = new Handler() {
+        public void handleMessage(Message msg) {
+            if (mAdapter != null) {
+                mAdapter.notifyDataSetChanged();
+            }
+        };
+    };
+
+    @Override
+    public void onScrollStateChanged(AbsListView view, int scrollState) {
+        switch (scrollState) {
+        case OnScrollListener.SCROLL_STATE_IDLE:
+            isScrolling = false;
+            int from = view.getFirstVisiblePosition();
+            int to = view.getLastVisiblePosition();
+            Cursor cursor = getTrackCursor(mAdapter.getQueryHandler(), null,
+                    false);
+            new MusicUtils.AlbumBitmapDownloadThread(getParentActivity(),
+                    cursor, handler, from, to).start();
+            break;
+        case OnScrollListener.SCROLL_STATE_TOUCH_SCROLL:
+            isScrolling = true;
+            break;
+        case OnScrollListener.SCROLL_STATE_FLING:
+            isScrolling = true;
+            break;
+        }
+    }
+
+    @Override
+    public void onScroll(AbsListView view, int firstVisibleItem,
+            int visibleItemCount, int totalItemCount) {
+        // TODO Auto-generated method stub
     }
 }

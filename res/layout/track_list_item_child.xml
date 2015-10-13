@@ -19,16 +19,18 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/childID"
     android:layout_width="match_parent"
-    android:layout_height="64dip"
+    android:layout_height="wrap_content"
     android:gravity="center_vertical"
+    android:padding="4dp"
     android:background="#ffffff">
 
     <!-- icon is used for albumart, the grabber in edit playlist mode, and
     the playlist icon in the list of playlists -->
     <RelativeLayout  android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
         android:id="@+id/iconLayout"
-        android:paddingStart="20dip"
+        android:paddingLeft="20dip"
          >
         <ImageView android:id="@+id/icon"
             android:layout_width="48dp"
@@ -36,17 +38,18 @@
     </RelativeLayout>
 
     <!-- The height is set to half the height of the parent, which is 64 dip -->
-    <RelativeLayout android:layout_height="48dip"
+    <RelativeLayout android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:layout_toEndOf="@+id/iconLayout"
-        android:paddingStart="8dip" >
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@+id/iconLayout"
+        android:layout_toLeftOf="@+id/play_indicator_child"
+        android:paddingLeft="8dip" >
         <TextView android:id="@+id/line1"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:layout_width="wrap_content"
-            android:paddingTop="4dip"
             android:layout_height="wrap_content"
             android:layout_alignWithParentIfMissing="true"
-            android:layout_gravity="center_horizontal"
+            android:layout_gravity="center_vertical"
             android:fontFamily="sans-serif"
             android:textSize="16sp"
             android:maxLength="25"
@@ -61,7 +64,7 @@
             android:singleLine="true"
             android:ellipsize="end"
             android:fontFamily="sans-serif"
-            android:layout_gravity="center_horizontal"
+            android:layout_gravity="center_vertical"
             android:textColor="#000000"
             android:alpha="0.26"
             android:scrollHorizontally="true"
@@ -74,7 +77,6 @@
     <ImageView android:id="@+id/play_indicator_child"
         android:layout_alignParentEnd="true"
         android:layout_below="@id/duration"
-        android:layout_marginTop="10dip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="12dip"

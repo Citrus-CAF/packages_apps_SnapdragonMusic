@@ -18,6 +18,7 @@ package com.android.music;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.Notification.Builder;
 import android.app.NotificationManager;
@@ -62,6 +63,7 @@ import android.os.PowerManager.WakeLock;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 import android.support.v4.app.NotificationCompat;
@@ -301,15 +303,22 @@ public class MediaPlaybackService extends Service {
                     mPlayer.setVolume(mCurrentVolume);
                     break;
                 case SERVER_DIED:
-                    if (mIsSupposedToBePlaying) {
-                        gotoNext(true);
-                    } else {
-                        // the server died when we were idle, so just
-                        // reopen the same song (it will start again
-                        // from the beginning though when the user
-                        // restarts)
-                        openCurrentAndNext();
+                    if (isPlaying()) {
+                        pause(false);
+                        if (isAppOnForeground(MediaPlaybackService.this)) {
+                            AlertDialog alertDialog =
+                                    new AlertDialog.Builder(MediaPlaybackService.this)
+                                    .setTitle(R.string.service_start_error_title)
+                                    .setMessage(R.string.service_start_error_msg)
+                                    .setPositiveButton(R.string.button_ok, null)
+                                    .create();
+
+                            alertDialog.getWindow()
+                                    .setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+                            alertDialog.show();
+                        }
                     }
+                    openCurrentAndNext();
                     break;
                 case TRACK_WENT_TO_NEXT:
                     mPlayPos = mNextPlayPos;
@@ -388,6 +397,9 @@ public class MediaPlaybackService extends Service {
                     }
                     break;
                 case ERROR:
+                    Toast.makeText(MediaPlaybackService.this, R.string.open_failed,
+                            Toast.LENGTH_SHORT).show();
+
                     if (mRepeatMode == REPEAT_CURRENT) {
                         //Called from onError when current clip is played in
                         //repeat only mode.
@@ -535,6 +547,8 @@ public class MediaPlaybackService extends Service {
         mRemoteControlClient.setPlaybackPositionUpdateListener(mPosListener);
 
         mPreferences = getSharedPreferences("Music", MODE_WORLD_READABLE | MODE_WORLD_WRITEABLE);
+        mRepeatMode = mPreferences.getInt("repeatmode", REPEAT_NONE);
+
         mCardId = MusicUtils.getCardId(this);
 
         registerExternalStorageListener();
@@ -1590,6 +1604,9 @@ public class MediaPlaybackService extends Service {
           try {
             String[] projection = { MediaStore.Images.Media.DATA };
             cursor = context.getContentResolver().query(contentUri,  projection, null, null, null);
+            if (cursor == null) {
+                return null;
+            }
             int colIndex = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
             cursor.moveToFirst();
             return cursor.getString(colIndex);
@@ -1667,8 +1684,10 @@ public class MediaPlaybackService extends Service {
             mPlayer.setDataSource(mFileToPlay);
             if (mPlayer.isInitialized()) {
                 String realPath = getRealPathFromContentURI(this, Uri.parse(path));
-                mFileObserver = new MyFileObserver(realPath, FileObserver.ALL_EVENTS);
-                mFileObserver.startWatching();
+                if(realPath != null) {
+                    mFileObserver = new MyFileObserver(realPath, FileObserver.ALL_EVENTS);
+                    mFileObserver.startWatching();
+                }
                 mOpenFailedCounter = 0;
                 return true;
             }
@@ -1725,7 +1744,9 @@ public class MediaPlaybackService extends Service {
 
         if (views != null && status != null) {
             // Reset notification play function to pause function
-            views.setImageViewResource(R.id.pause, R.drawable.notification_play);
+            views.setImageViewResource(R.id.pause,
+                    isPlaying() ? R.drawable.notification_pause
+                            : R.drawable.notification_play);
             Intent pauseIntent = new Intent(PAUSE_ACTION);
             PendingIntent pausePendingIntent = PendingIntent.getBroadcast(this,
                     0 /* no requestCode */, pauseIntent, 0 /* no flags */);
@@ -1838,7 +1859,9 @@ public class MediaPlaybackService extends Service {
      * Stops playback.
      */
     public void stop() {
-        mFileObserver.stopWatching();
+        if (mFileObserver != null) {
+            mFileObserver.stopWatching();
+        }
         stop(true);
     }
 
@@ -2061,7 +2084,7 @@ public class MediaPlaybackService extends Service {
 
                 // no more clip, then reset playback state icon in status bar
                 if (views != null){
-                    views.setImageViewResource(R.id.pause, R.drawable.notification_pause);
+                    views.setImageViewResource(R.id.pause, R.drawable.notification_play);
                     Intent playIntent = new Intent(TOGGLEPAUSE_ACTION);
                     PendingIntent playPendingIntent = PendingIntent.getBroadcast(this,
                             0 /* no requestCode */, playIntent, 0 /* no flags */);
@@ -2857,8 +2880,6 @@ public class MediaPlaybackService extends Service {
         }
 
         private boolean setDataSourceImpl(MediaPlayer player, String path) {
-            boolean isNextPlayer = (mNextMediaPlayer != null) ?
-                           (player == mNextMediaPlayer) : false;
             try {
                 player.reset();
                 player.setOnPreparedListener(null);
@@ -2870,7 +2891,7 @@ public class MediaPlaybackService extends Service {
                 player.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 player.prepare();
             } catch (IOException ex) {
-                if (!mQuietMode && !isNextPlayer) {
+                if (!mQuietMode && (player == mCurrentMediaPlayer)) {
                     Toast.makeText(MediaPlaybackService.this, R.string.open_failed, Toast.LENGTH_SHORT).show();
                 }
                 return false;
@@ -2900,16 +2921,27 @@ public class MediaPlaybackService extends Service {
             if (path == null) {
                 return;
             }
-            mNextMediaPlayer = new CompatMediaPlayer();
-            mNextMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
-            mNextMediaPlayer.setAudioSessionId(getAudioSessionId());
-            if (setDataSourceImpl(mNextMediaPlayer, path)) {
-                mCurrentMediaPlayer.setNextMediaPlayer(mNextMediaPlayer);
+            final CompatMediaPlayer mp = new CompatMediaPlayer();
+            mp.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
+            mp.setAudioSessionId(getAudioSessionId());
+            if (setDataSourceImpl(mp, path)) {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mIsSupposedToBePlaying
+                            && mCurrentMediaPlayer != null) {
+                            mCurrentMediaPlayer.setNextMediaPlayer(mp);
+                            mNextMediaPlayer = mp;
+                        }
+                    }
+                }, 300);
             } else {
                 // failed to open next, we'll transition the old fashioned way,
                 // which will skip over the faulty file
-                mNextMediaPlayer.release();
-                mNextMediaPlayer = null;
+                if (mNextMediaPlayer != null) {
+                    mNextMediaPlayer.release();
+                    mNextMediaPlayer = null;
+                }
             }
         }
 
@@ -2948,6 +2980,17 @@ public class MediaPlaybackService extends Service {
             public void onCompletion(MediaPlayer mp) {
                 mIsComplete = true;
                 if (mp == mCurrentMediaPlayer && mNextMediaPlayer != null) {
+                    if (mPlayPos == mNextPlayPos) {
+                        mCursor = getCursorForId(mPlayList[mNextPlayPos]);
+                        if (mCursor == null) {
+                           stop();
+                           mNextMediaPlayer.release();
+                           mNextMediaPlayer = null;
+                           mFileToPlay = null;
+                           notifyChange(META_CHANGED);
+                           return;
+                        }
+                    }
                     mCurrentMediaPlayer.release();
                     mCurrentMediaPlayer = mNextMediaPlayer;
                     mNextMediaPlayer = null;

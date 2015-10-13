@@ -150,7 +150,7 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
                         showScreen(position);
                         mNavigationAdapter.setClickPosition(position);
                         mDrawerListView.invalidateViews();
-                        mDrawerLayout.closeDrawer(Gravity.START);
+                        mDrawerLayout.closeDrawer(Gravity.LEFT);
                     }
                 });
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
@@ -160,7 +160,7 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
             @Override
             public void onClick(View v) {
                 MusicUtils.startSoundEffectActivity(MusicBrowserActivity.this);
-                mDrawerLayout.closeDrawer(Gravity.START);
+                mDrawerLayout.closeDrawer(Gravity.LEFT);
             }
         });
 
@@ -186,7 +186,7 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
             @Override
             public void onClick(View v) {
                 if (mToolbar.getNavigationContentDescription().equals("drawer")) {
-                    mDrawerLayout.openDrawer(Gravity.START);
+                    mDrawerLayout.openDrawer(Gravity.LEFT);
                 }else {
                     showScreen(3);
                     mToolbar.setNavigationContentDescription("drawer");
@@ -206,6 +206,26 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
         if (getIntent() != null) {
             mArtistID = getIntent().getStringExtra("artist");
             mAlbumID = getIntent().getStringExtra("album");
+            Bundle bundle = getIntent().getExtras();
+            try {
+                if (bundle != null) {
+                    mPlaylistId = Long.parseLong(bundle.getString("playlist"));
+                    if (mPlaylistId != DEFAULT_PLAYLIST) {
+                        if (MusicBrowserActivity.isPanelExpanded) {
+                            getSlidingPanelLayout().setHookState(BoardState.COLLAPSED);
+                            MusicBrowserActivity.isPanelExpanded = false;
+                            try {
+                                Thread.sleep(200);  //This is to let the sliding panel collapse and
+                                                    //not to see graphic corruption.
+                            } catch(InterruptedException ie) {
+                                ie.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            } catch (NumberFormatException e) {
+                Log.w("MusicBrowserActivity", "Playlist id missing");
+            }
             initView();
         }
         mIntentAction = intent.getAction();
@@ -223,13 +243,23 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
             position = 0;
         }
 
+        if (mPlaylistId != DEFAULT_PLAYLIST) { //coming from widget
+            if (mPlaylistId == ALL_SONGS_PLAYLIST) {
+                position = 2;   // all songs
+            } else {
+                if (MusicUtils.isGroupByFolder()) {
+                    position = 4;   // playlists index is 4 in CMCC view (with folders)
+                } else {
+                    position = 3;   // playlists index is 3 in non-CMCC view (without folders)
+                }
+            }
+        }
+
         mNavigationAdapter.setClickPosition(position);
         mDrawerListView.invalidateViews();
         FragmentManager fragmentManager = getFragmentManager();
         Fragment fragment = null;
-        if (mPlaylistId != DEFAULT_PLAYLIST) {
-            position = 2;
-        }
+
         if (MusicUtils.isGroupByFolder()) {
             mToolbar.setTitle(getResources().getStringArray(
                     R.array.title_array_folder)[position]);
@@ -259,14 +289,17 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
         } else if (mPlaylistId != DEFAULT_PLAYLIST) {
             fragment = new TrackBrowserFragment();
             Bundle bundle = new Bundle();
+            bundle.putBoolean("editValue", false);
             if (mPlaylistId == RECENTLY_ADDED_PLAYLIST) {
                 bundle.putString("playlist", "recentlyadded");
             } else if (mPlaylistId == PODCASTS_PLAYLIST) {
                 bundle.putString("playlist", "podcasts");
             } else {
-                bundle.putBoolean("editValue", true);
-                bundle.putString("playlist", Long.valueOf(mPlaylistId)
-                        .toString());
+                if(mPlaylistId != ALL_SONGS_PLAYLIST) {
+                    bundle.putBoolean("editValue", true);
+                    bundle.putString("playlist", Long.valueOf(mPlaylistId)
+                            .toString());
+                }
             }
             bundle.putBoolean("isFromShortcut", true);
             fragment.setArguments(bundle);

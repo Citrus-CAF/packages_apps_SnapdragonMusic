@@ -420,12 +420,14 @@ public class FolderBrowserFragment extends Fragment
 
     private Cursor getFolderCursor(AsyncQueryHandler async, String filter) {
         Cursor ret = null;
-        String uriString = "content://media/external/audio/folder";
+        String uriString = "content://media/external/file";
+        String selection = "is_music = 1 & 1=1 ) GROUP BY (parent" ;
+        String[] projection = {"count(*)","_id","_data","parent"};
         Uri uri = Uri.parse(uriString);
         if (async != null) {
-            async.startQuery(0, null, uri, null, null, null, null);
+            async.startQuery(0, null, uri, projection, selection, null, null);
         } else {
-            ret = MusicUtils.query(mActivity, uri, null, null, null, null);
+            ret = MusicUtils.query(mActivity, uri, projection, selection, null, null);
         }
         return ret;
     }

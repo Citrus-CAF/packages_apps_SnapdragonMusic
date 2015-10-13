@@ -155,7 +155,14 @@
     <string name="effectspanel" msgid="8804547581593509614">"音效"</string>
     <string name="equalizer_button_text">"音效"</string>
     <string name="navigation_drawer_title">"音樂"</string>
-    <string-array name="title_array">
+    <string-array name="title_array_folder">
+        <item>歌手/創作人</item>
+        <item>專輯</item>
+        <item>歌曲</item>
+        <item>文件夾</item>
+        <item>播放清單</item>
+    </string-array>
+    <string-array name="title_array_songs">
         <item>歌手/創作人</item>
         <item>專輯</item>
         <item>歌曲</item>

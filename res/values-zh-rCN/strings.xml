@@ -190,11 +190,20 @@
     <string name="more_video">更多视频</string>
     <string name="equalizer_button_text">"音效"</string>
     <string name="navigation_drawer_title">"音乐"</string>
-    <string-array name="title_array">
+    <string-array name="title_array_folder">
+        <item>音乐人</item>
+        <item>专辑</item>
+        <item>歌曲</item>
+        <item>文件夹</item>
+        <item>播放列表</item>
+    </string-array>
+    <string-array name="title_array_songs">
         <item>音乐人</item>
         <item>专辑</item>
         <item>歌曲</item>
         <item>播放列表</item>
     </string-array>
     <string name="no_music_found">没有歌曲</string>
+    <!--  Adding new string here for file delete error message -->
+    <string name="song_deleted_error_message">无法播放您所要求的音乐文件</string>
 </resources>

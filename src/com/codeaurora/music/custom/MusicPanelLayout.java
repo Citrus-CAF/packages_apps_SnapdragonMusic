@@ -287,8 +287,8 @@ public class MusicPanelLayout extends ViewGroup {
         if (getChildCount() == ZERO) {
             return;
         }
-        int rBound = getWidth() - getPaddingEnd();
-        int lBound = getPaddingStart();
+        int rBound = getWidth() - getPaddingRight();
+        int lBound = getPaddingLeft();
         int bBound = getHeight() - getPaddingBottom();
         int tBound = getPaddingTop();
 
@@ -376,7 +376,7 @@ public class MusicPanelLayout extends ViewGroup {
             mSlipState = BoardState.HIDDEN;
         }
 
-        int lWidth = wSize - getPaddingStart() - getPaddingEnd();
+        int lWidth = wSize - getPaddingLeft() - getPaddingRight();
         int lHeight = hSize - getPaddingTop() - getPaddingBottom();
 
         for (int k = 0; k < cCount; k++) {
@@ -441,7 +441,7 @@ public class MusicPanelLayout extends ViewGroup {
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         int pTop = getPaddingTop();
         int cCount = getChildCount();
-        int pLeft = getPaddingStart();
+        int pLeft = getPaddingLeft();
 
         if (mPrimaryLayout) {
             switch (mSlipState) {
@@ -623,11 +623,7 @@ public class MusicPanelLayout extends ViewGroup {
         if (mPrimaryLayout) {
             mSlipState = state;
         } else {
-            if (mSlipState == BoardState.HIDDEN) {
-                mSlippingView.setVisibility(View.VISIBLE);
-                requestLayout();
-            }
-            switch (state) {
+           switch (state) {
             case ANCHORED:
                 smoothSlipTo(mMainStayPoint, 0, false);
                 break;
@@ -726,7 +722,7 @@ public class MusicPanelLayout extends ViewGroup {
     }
 
     boolean smoothSlipTo(float slideOffset, int velocity, boolean hasFastScroll) {
-        if (!isEnabled()) {
+        if (!isEnabled() || mSlippingView.getVisibility() != VISIBLE) {
             return false;
         }
 

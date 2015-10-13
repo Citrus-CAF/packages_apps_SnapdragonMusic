@@ -56,6 +56,7 @@ import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.telephony.TelephonyManager;
 import android.text.Layout;
+import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -87,6 +88,8 @@ import com.codeaurora.music.custom.FragmentsFactory;
 import com.codeaurora.music.custom.MusicPanelLayout;
 import com.codeaurora.music.custom.MusicPanelLayout.ViewHookSlipListener;
 import com.codeaurora.music.custom.MusicPanelLayout.BoardState;
+
+import java.util.Locale;
 
 public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         ServiceConnection, OnCompletionListener {
@@ -120,6 +123,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private ImageButton mMenuOverFlow;
     private View mNowPlayingView;
     Fragment mFragment;
+    private boolean isBackPressed = false;
+    private boolean mCheckIfSeekRequired = false;
 
     public MediaPlaybackActivity() {
     }
@@ -170,15 +175,19 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mCurrentPlaylist = (ImageButton) findViewById(R.id.animViewcurrPlaylist);
         mCurrentPlaylist.setOnClickListener(mQueueListener);
         setTouchDelegate(mCurrentPlaylist);
+        boolean isRtl = TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) ==
+                            View.LAYOUT_DIRECTION_RTL;
         mPrevButton = (RepeatingImageButton) findViewById(R.id.previcon);
         mPrevButton.setOnClickListener(mPrevListener);
         mPrevButton.setRepeatListener(mRewListener, 260);
+        mPrevButton.setImageResource(isRtl ? R.drawable.nex : R.drawable.pre);
         mPauseButton = (ImageButton) findViewById(R.id.play_pause);
         mPauseButton.requestFocus();
         mPauseButton.setOnClickListener(mPauseListener);
         mNextButton = (RepeatingImageButton) findViewById(R.id.nexticon);
         mNextButton.setOnClickListener(mNextListener);
         mNextButton.setRepeatListener(mFfwdListener, 260);
+        mNextButton.setImageResource(isRtl ? R.drawable.pre : R.drawable.nex);
         seekmethod = 1;
         MusicPanelLayout.mSeekBarView = mProgress;
         MusicPanelLayout.mSongsQueueView = mQueueLayout;
@@ -418,12 +427,14 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         public void onStartTrackingTouch(SeekBar bar) {
             mLastSeekEventTime = 0;
             mFromTouch = true;
+            mCheckIfSeekRequired = false;
         }
 
         public void onProgressChanged(SeekBar bar, int progress,
                 boolean fromuser) {
             if (!fromuser || (mService == null))
                 return;
+            mCheckIfSeekRequired = true;
             long now = SystemClock.elapsedRealtime();
             mPosOverride = mDuration * progress / 1000;
             if ((now - mLastSeekEventTime) > 10) {
@@ -439,7 +450,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 
         public void onStopTrackingTouch(SeekBar bar) {
             try {
-                if (null != mService) {
+                if (null != mService && mCheckIfSeekRequired) {
                     mService.seek(mPosOverride);
                 }
             } catch (RemoteException ex) {
@@ -686,7 +697,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         super.onResume();
         updateNowPlaying(this);
         updateTrackInfo();
-        setPauseButtonImage();
     }
 
     @Override
@@ -942,7 +952,14 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 startActivity(intent);
                 return true;
             }
-            finish();
+            if (isBackPressed) {
+                isBackPressed = false;
+                finish();
+            }
+            return true;
+        } else if (event.getAction() == KeyEvent.ACTION_DOWN
+                && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            isBackPressed = true;
             return true;
         }
         return super.dispatchKeyEvent(event);
@@ -1722,11 +1739,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             if (mService == null) {
                 Log.e(TAG, " service is null");
                 return;
-            }
-            try {
-                mService.next();
-            } catch (RemoteException ex) {
-                Log.e(TAG, " remote exception in playing song");
             }
         }
     }

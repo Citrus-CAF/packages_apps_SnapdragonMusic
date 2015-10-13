@@ -167,6 +167,9 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
                         mTextLine1.setText(title);
                         if (artistIdx >= 0) {
                             String artist = cursor.getString(artistIdx);
+                            if(artist == null || artist.equals(MediaStore.UNKNOWN_STRING)) {
+                                artist = getString(R.string.unknown_artist_name);
+                            }
                             mTextLine2.setText(artist);
                         }
                     } else if (displaynameIdx >= 0) {

@@ -159,7 +159,7 @@ public class QueryBrowserActivity extends ListActivity implements
 
         mTrackList = getListView();
         mTrackList.setDivider(null);
-        mTrackList.setTextFilterEnabled(true);
+        mTrackList.setTextFilterEnabled(false);
         if (mAdapter == null) {
             mAdapter = new QueryListAdapter(getApplication(), this,
                     R.layout.track_list_item, null, // cursor
@@ -567,18 +567,16 @@ public class QueryBrowserActivity extends ListActivity implements
     @Override
     public boolean onQueryTextSubmit(String query) {
         // TODO Auto-generated method stub
-        mTrackList.setFilterText(query);
+        if (mTrackList != null) {
+            mTrackList.setFilterText(query);
+        }
         return false;
     }
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        // TODO Auto-generated method stub
-        if (newText == null || TextUtils.isEmpty(newText)) {
-            mTrackList.clearTextFilter();
-            return false;
-        }
-        mTrackList.setFilterText(newText);
+
+        mAdapter.getFilter().filter(newText);
 
         return false;
     }
