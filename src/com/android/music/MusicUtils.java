@@ -17,6 +17,8 @@
 package com.android.music;
 
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -40,26 +42,50 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.audiofx.AudioEffect;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
+import android.os.storage.StorageManager;
+import android.os.storage.StorageVolume;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.Toolbar;
+import android.telephony.TelephonyManager;
+import android.telephony.SubscriptionManager;
 import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.Log;
+import android.util.LruCache;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup.LayoutParams;
+import android.view.ViewTreeObserver.OnPreDrawListener;
 import android.view.Window;
+import android.webkit.WebView.FindListener;
+import android.widget.AdapterView;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.PopupMenu;
+import android.widget.RelativeLayout;
 import android.widget.TabWidget;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,9 +95,46 @@ import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Locale;
 
+//import android.drm.DrmHelper;
+import android.annotation.SuppressLint;
+import android.drm.DrmManagerClient;
+import android.drm.DrmRights;
+import android.drm.DrmStore;
+import android.drm.DrmStore.Action;
+import android.drm.DrmStore.RightsStatus;
+
+import com.codeaurora.music.custom.MusicPanelLayout.BoardState;
+
 public class MusicUtils {
 
     private static final String TAG = "MusicUtils";
+
+    private final static long MAX_DRM_RING_TONE_SIZE = 300 * 1024; // 300KB
+
+    public static boolean mPlayAllFromMenu = false;
+    private static boolean mGroupByFolder = false;
+    private static boolean mDisableAnimation;
+    public static boolean mRepeatPlay = false;
+    public static boolean isFragmentRemoved;
+    public static boolean mEditMode;
+    public static boolean mPause;
+    public final static int RINGTONE_SUB_0 = 0;
+    public final static int RINGTONE_SUB_1 = 1;
+
+    public static int navigatingTabPosition;
+    public static boolean isLaunchedFromQueryBrowser = false;
+
+    public static long mPlayListId;
+    // decoding and caching 20 bitmaps to overcome Out of memory exception.
+    public static LruCache<String, Bitmap[]> mArtCache =
+                                         new LruCache<String, Bitmap[]>(20);
+    public static LruCache<String, Bitmap> mFolderCache = new LruCache<String, Bitmap>(
+            20);
+
+    public static HashMap<Integer, Cursor> cur = new HashMap<Integer, Cursor>();
+    static Bitmap mAlbumArtsArray[];
+
+    public static boolean mIsScreenOff = false;
 
     public interface Defs {
         public final static int OPEN_URL = 0;
@@ -88,32 +151,49 @@ public class MusicUtils {
         public final static int SCAN_DONE = 11;
         public final static int QUEUE = 12;
         public final static int EFFECTS_PANEL = 13;
-        public final static int CHILD_MENU_BASE = 14; // this should be the last item
+        public final static int MORE_MUSIC = 14;
+        public final static int MORE_VIDEO = 15;
+        public final static int USE_AS_RINGTONE_2 = 16;
+        public final static int DRM_LICENSE_INFO = 17;
+        public final static int CLOSE = 18;
+        public final static int CHILD_MENU_BASE = 19;// this should be the last item;
     }
 
-    public static String makeAlbumsLabel(Context context, int numalbums, int numsongs, boolean isUnknown) {
+    private static void addDateToCache(String artistName,
+            Bitmap[] mAlbumArtsArray2) {
+        mArtCache.put(artistName, mAlbumArtsArray2);
+    }
+
+    public static String makeAlbumsLabel(Context context, int numalbums,
+            int numsongs, boolean isUnknown) {
         // There are two formats for the albums/songs information:
-        // "N Song(s)"  - used for unknown artist/album
+        // "N Song(s)" - used for unknown artist/album
         // "N Album(s)" - used for known albums
-        
+        StringBuilder songs_albums = new StringBuilder();
+        Resources r = context.getResources();
+        String f = r.getQuantityText(R.plurals.Nalbums, numalbums).toString();
+        sFormatBuilder.setLength(0);
+        sFormatter.format(f, Integer.valueOf(numalbums));
+        songs_albums.append(sFormatBuilder);
+        songs_albums.append(context.getString(R.string.albumsongseparator));
+        return songs_albums.toString();
+    }
+
+    /**
+     * This is now only used in artistlabum screen
+     */
+    public static String makeArtistAlbumsSongsLabel(Context context, int numsongs) {
         StringBuilder songs_albums = new StringBuilder();
 
-        Resources r = context.getResources();
-        if (isUnknown) {
-            if (numsongs == 1) {
-                songs_albums.append(context.getString(R.string.onesong));
-            } else {
-                String f = r.getQuantityText(R.plurals.Nsongs, numsongs).toString();
-                sFormatBuilder.setLength(0);
-                sFormatter.format(f, Integer.valueOf(numsongs));
-                songs_albums.append(sFormatBuilder);
-            }
+        if (numsongs == 1) {
+            songs_albums.append(context.getString(R.string.onesong));
         } else {
-            String f = r.getQuantityText(R.plurals.Nalbums, numalbums).toString();
+            Resources r = context.getResources();
+
+            String f = r.getQuantityText(R.plurals.Nsongs, numsongs).toString();
             sFormatBuilder.setLength(0);
-            sFormatter.format(f, Integer.valueOf(numalbums));
+            sFormatter.format(f, Integer.valueOf(numsongs));
             songs_albums.append(sFormatBuilder);
-            songs_albums.append(context.getString(R.string.albumsongseparator));
         }
         return songs_albums.toString();
     }
@@ -128,7 +208,6 @@ public class MusicUtils {
         // "1 Album"/"N Songs" 
         // "N Album"/"M Songs"
         // Depending on locale, these may need to be further subdivided
-        
         StringBuilder songs_albums = new StringBuilder();
 
         if (numsongs == 1) {
@@ -149,7 +228,7 @@ public class MusicUtils {
         }
         return songs_albums.toString();
     }
-    
+
     public static IMediaPlaybackService sService = null;
     private static HashMap<Context, ServiceBinder> sConnectionMap = new HashMap<Context, ServiceBinder>();
 
@@ -169,7 +248,7 @@ public class MusicUtils {
         if (realActivity == null) {
             realActivity = context;
         }
-        ContextWrapper cw = new ContextWrapper(realActivity);
+        ContextWrapper cw = new ContextWrapper(context);
         cw.startService(new Intent(cw, MediaPlaybackService.class));
         ServiceBinder sb = new ServiceBinder(callback);
         if (cw.bindService((new Intent()).setClass(cw, MediaPlaybackService.class), sb, 0)) {
@@ -178,6 +257,15 @@ public class MusicUtils {
         }
         Log.e("Music", "Failed to bind to service");
         return null;
+    }
+
+    public static void updateGroupByFolder(Activity a) {
+        if (a.getApplicationContext().getResources()
+                .getBoolean(R.bool.group_by_folder)) {
+            mGroupByFolder = true;
+        } else {
+            mGroupByFolder = false;
+        }
     }
 
     public static void unbindFromService(ServiceToken token) {
@@ -204,7 +292,7 @@ public class MusicUtils {
         ServiceBinder(ServiceConnection callback) {
             mCallback = callback;
         }
-        
+
         public void onServiceConnected(ComponentName className, android.os.IBinder service) {
             sService = IMediaPlaybackService.Stub.asInterface(service);
             initAlbumArtCache();
@@ -212,7 +300,7 @@ public class MusicUtils {
                 mCallback.onServiceConnected(className, service);
             }
         }
-        
+
         public void onServiceDisconnected(ComponentName className) {
             if (mCallback != null) {
                 mCallback.onServiceDisconnected(className);
@@ -220,7 +308,7 @@ public class MusicUtils {
             sService = null;
         }
     }
-    
+
     public static long getCurrentAlbumId() {
         if (sService != null) {
             try {
@@ -250,7 +338,17 @@ public class MusicUtils {
         }
         return -1;
     }
-    
+
+    public static String getCurrentData() {
+        if (MusicUtils.sService != null) {
+            try {
+                return sService.getData();
+            } catch (RemoteException ex) {
+            }
+        }
+        return "";
+    }
+
     public static int getCurrentShuffleMode() {
         int mode = MediaPlaybackService.SHUFFLE_NONE;
         if (sService != null) {
@@ -261,7 +359,23 @@ public class MusicUtils {
         }
         return mode;
     }
-    
+
+    public static long[] getSongListForFolder(Context context, long id) {
+        final String[] ccols = new String[] {
+                MediaStore.Audio.Media._ID
+        };
+        String where = MediaStore.Files.FileColumns.PARENT + "=" + id + " AND " +
+                MediaStore.Audio.Media.IS_MUSIC + "=1";
+        Cursor cursor = query(context, MediaStore.Files.getContentUri("external"),
+                ccols, where, null, MediaStore.Audio.Media.TRACK);
+        if (cursor != null) {
+            long[] list = getSongListForCursor(cursor);
+            cursor.close();
+            return list;
+        }
+        return sEmptyList;
+    }
+
     public static void togglePartyShuffle() {
         if (sService != null) {
             int shuffle = getCurrentShuffleMode();
@@ -270,12 +384,15 @@ public class MusicUtils {
                     sService.setShuffleMode(MediaPlaybackService.SHUFFLE_NONE);
                 } else {
                     sService.setShuffleMode(MediaPlaybackService.SHUFFLE_AUTO);
+                    if (sService.getRepeatMode() == MediaPlaybackService.REPEAT_CURRENT)
+                        sService.setRepeatMode(MediaPlaybackService.REPEAT_ALL);
+
                 }
             } catch (RemoteException ex) {
             }
         }
     }
-    
+
     public static void setPartyShuffleMenuIcon(Menu menu) {
         MenuItem item = menu.findItem(Defs.PARTY_SHUFFLE);
         if (item != null) {
@@ -289,7 +406,7 @@ public class MusicUtils {
             }
         }
     }
-    
+
     /*
      * Returns true if a file is currently opened for playback (regardless
      * of whether it's playing or paused).
@@ -363,15 +480,24 @@ public class MusicUtils {
                 ccols, null, null, MediaStore.Audio.Playlists.Members.DEFAULT_SORT_ORDER);
         
         if (cursor != null) {
-            long [] list = getSongListForCursor(cursor);
+            long[] list = getSongListForCursor(cursor);
             cursor.close();
             return list;
         }
         return sEmptyList;
     }
-    
+
+    public static void setPlayListId(long plid) {
+        mPlayListId = plid;
+    }
+
+    public static long getPlayListId() {
+        return mPlayListId;
+    }
+
     public static void playPlaylist(Context context, long plid) {
         long [] list = getSongListForPlaylist(context, plid);
+        mPlayListId = plid;
         if (list != null) {
             playAll(context, list, -1, false);
         }
@@ -417,7 +543,7 @@ public class MusicUtils {
         };
         ContentResolver resolver = context.getContentResolver();
         if (resolver == null) {
-            System.out.println("resolver = null");
+            Log.e(TAG, "resolver null");
         } else {
             String whereclause = MediaStore.Audio.Playlists.NAME + " != ''";
             Cursor cur = resolver.query(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
@@ -435,7 +561,12 @@ public class MusicUtils {
 //                    if (cur.getInt(0) == mLastPlaylistSelected) {
 //                        sub.add(0, MusicBaseActivity.PLAYLIST_SELECTED, cur.getString(1)).setIntent(intent);
 //                    } else {
-                        sub.add(1, Defs.PLAYLIST_SELECTED, 0, cur.getString(1)).setIntent(intent);
+                        String name = cur.getString(1);
+                        if (cur.getString(1).equals("My recordings")) {
+                            name = context.getResources()
+                                    .getString(R.string.audio_db_playlist_name);
+                        }
+                        sub.add(1, Defs.PLAYLIST_SELECTED, 0, name).setIntent(intent);
 //                    }
                     cur.moveToNext();
                 }
@@ -447,14 +578,31 @@ public class MusicUtils {
     }
 
     public static void clearPlaylist(Context context, int plid) {
-        
-        Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external", plid);
+
+        Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external",
+                plid);
         context.getContentResolver().delete(uri, null, null);
         return;
     }
-    
+
+    public static void deleteTrack(MediaPlaybackService mpbService, long mid, long artIndex) {
+        if (mpbService == null) {
+            return;
+        }
+        try {
+             mpbService.removeTrack(mid);
+             if (sArtCache != null) {
+                 synchronized(sArtCache) {
+                     sArtCache.remove(artIndex);
+                 }
+             }
+             mpbService.getApplicationContext().getContentResolver().notifyChange(Uri.parse("content://media"), null);
+        } catch (Exception e) {
+            Log.e("MusicUtils", "Error occur when deleting music");
+        }
+    }
+
     public static void deleteTracks(Context context, long [] list) {
-        
         String [] cols = new String [] { MediaStore.Audio.Media._ID, 
                 MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID };
         StringBuilder where = new StringBuilder();
@@ -587,7 +735,6 @@ public class MusicUtils {
             String message = context.getResources().getQuantityString(
                     R.plurals.NNNtrackstoplaylist, numinserted, numinserted);
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-            //mLastPlaylistSelected = playlistid;
         }
     }
 
@@ -605,13 +752,14 @@ public class MusicUtils {
          } catch (UnsupportedOperationException ex) {
             return null;
         }
-        
+
     }
+
     public static Cursor query(Context context, Uri uri, String[] projection,
             String selection, String[] selectionArgs, String sortOrder) {
         return query(context, uri, projection, selection, selectionArgs, sortOrder, 0);
     }
-    
+
     public static boolean isMediaScannerScanning(Context context) {
         boolean result = false;
         Cursor cursor = query(context, MediaStore.getMediaScannerUri(), 
@@ -621,12 +769,12 @@ public class MusicUtils {
                 cursor.moveToFirst();
                 result = "external".equals(cursor.getString(0));
             }
-            cursor.close(); 
-        } 
+            cursor.close();
+        }
 
         return result;
     }
-    
+
     public static void setSpinnerState(Activity a) {
         if (isMediaScannerScanning(a)) {
             // start the progress spinner
@@ -644,7 +792,7 @@ public class MusicUtils {
                     Window.PROGRESS_VISIBILITY_OFF);
         }
     }
-    
+
     private static String mLastSdStatus;
 
     public static void displayDatabaseError(Activity a) {
@@ -665,7 +813,7 @@ public class MusicUtils {
             title = R.string.sdcard_error_title_nosdcard;
             message = R.string.sdcard_error_message_nosdcard;
         }
-        
+
         if (status.equals(Environment.MEDIA_SHARED) ||
                 status.equals(Environment.MEDIA_UNMOUNTED)) {
             if (android.os.Environment.isExternalStorageRemovable()) {
@@ -717,7 +865,7 @@ public class MusicUtils {
         TextView tv = (TextView) a.findViewById(R.id.sd_message);
         tv.setText(message);
     }
-    
+
     public static void hideDatabaseError(Activity a) {
         View v = a.findViewById(R.id.sd_message);
         if (v != null) {
@@ -766,30 +914,33 @@ public class MusicUtils {
 
         return sFormatter.format(durationformat, timeArgs).toString();
     }
-    
+
     public static void shuffleAll(Context context, Cursor cursor) {
         playAll(context, cursor, 0, true);
     }
 
     public static void playAll(Context context, Cursor cursor) {
+        mPlayAllFromMenu = true;
         playAll(context, cursor, 0, false);
     }
-    
+
     public static void playAll(Context context, Cursor cursor, int position) {
         playAll(context, cursor, position, false);
     }
-    
-    public static void playAll(Context context, long [] list, int position) {
+
+    public static void playAll(Context context, long[] list, int position) {
         playAll(context, list, position, false);
     }
-    
-    private static void playAll(Context context, Cursor cursor, int position, boolean force_shuffle) {
-    
-        long [] list = getSongListForCursor(cursor);
+
+    private static void playAll(Context context, Cursor cursor, int position,
+            boolean force_shuffle) {
+
+        long[] list = getSongListForCursor(cursor);
         playAll(context, list, position, force_shuffle);
     }
-    
-    private static void playAll(Context context, long [] list, int position, boolean force_shuffle) {
+
+    private static void playAll(Context context, long[] list, int position,
+            boolean force_shuffle) {
         if (list.length == 0 || sService == null) {
             Log.d("MusicUtils", "attempt to play empty song list");
             // Don't try to play empty playlists. Nothing good will come of it.
@@ -800,10 +951,27 @@ public class MusicUtils {
         try {
             if (force_shuffle) {
                 sService.setShuffleMode(MediaPlaybackService.SHUFFLE_NORMAL);
+
+                //If the repeat mode is REPEAT_CURRENT, we should change mode to REPEAT_ALL
+                if (sService.getRepeatMode() == MediaPlaybackService.REPEAT_CURRENT) {
+                    sService.setRepeatMode(MediaPlaybackService.REPEAT_ALL);
+                }
             }
+
+            if (mPlayAllFromMenu){
+                sService.setShuffleMode(MediaPlaybackService.SHUFFLE_NONE);
+
+                //If the repeat mode is REPEAT_CURRENT, we should change mode to REPEAT_ALL
+                if (sService.getRepeatMode() == MediaPlaybackService.REPEAT_CURRENT) {
+                    sService.setRepeatMode(MediaPlaybackService.REPEAT_ALL);
+                }
+
+                mPlayAllFromMenu = false;
+            }
+
             long curid = sService.getAudioId();
             int curpos = sService.getQueuePosition();
-            if (position != -1 && curpos == position && curid == list[position]) {
+            if (position != -1 && curpos == position && curid == list[position] && !mRepeatPlay) {
                 // The selected file is the file that's currently playing;
                 // figure out if we need to restart with a new playlist,
                 // or just launch the playback activity.
@@ -821,19 +989,19 @@ public class MusicUtils {
             sService.play();
         } catch (RemoteException ex) {
         } finally {
-            Intent intent = new Intent("com.android.music.PLAYBACK_VIEWER")
-                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            context.startActivity(intent);
+            updateNowPlaying(MusicBrowserActivity.mActivityInstance,
+                    MusicBrowserActivity.isPanelExpanded);
+            mRepeatPlay = false;
         }
     }
-    
+
     public static void clearQueue() {
         try {
             sService.removeTracks(0, Integer.MAX_VALUE);
         } catch (RemoteException ex) {
         }
     }
-    
+
     // A really simple BitmapDrawable-like class, that doesn't do
     // scaling, dithering or filtering.
     private static class FastBitmapDrawable extends Drawable {
@@ -856,19 +1024,21 @@ public class MusicUtils {
         public void setColorFilter(ColorFilter cf) {
         }
     }
-    
+
     private static int sArtId = -2;
     private static Bitmap mCachedBit = null;
     private static final BitmapFactory.Options sBitmapOptionsCache = new BitmapFactory.Options();
     private static final BitmapFactory.Options sBitmapOptions = new BitmapFactory.Options();
-    private static final Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
-    private static final HashMap<Long, Drawable> sArtCache = new HashMap<Long, Drawable>();
+    private static final Uri sArtworkUri = Uri
+            .parse("content://media/external/audio/albumart");
+    private static final LruCache<Long, Drawable> sArtCache = new LruCache<Long, Drawable>(20);
     private static int sArtCacheId = -1;
-    
+
     static {
-        // for the cache, 
+        // for the cache,
         // 565 is faster to decode and display
-        // and we don't want to dither here because the image will be scaled down later
+        // and we don't want to dither here because the image will be scaled
+        // down later
         sBitmapOptionsCache.inPreferredConfig = Bitmap.Config.RGB_565;
         sBitmapOptionsCache.inDither = false;
 
@@ -881,7 +1051,7 @@ public class MusicUtils {
             int id = sService.getMediaMountedCount();
             if (id != sArtCacheId) {
                 clearAlbumArtCache();
-                sArtCacheId = id; 
+                sArtCacheId = id;
             }
         } catch (RemoteException e) {
             e.printStackTrace();
@@ -889,14 +1059,21 @@ public class MusicUtils {
     }
 
     public static void clearAlbumArtCache() {
-        synchronized(sArtCache) {
-            sArtCache.clear();
+        synchronized (sArtCache) {
+            sArtCache.evictAll();
         }
     }
-    
-    public static Drawable getCachedArtwork(Context context, long artIndex, BitmapDrawable defaultArtwork) {
+
+    public static Drawable getsArtCachedDrawable(Context context, long artIndex) {
+        synchronized (sArtCache) {
+            return sArtCache.get(artIndex);
+        }
+    }
+
+    public static Drawable getCachedArtwork(Context context, long artIndex,
+            BitmapDrawable defaultArtwork) {
         Drawable d = null;
-        synchronized(sArtCache) {
+        synchronized (sArtCache) {
             d = sArtCache.get(artIndex);
         }
         if (d == null) {
@@ -907,7 +1084,7 @@ public class MusicUtils {
             Bitmap b = MusicUtils.getArtworkQuick(context, artIndex, w, h);
             if (b != null) {
                 d = new FastBitmapDrawable(b);
-                synchronized(sArtCache) {
+                synchronized (sArtCache) {
                     // the cache may have changed since we checked
                     Drawable value = sArtCache.get(artIndex);
                     if (value == null) {
@@ -924,7 +1101,8 @@ public class MusicUtils {
     // Get album art for specified album. This method will not try to
     // fall back to getting artwork directly from the file, nor will
     // it attempt to repair the database.
-    private static Bitmap getArtworkQuick(Context context, long album_id, int w, int h) {
+    public static Bitmap getArtworkQuick(Context context, long album_id, int w,
+            int h) {
         // NOTE: There is in fact a 1 pixel border on the right side in the ImageView
         // used to display this drawable. Take it into account now, so we don't have to
         // scale later.
@@ -936,37 +1114,43 @@ public class MusicUtils {
             try {
                 fd = res.openFileDescriptor(uri, "r");
                 int sampleSize = 1;
-                
-                // Compute the closest power-of-two scale factor 
-                // and pass that to sBitmapOptionsCache.inSampleSize, which will
-                // result in faster decoding and better quality
-                sBitmapOptionsCache.inJustDecodeBounds = true;
-                BitmapFactory.decodeFileDescriptor(
-                        fd.getFileDescriptor(), null, sBitmapOptionsCache);
-                int nextWidth = sBitmapOptionsCache.outWidth >> 1;
-                int nextHeight = sBitmapOptionsCache.outHeight >> 1;
-                while (nextWidth>w && nextHeight>h) {
-                    sampleSize <<= 1;
-                    nextWidth >>= 1;
-                    nextHeight >>= 1;
-                }
 
-                sBitmapOptionsCache.inSampleSize = sampleSize;
-                sBitmapOptionsCache.inJustDecodeBounds = false;
-                Bitmap b = BitmapFactory.decodeFileDescriptor(
-                        fd.getFileDescriptor(), null, sBitmapOptionsCache);
-
-                if (b != null) {
-                    // finally rescale to exactly the size we need
-                    if (sBitmapOptionsCache.outWidth != w || sBitmapOptionsCache.outHeight != h) {
-                        Bitmap tmp = Bitmap.createScaledBitmap(b, w, h, true);
-                        // Bitmap.createScaledBitmap() can return the same bitmap
-                        if (tmp != b) b.recycle();
-                        b = tmp;
+                if (fd != null) {
+                    // Compute the closest power-of-two scale factor
+                    // and pass that to sBitmapOptionsCache.inSampleSize, which
+                    // will result in faster decoding and better quality
+                    sBitmapOptionsCache.inJustDecodeBounds = true;
+                    BitmapFactory.decodeFileDescriptor(fd.getFileDescriptor(),
+                            null, sBitmapOptionsCache);
+                    int nextWidth = sBitmapOptionsCache.outWidth >> 1;
+                    int nextHeight = sBitmapOptionsCache.outHeight >> 1;
+                    while (nextWidth > w && nextHeight > h) {
+                        sampleSize <<= 1;
+                        nextWidth >>= 1;
+                        nextHeight >>= 1;
                     }
+
+                    sBitmapOptionsCache.inSampleSize = sampleSize;
+                    sBitmapOptionsCache.inJustDecodeBounds = false;
+                    Bitmap b = BitmapFactory.decodeFileDescriptor(
+                            fd.getFileDescriptor(), null, sBitmapOptionsCache);
+
+                    if (b != null) {
+                        // finally rescale to exactly the size we need
+                        if (sBitmapOptionsCache.outWidth != w
+                                || sBitmapOptionsCache.outHeight != h) {
+                            Bitmap tmp = Bitmap.createScaledBitmap(b, w, h,
+                                    true);
+                            // Bitmap.createScaledBitmap() can return the same
+                            // bitmap
+                            if (tmp != b)
+                                b.recycle();
+                            b = tmp;
+                        }
+                    }
+
+                    return b;
                 }
-                
-                return b;
             } catch (FileNotFoundException e) {
             } finally {
                 try {
@@ -987,15 +1171,16 @@ public class MusicUtils {
         return getArtwork(context, song_id, album_id, true);
     }
 
-    /** Get album art for specified album. You should not pass in the album id
+    /**
+     * Get album art for specified album. You should not pass in the album id
      * for the "unknown" album here (use -1 instead)
      */
-    public static Bitmap getArtwork(Context context, long song_id, long album_id,
-            boolean allowdefault) {
+    public static Bitmap getArtwork(Context context, long song_id,
+            long album_id, boolean allowdefault) {
 
         if (album_id < 0) {
-            // This is something that is not in the database, so get the album art directly
-            // from the file.
+            // This is something that is not in the database, so get the album
+            // art directly from the file.
             if (song_id >= 0) {
                 Bitmap bm = getArtworkFromFile(context, song_id, -1);
                 if (bm != null) {
@@ -1016,7 +1201,8 @@ public class MusicUtils {
                 in = res.openInputStream(uri);
                 return BitmapFactory.decodeStream(in, null, sBitmapOptions);
             } catch (FileNotFoundException ex) {
-                // The album art thumbnail does not actually exist. Maybe the user deleted it, or
+                // The album art thumbnail does not actually exist. Maybe the
+                // user deleted it, or
                 // maybe it never existed to begin with.
                 Bitmap bm = getArtworkFromFile(context, song_id, album_id);
                 if (bm != null) {
@@ -1030,6 +1216,8 @@ public class MusicUtils {
                     bm = getDefaultArtwork(context);
                 }
                 return bm;
+            } catch (OutOfMemoryError ex) {
+                return null;
             } finally {
                 try {
                     if (in != null) {
@@ -1039,10 +1227,10 @@ public class MusicUtils {
                 }
             }
         }
-        
+
         return null;
     }
-    
+
     // get album art for specified file
     private static final String sExternalMediaUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI.toString();
     private static Bitmap getArtworkFromFile(Context context, long songid, long albumid) {
@@ -1078,20 +1266,20 @@ public class MusicUtils {
         }
         return bm;
     }
-    
-    private static Bitmap getDefaultArtwork(Context context) {
+
+    public static Bitmap getDefaultArtwork(Context context) {
         BitmapFactory.Options opts = new BitmapFactory.Options();
         opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
         return BitmapFactory.decodeStream(
                 context.getResources().openRawResource(R.drawable.albumart_mp_unknown), null, opts);
     }
-    
+
     static int getIntPref(Context context, String name, int def) {
         SharedPreferences prefs =
             context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);
         return prefs.getInt(name, def);
     }
-    
+
     static void setIntPref(Context context, String name, int value) {
         SharedPreferences prefs =
             context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);
@@ -1100,7 +1288,11 @@ public class MusicUtils {
         SharedPreferencesCompat.apply(ed);
     }
 
-    static void setRingtone(Context context, long id) {
+    static void setRingtone(Context context, long id, int sub_id) {
+        if (context == null) {
+            Log.e(TAG, "context is null");
+            return;
+        }
         ContentResolver resolver = context.getContentResolver();
         // Set the flag in the database to mark this as a ringtone
         Uri ringUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
@@ -1128,6 +1320,7 @@ public class MusicUtils {
             if (cursor != null && cursor.getCount() == 1) {
                 // Set the system setting to make this the current ringtone
                 cursor.moveToFirst();
+                //TODO: DRM changes here.
                 Settings.System.putString(resolver, Settings.System.RINGTONE, ringUri.toString());
                 String message = context.getString(R.string.ringtone_set, cursor.getString(2));
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
@@ -1138,17 +1331,97 @@ public class MusicUtils {
             }
         }
     }
-    
+
+    /*
+    static void setRingtone(Context context, long id, int sub_id) {
+        ContentResolver resolver = context.getContentResolver();
+        // Set the flag in the database to mark this as a ringtone
+        Uri ringUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
+        try {
+            ContentValues values = new ContentValues(2);
+            values.put(MediaStore.Audio.Media.IS_RINGTONE, "1");
+            values.put(MediaStore.Audio.Media.IS_ALARM, "1");
+            resolver.update(ringUri, values, null, null);
+        } catch (UnsupportedOperationException ex) {
+            // most likely the card just got unmounted
+            Log.e(TAG, "couldn't set ringtone flag for id " + id);
+            return;
+        }
+
+        String[] cols = new String[] {
+                MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.DATA,
+                MediaStore.Audio.Media.TITLE
+        };
+
+        String where = MediaStore.Audio.Media._ID + "=" + id;
+        Cursor cursor = query(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                cols, where, null, null);
+        try {
+            if (cursor != null && cursor.getCount() == 1) {
+                // Set the system setting to make this the current ringtone
+                cursor.moveToFirst();
+                String message = context.getString(R.string.ringtone_set, cursor.getString(2));
+
+                String path = cursor.getString(1);
+                if (DrmHelper.isDrmFile(path)) {
+                    if(!DrmHelper.isDrmFLBlocking(context, path)){
+                        Toast.makeText(context, R.string.drm_ringtone_error, Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                }
+
+                Intent intent = new Intent("android.drmservice.intent.action.RING_TONE");
+                intent.putExtra("DRM_TYPE", "OMAV1");
+                intent.putExtra("DRM_FILE_PATH", path);
+                context.sendBroadcast(intent);
+
+                if (sub_id == RINGTONE_SUB_0) {
+                    Settings.System.putString(resolver, Settings.System.RINGTONE , ringUri.toString());
+                    if (TelephonyManager.getDefault().isMultiSimEnabled()) {
+                        message = context.getString(R.string.ringtone_set_1, cursor.getString(2));
+                    } else {
+                        message = context.getString(R.string.ringtone_set, cursor.getString(2));
+                    }
+                } else if (sub_id == RINGTONE_SUB_1) {
+                    Settings.System.putString(resolver, Settings.System.RINGTONE_2, ringUri.toString());
+                    message = context.getString(R.string.ringtone_set_2, cursor.getString(2));
+                }
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+*/
+    static void setRingtone(Context context, long id) {
+        setRingtone(context, id, RINGTONE_SUB_0);
+    }
+
     static int sActiveTabIndex = -1;
-    
+
     static boolean updateButtonBar(Activity a, int highlight) {
         final TabWidget ll = (TabWidget) a.findViewById(R.id.buttonbar);
+        if (a.getApplicationContext().getResources().getBoolean(R.bool.group_by_folder)) {
+            TextView song = (TextView) a.findViewById(R.id.songtab);
+            mGroupByFolder = true;
+            if (song != null) {
+                song.setVisibility(View.GONE);
+            }
+        } else {
+            TextView folder = (TextView) a.findViewById(R.id.foldertab);
+            if (folder != null) {
+                folder.setVisibility(View.GONE);
+            }
+        }
         boolean withtabs = false;
         Intent intent = a.getIntent();
         if (intent != null) {
             withtabs = intent.getBooleanExtra("withtabs", false);
         }
-        
+
         if (highlight == 0 || !withtabs) {
             ll.setVisibility(View.GONE);
             return withtabs;
@@ -1156,7 +1429,7 @@ public class MusicUtils {
             ll.setVisibility(View.VISIBLE);
         }
         for (int i = ll.getChildCount() - 1; i >= 0; i--) {
-            
+
             View v = ll.getChildAt(i);
             boolean isActive = (v.getId() == highlight);
             if (isActive) {
@@ -1187,6 +1460,40 @@ public class MusicUtils {
         return withtabs;
     }
 
+    private static void processDrawerItemClick(Activity a, int position) {
+        Log.i("MusicUtils", "processDrawerItemClick "+position);
+        activateScreen(a, position);
+        setIntPref(a, "activetab", position);
+    }
+
+    static void activateScreen(Activity a, int position) {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+
+        Log.i("MusicUtils", "processDrawerItemClick "+position);
+        switch (position) {
+            case 0:
+                intent.setDataAndType(Uri.EMPTY, "vnd.android.cursor.dir/artistalbum");
+                break;
+            case 1:
+                intent.setDataAndType(Uri.EMPTY, "vnd.android.cursor.dir/album");
+                break;
+            case 2:
+                intent.setDataAndType(Uri.EMPTY, "vnd.android.cursor.dir/track");
+                break;
+            case 3:
+                intent.setDataAndType(Uri.EMPTY, MediaStore.Audio.Playlists.CONTENT_TYPE);
+                break;
+                // fall through and return
+            default:
+                return;
+        }
+        intent.putExtra("withtabs", false);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        a.startActivity(intent);
+        a.finish();
+        a.overridePendingTransition(0, 0);
+    }
+
     static void processTabClick(Activity a, View v, int current) {
         int id = v.getId();
         if (id == current) {
@@ -1196,12 +1503,10 @@ public class MusicUtils {
         final TabWidget ll = (TabWidget) a.findViewById(R.id.buttonbar);
 
         activateTab(a, id);
-        if (id != R.id.nowplayingtab) {
-            ll.setCurrentTab((Integer) v.getTag());
-            setIntPref(a, "activetab", id);
-        }
+        ll.setCurrentTab((Integer) v.getTag());
+        setIntPref(a, "activetab", id);
     }
-    
+
     static void activateTab(Activity a, int id) {
         Intent intent = new Intent(Intent.ACTION_PICK);
         switch (id) {
@@ -1214,60 +1519,85 @@ public class MusicUtils {
             case R.id.songtab:
                 intent.setDataAndType(Uri.EMPTY, "vnd.android.cursor.dir/track");
                 break;
+            case R.id.foldertab:
+                intent.setDataAndType(Uri.EMPTY, "vnd.android.cursor.dir/folder");
+                break;
             case R.id.playlisttab:
                 intent.setDataAndType(Uri.EMPTY, MediaStore.Audio.Playlists.CONTENT_TYPE);
                 break;
-            case R.id.nowplayingtab:
-                intent = new Intent(a, MediaPlaybackActivity.class);
-                a.startActivity(intent);
                 // fall through and return
             default:
                 return;
         }
-        intent.putExtra("withtabs", true);
+        intent.putExtra("withtabs", false);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         a.startActivity(intent);
         a.finish();
         a.overridePendingTransition(0, 0);
     }
-    
-    static void updateNowPlaying(Activity a) {
-        View nowPlayingView = a.findViewById(R.id.nowplaying);
+
+    public static void updateNowPlaying(Activity a, boolean isExpanded) {
+        View nowPlayingView = ((MediaPlaybackActivity) a).getNowPlayingView();
         if (nowPlayingView == null) {
+            Log.e(TAG, "Draglayout null");
             return;
         }
         try {
-            boolean withtabs = false;
-            Intent intent = a.getIntent();
-            if (intent != null) {
-                withtabs = intent.getBooleanExtra("withtabs", false);
+            String path = sService.getPath();
+            if (path == null) {
+                return;
             }
-            if (true && MusicUtils.sService != null && MusicUtils.sService.getAudioId() != -1) {
-                TextView title = (TextView) nowPlayingView.findViewById(R.id.title);
-                TextView artist = (TextView) nowPlayingView.findViewById(R.id.artist);
+            if (true && MusicUtils.sService != null
+                    && MusicUtils.sService.getAudioId() != -1) {
+                nowPlayingView.setVisibility(View.VISIBLE);
+                nowPlayingView.invalidate();
+                nowPlayingView.requestLayout();
+                TextView title = (TextView) nowPlayingView.findViewById(R.id.song_name);
+                TextView artist = (TextView) nowPlayingView.findViewById(R.id.artist_name);
+                ImageView image = (ImageView) nowPlayingView.findViewById(R.id.nowplay_icon);
+                final ImageView albumIcon = (ImageView) nowPlayingView.findViewById(R.id.album);
+                ImageButton currPlaylist = (ImageButton) nowPlayingView.findViewById(R.id.animViewcurrPlaylist);
+                ImageButton overflow = (ImageButton) nowPlayingView.findViewById(R.id.menu_overflow_audio_header);
+                View layout = nowPlayingView.findViewById(R.id.header_layout);
+                if (isExpanded) {
+                    image.setVisibility(View.GONE);
+                    currPlaylist.setVisibility(View.VISIBLE);
+                    overflow.setVisibility(View.VISIBLE);
+                    layout.setBackgroundResource(R.drawable.playingbar_bg_rev);
+                    title.setSelected(true);
+                } else {
+                    image.setVisibility(View.VISIBLE);
+                    currPlaylist.setVisibility(View.GONE);
+                    overflow.setVisibility(View.GONE);
+                    layout.setBackgroundResource(R.drawable.playingbar_bg);
+                    title.setSelected(false);
+                    if (isPlaying()) {
+                        image.setImageResource(R.drawable.play_pause);
+                    } else {
+                        image.setImageResource(R.drawable.play_arrow);
+                    }
+                }
                 title.setText(MusicUtils.sService.getTrackName());
                 String artistName = MusicUtils.sService.getArtistName();
                 if (MediaStore.UNKNOWN_STRING.equals(artistName)) {
                     artistName = a.getString(R.string.unknown_artist_name);
                 }
                 artist.setText(artistName);
-                //mNowPlayingView.setOnFocusChangeListener(mFocuser);
-                //mNowPlayingView.setOnClickListener(this);
-                nowPlayingView.setVisibility(View.VISIBLE);
-                nowPlayingView.setOnClickListener(new View.OnClickListener() {
-
-                    public void onClick(View v) {
-                        Context c = v.getContext();
-                        c.startActivity(new Intent(c, MediaPlaybackActivity.class));
-                    }});
+                return;
+            } else if(MusicUtils.sService.getAudioId() == -1) {
+                // we might get an audio id as -1 which will result in a blank/white screen.
                 return;
             }
         } catch (RemoteException ex) {
+        } catch (NullPointerException ex) {
+            // we might not actually have the service yet
+            ex.printStackTrace();
+            return ;
         }
-        nowPlayingView.setVisibility(View.GONE);
+        ((MediaPlaybackActivity) a).getSlidingPanelLayout().setHookState(BoardState.HIDDEN);
     }
 
-    static void setBackground(View v, Bitmap bm) {
+    static void setBackground(final View v, Bitmap bm) {
 
         if (bm == null) {
             v.setBackgroundResource(0);
@@ -1329,7 +1659,7 @@ public class MusicUtils {
             sTime.set(time);
             out.print(sTime.toString() + " : ");
             if (item instanceof Exception) {
-                ((Exception)item).printStackTrace(out);
+                ((Exception) item).printStackTrace(out);
             } else {
                 out.println(item);
             }
@@ -1361,4 +1691,478 @@ public class MusicUtils {
             }
         }
     }
+
+    public static int getAudioIDFromPath(Context context, String path) {
+        int id = 0;
+        String[] columns = new String[] { MediaStore.Audio.Media._ID };
+        String where = MediaStore.Audio.Media.DISPLAY_NAME + "=?";
+        String[] selectionArgs = { path };
+        Cursor c = null;
+        try {
+            c = query(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    columns, where, selectionArgs, null);
+            if (c != null && c.moveToFirst()) {
+                int i = c.getColumnIndexOrThrow(MediaStore.Audio.Media._ID);
+                id = c.getInt(i);
+            }
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
+        return id;
+    }
+
+    /**
+     *
+     * @return true if one track is palying. Otherwise false
+     */
+    public static boolean isPlaying() {
+        if (sService != null) {
+            try {
+                return sService.isPlaying();
+            } catch (RemoteException ex) {
+            }
+        }
+        return false;
+    }
+
+    public static boolean isGroupByFolder() {
+        return mGroupByFolder;
+    }
+
+    static String getSDPath(Context context) {
+        String sd = null;
+        StorageManager mStorageManager = (StorageManager) context
+                .getSystemService(Context.STORAGE_SERVICE);
+        StorageVolume[] volumes = mStorageManager.getVolumeList();
+        for (int i = 0; i < volumes.length; i++) {
+            if (volumes[i].isRemovable() && volumes[i].allowMassStorage()
+                    && volumes[i].getDescription(context).contains("SD")) {
+                sd = volumes[i].getPath();
+            }
+        }
+        return sd;
+    }
+
+    public static String getSDState(Context context) {
+        StorageManager mStorageManager = (StorageManager) context
+                .getSystemService(Context.STORAGE_SERVICE);
+        return mStorageManager.getVolumeState(getSDPath(context));
+    }
+
+    public static String getInternalSdCardPath() {
+        return android.os.Environment.getExternalStorageDirectory().getPath();
+    }
+
+    public static void startSoundEffectActivity(Activity activity) {
+        Intent i = new Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL);
+        try {
+            i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, sService.getAudioSessionId());
+        } catch (RemoteException ex) {
+        }
+        activity.startActivityForResult(i, Defs.EFFECTS_PANEL);
+    }
+
+
+    public static void loadSongsListDrawables(Context context, Cursor cursor, int from, int to,
+            android.os.Handler handler) {
+
+        BitmapDrawable defaultArtwork = (BitmapDrawable) context.getResources()
+                .getDrawable(R.drawable.unknown_artists);
+
+        if (cursor.moveToPosition(from)) {
+
+            do {
+
+                if (TrackBrowserFragment.isScrolling) {
+                    break;
+                }
+
+                from++;
+                int artIndex = cursor
+                        .getColumnIndex(MediaStore.Audio.Media.ALBUM_ID);
+                int mTitleIdx = cursor
+                        .getColumnIndex(MediaStore.Audio.Media.TITLE);
+                long index = cursor.getLong(artIndex);
+                final Bitmap icon = defaultArtwork.getBitmap();
+                int w = icon.getWidth();
+                int h = icon.getHeight();
+                Bitmap b = MusicUtils.getArtworkQuick(context, index, w, h);
+                if (b != null) {
+                    Drawable d = new FastBitmapDrawable(b);
+                    synchronized (sArtCache) {
+                        if (sArtCache.get(index) == null) {
+                            sArtCache.put(index, d);
+
+                            if (handler != null && !mIsScreenOff) {
+                                handler.sendEmptyMessage(0);
+                            }
+                        }
+                    }
+                }
+
+            } while (from <= to && cursor.moveToNext());
+
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+    }
+
+    public static String getSelectAudioPath(Context context, long mSelectedId) {
+        String result = "";
+        if (null == context) {
+            return result;
+        }
+        try {
+            final String[] ccols = new String[] { MediaStore.Audio.Media.DATA };
+            String where = MediaStore.Audio.Media._ID + "='" + mSelectedId + "'";
+            Cursor cursor = query(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                                  ccols, where, null, null);
+            if (null != cursor && 0 != cursor.getCount()) {
+                cursor.moveToFirst();
+
+               result = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+                cursor.close();
+                return result;
+            }
+
+            if (null != cursor) {
+                cursor.close();
+                return result;
+            }
+        } catch (Exception ex) {
+        }
+
+        return result;
+    }
+
+    public static void getAlbumArtsForArtist(Context context,
+            BitmapDrawable mDefaultAlbumIcon, int from, int to,
+            android.os.Handler handler) {
+        Cursor artistCursor = null, childCursor = null;
+        int maxGrid = 4;
+        try {
+
+            String[] artistcols = new String[] { MediaStore.Audio.Artists._ID,
+                    MediaStore.Audio.Artists.ARTIST,
+                    MediaStore.Audio.Artists.NUMBER_OF_ALBUMS };
+            Uri uri = MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI;
+            artistCursor = query(context, uri, artistcols, null, null,
+                    MediaStore.Audio.Artists.ARTIST_KEY);
+            String[] cols = new String[] { MediaStore.Audio.Albums._ID,
+                    MediaStore.Audio.Albums.ALBUM,
+                    MediaStore.Audio.Albums.ALBUM_ART };
+            Bitmap albumArt = null;
+            int i = from;
+            if (artistCursor.moveToPosition(from)) {
+                do {
+                    if (i == to)
+                        break;
+                    i++;
+                    long id = artistCursor
+                            .getLong(artistCursor
+                                    .getColumnIndexOrThrow(MediaStore.Audio.Artists._ID));
+                    int numalbums = artistCursor
+                            .getInt(artistCursor
+                                    .getColumnIndexOrThrow(MediaStore.Audio.Artists.NUMBER_OF_ALBUMS));
+                    int mAlbumArtCount = 0;
+                    String artistName = artistCursor
+                            .getString(artistCursor
+                                    .getColumnIndexOrThrow(MediaStore.Audio.Artists.ARTIST));
+
+                    if (mArtCache.get(artistName) != null)
+                        continue;
+
+                    childCursor = query(context,
+                            MediaStore.Audio.Artists.Albums.getContentUri(
+                                    "external", id), cols, null, null,
+                            MediaStore.Audio.Albums.DEFAULT_SORT_ORDER);
+                    childCursor.moveToFirst();
+                    if (numalbums > maxGrid) {
+                        mAlbumArtsArray = new Bitmap[maxGrid];
+                    } else {
+                        mAlbumArtsArray = new Bitmap[numalbums];
+                    }
+
+                    do {
+                        if (mAlbumArtCount >= maxGrid) {
+                            if (childCursor != null)
+                                childCursor.close();
+                            break;
+                        } else {
+                            String name = childCursor
+                                    .getString(childCursor
+                                            .getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM));
+                            boolean unknownalbum = name == null
+                                    || name.equals(MediaStore.UNKNOWN_STRING);
+                            boolean unknownartist = artistName == null
+                                    || artistName
+                                            .equals(MediaStore.UNKNOWN_STRING);
+                            albumArt = null;
+                            if (unknownalbum || unknownartist) {
+                                albumArt = mDefaultAlbumIcon.getBitmap();
+                                mAlbumArtsArray[mAlbumArtCount] = albumArt;
+                            } else {
+                                int colIndex = childCursor
+                                        .getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM_ART);
+                                String art = childCursor.getString(colIndex);
+                                if (art != null)
+                                    albumArt = BitmapFactory.decodeFile(art);
+                                if (albumArt != null) {
+                                    mAlbumArtsArray[mAlbumArtCount] = albumArt;
+                                } else {
+                                    albumArt = mDefaultAlbumIcon.getBitmap();
+                                    mAlbumArtsArray[mAlbumArtCount] = albumArt;
+                                }
+                            }
+                            ++mAlbumArtCount;
+                        }
+                    } while (childCursor.moveToNext());
+                    if (childCursor != null && !childCursor.isClosed())
+                        childCursor.close();
+                    addDateToCache(artistName, mAlbumArtsArray);
+                    if (handler != null && !mIsScreenOff)
+                        handler.sendEmptyMessage(0);
+
+                } while (artistCursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Exception = " + e.getMessage());
+        } finally {
+            if (childCursor != null && !childCursor.isClosed())
+                childCursor.close();
+            if (artistCursor != null && !artistCursor.isClosed())
+                artistCursor.close();
+        }
+
+    }
+
+    public static boolean canClosePlaylistItemFragment(
+            FragmentManager fragmentManager) {
+        if (fragmentManager.findFragmentByTag("track_fragment") != null) {
+            if (fragmentManager.findFragmentByTag("track_fragment").isAdded()
+                    && !fragmentManager.findFragmentByTag("track_fragment")
+                            .isDetached()) {
+                fragmentManager
+                        .beginTransaction()
+                        .remove(fragmentManager
+                                .findFragmentByTag("track_fragment")).commit();
+                return true;
+            }
+        }
+        if (fragmentManager.findFragmentByTag("folder_fragment") != null) {
+            if (fragmentManager.findFragmentByTag("folder_fragment").isAdded()
+                    && !fragmentManager.findFragmentByTag("folder_fragment")
+                            .isDetached()) {
+                fragmentManager
+                        .beginTransaction()
+                        .remove(fragmentManager
+                                .findFragmentByTag("folder_fragment")).commit();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static class BitmapDownloadThread extends Thread {
+
+        int toPosition;
+        int fromPosition;
+        final int BUFFER_POS = 5;
+        Context ctx = null;
+        Handler handler = null;
+
+        public BitmapDownloadThread(Context ctx, Handler handler, int from,
+                int to) {
+            this.toPosition = to;
+            this.fromPosition = from;
+            this.ctx = ctx;
+            this.handler = handler;
+            ensureTopBottomPos();
+        }
+
+        private void ensureTopBottomPos() {
+            if (fromPosition > BUFFER_POS)
+                fromPosition -= BUFFER_POS;
+            toPosition += BUFFER_POS;
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            MusicUtils.getAlbumArtsForArtist(ctx, (BitmapDrawable) ctx
+                    .getResources().getDrawable(R.drawable.unknown_artists),
+                    fromPosition, toPosition, handler);
+
+        }
+    }
+
+    static class AlbumBitmapDownloadThread extends Thread {
+
+        int toPosition;
+        int fromPosition;
+        Context context = null;;
+        Handler handler = null;
+        Cursor cursor;
+
+        public AlbumBitmapDownloadThread(Context context, Cursor cursor,
+                Handler handler, int from, int to) {
+            this.toPosition = to;
+            this.fromPosition = from;
+            this.context = context;
+            this.handler = handler;
+            this.cursor = cursor;
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            MusicUtils.loadSongsListDrawables(context, cursor, fromPosition, toPosition, handler);
+         }
+    }
+
+    static class FolderBitmapThread extends Thread {
+
+        // Handler handler = null;
+        BitmapDrawable defaultArtwork;
+        private long songId;
+        ImageView img;
+        Activity context;
+        private Bitmap bitmap;
+
+        public FolderBitmapThread(Activity context, long songId,
+                BitmapDrawable defaultArtwork, ImageView img) {
+            this.defaultArtwork = defaultArtwork;
+            this.songId = songId;
+            this.img = img;
+            // this.handler = handler;
+            this.context = context;
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            android.os.Process
+                    .setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            if (songId + "" != null) {
+                bitmap = mFolderCache.get(songId + "");
+                if (bitmap == null) {
+                    bitmap = getFolderBitmap(context, songId);
+                    if(bitmap != null)
+                    mFolderCache.put(songId + "", bitmap);
+                }
+            }
+
+            if (img != null && !mIsScreenOff) {
+                context.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        // TODO Auto-generated method stub
+                        if (bitmap != null)
+                            img.setImageBitmap(bitmap);
+                        else
+                            img.setImageDrawable(defaultArtwork);
+                    }
+                });
+            }
+        }
+    }
+
+    public static Bitmap getFolderBitmap(Context context, long songId) {
+        ContentResolver res = context.getContentResolver();
+        Uri uri = null;
+        int h = 100, w = 100;
+        Bitmap bitmap = null;
+        if (songId != -1) {
+            String selection = MediaStore.Audio.Media._ID + " = " + songId + "";
+
+            Cursor cursor = res.query(
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, new String[] {
+                            MediaStore.Audio.Media._ID,
+                            MediaStore.Audio.Media.ALBUM_ID }, selection, null,
+                    null);
+
+            if (cursor.moveToFirst()) {
+                long albumId = cursor.getLong(cursor
+                        .getColumnIndex(MediaStore.Audio.Media.ALBUM_ID));
+                uri = ContentUris.withAppendedId(sArtworkUri, albumId);
+            }
+            cursor.close();
+
+            if (uri != null) {
+                ParcelFileDescriptor fd = null;
+                try {
+                    fd = res.openFileDescriptor(uri, "r");
+                    int sampleSize = 1;
+
+                    if (fd != null) {
+                        sBitmapOptionsCache.inJustDecodeBounds = true;
+                        BitmapFactory.decodeFileDescriptor(
+                                fd.getFileDescriptor(), null,
+                                sBitmapOptionsCache);
+                        int nextWidth = sBitmapOptionsCache.outWidth >> 1;
+                        int nextHeight = sBitmapOptionsCache.outHeight >> 1;
+                        while (nextWidth > w && nextHeight > h) {
+                            sampleSize <<= 1;
+                            nextWidth >>= 1;
+                            nextHeight >>= 1;
+                        }
+
+                        sBitmapOptionsCache.inSampleSize = sampleSize;
+                        sBitmapOptionsCache.inJustDecodeBounds = false;
+                        Bitmap b = BitmapFactory.decodeFileDescriptor(
+                                fd.getFileDescriptor(), null,
+                                sBitmapOptionsCache);
+
+                        if (b != null) {
+                            if (sBitmapOptionsCache.outWidth != w
+                                    || sBitmapOptionsCache.outHeight != h) {
+                                Bitmap tmp = Bitmap.createScaledBitmap(b, w, h,
+                                        true);
+                                if (tmp != b)
+                                    b.recycle();
+                                b = tmp;
+                            }
+                        }
+
+                        return b;
+                    }
+                } catch (FileNotFoundException e) {
+                } finally {
+                    try {
+                        if (fd != null)
+                            fd.close();
+                    } catch (IOException e) {
+                    }
+                }
+            }
+        }
+        return bitmap;
+
+    }
+
+    public static boolean isTelephonyCallInProgress() {
+        TelephonyManager telephonyManager = TelephonyManager.getDefault();
+        Log.d(TAG, "Phone Count - " + telephonyManager.getPhoneCount());
+
+        for (int i = 0; i < telephonyManager.getPhoneCount(); i++) {
+            int[] subId = SubscriptionManager.getSubId(i);
+            if (subId != null && subId.length > 0) {
+                int telephony_state = telephonyManager.getCallState(subId[0]);
+
+                if (telephony_state == TelephonyManager.CALL_STATE_OFFHOOK
+                        || telephony_state == TelephonyManager.CALL_STATE_RINGING) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
 }

@@ -36,13 +36,13 @@
         android:textColor="#ffffffff" />
 
     <SeekBar android:id="@+id/progress"
-        android:background="#000000f0"
-        android:progressDrawable="@drawable/progress_horizontal"
-        android:thumb="@drawable/seek_thumb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingLeft="8dip"
-        android:paddingRight="8dip"
+        android:paddingEnd="8dip"
+        android:paddingStart="8dip"
+        android:progressBackgroundTint="@color/greycheck"
+        android:progressTint="@color/seekbarcolor"
+        android:thumbTint="@color/seekbarcolor"
         android:visibility="gone" />
 
     <LinearLayout
@@ -52,12 +52,20 @@
         android:layout_height="wrap_content"
         android:visibility="gone" >
 
+        <ImageView android:id="@+id/drm_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dip"
+            android:layout_marginStart="8dip"
+            android:src="@drawable/drm_image"
+            android:visibility="gone" />
+
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="0dip"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="8dip">
+            android:layout_marginStart="8dip">
 
             <TextView android:id="@+id/line1"
                 android:paddingTop="5dip"
@@ -86,7 +94,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:layout_marginLeft="16dip"
+                android:layout_marginStart="16dip"
                 android:background="@drawable/btn_nowplaying_background_small"
                 android:src="@drawable/btn_playback_ic_play_small"
                 android:onClick="playPauseClicked"

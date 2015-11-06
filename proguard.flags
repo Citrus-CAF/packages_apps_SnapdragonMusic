@@ -1,3 +1,5 @@
 -keep class com.android.music.AudioPreview {
   public void playPauseClicked(android.view.View);
 }
+
+-dontwarn android.support.v7.appcompat.*

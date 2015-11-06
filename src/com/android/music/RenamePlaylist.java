@@ -17,8 +17,13 @@
 package com.android.music;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.os.Bundle;
@@ -33,6 +38,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.KeyEvent;
+import android.content.Intent;
+import android.net.Uri;
 
 public class RenamePlaylist extends Activity
 {
@@ -55,6 +63,7 @@ public class RenamePlaylist extends Activity
         mPrompt = (TextView)findViewById(R.id.prompt);
         mPlaylist = (EditText)findViewById(R.id.playlist);
         mSaveButton = (Button) findViewById(R.id.create);
+        mSaveButton.setText(R.string.button_ok);
         mSaveButton.setOnClickListener(mOpenClicked);
 
         ((Button)findViewById(R.id.cancel)).setOnClickListener(new View.OnClickListener() {
@@ -108,12 +117,6 @@ public class RenamePlaylist extends Activity
             mSaveButton.setEnabled(false);
         } else {
             mSaveButton.setEnabled(true);
-            if (idForplaylist(typedname) >= 0
-                    && ! mOriginalName.equals(typedname)) {
-                mSaveButton.setText(R.string.create_playlist_overwrite_text);
-            } else {
-                mSaveButton.setText(R.string.create_playlist_create_text);
-            }
         }
 
     }
@@ -146,6 +149,9 @@ public class RenamePlaylist extends Activity
             c.moveToFirst();
             if (!c.isAfterLast()) {
                 name = c.getString(0);
+                if (name.equals("My recordings")) {
+                    name =  getResources().getString(R.string.audio_db_playlist_name);
+                }
             }
         }
         c.close();
@@ -164,22 +170,69 @@ public class RenamePlaylist extends Activity
         super.onResume();
     }
 
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_UP &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
     private View.OnClickListener mOpenClicked = new View.OnClickListener() {
         public void onClick(View v) {
             String name = mPlaylist.getText().toString();
             if (name != null && name.length() > 0) {
-                ContentResolver resolver = getContentResolver();
-                ContentValues values = new ContentValues(1);
-                values.put(MediaStore.Audio.Playlists.NAME, name);
-                resolver.update(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
-                        values,
-                        MediaStore.Audio.Playlists._ID + "=?",
-                        new String[] { Long.valueOf(mRenameId).toString()});
-                
-                setResult(RESULT_OK);
-                Toast.makeText(RenamePlaylist.this, R.string.playlist_renamed_message, Toast.LENGTH_SHORT).show();
-                finish();
+                if ((idForplaylist(name) >= 0) && (!mOriginalName.equals(name))) {
+                    new AlertDialog.Builder(RenamePlaylist.this).setMessage(
+                            getString(R.string.duplicate_playlist_name_alert, name))
+                            .setPositiveButton(getString(R.string.button_ok), new CancelListener())
+                            .show();
+                } else {
+                    if (mOriginalName.equals(name)) {
+                        new AlertDialog.Builder(RenamePlaylist.this).setMessage(
+                                getString(R.string.same_playlist_name_alert, name))
+                                .setPositiveButton(getString(R.string.button_ok), new CancelListener())
+                                .show();
+                        return;
+                    }
+                    ContentResolver resolver = getContentResolver();
+                    ContentValues values = new ContentValues(2);
+                    values.put(MediaStore.Audio.Playlists.NAME, name);
+                    values.put(MediaStore.Audio.Playlists.DATA, MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI + "/" + name);
+                    resolver.update(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, values,
+                            MediaStore.Audio.Playlists._ID + "=?", new String[] {
+                                Long.valueOf(mRenameId).toString()
+                            });
+
+                    final Intent shortcut = new Intent();
+                    shortcut.setAction(Intent.ACTION_VIEW);
+                    shortcut.setDataAndType(Uri.EMPTY, "vnd.android.cursor.dir/playlist");
+                    shortcut.putExtra("playlist", String.valueOf(mRenameId));
+
+                    final Intent intent = new Intent();
+                    intent.setAction("com.android.launcher.action.UPDATE_SHORTCUT");
+                    intent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcut);
+                    intent.putExtra("com.android.launcher.extra.shortcut.NEWNAME", name);
+                    intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, mOriginalName);
+                    intent.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE,
+                            Intent.ShortcutIconResource.fromContext(RenamePlaylist.this,
+                                    R.drawable.ic_launcher_shortcut_music_playlist));
+
+                    setResult(RESULT_OK);
+                    sendBroadcast(intent);
+                    Toast.makeText(RenamePlaylist.this, R.string.playlist_renamed_message,
+                            Toast.LENGTH_SHORT).show();
+                    finish();
+                }
             }
         }
     };
+
+    private class CancelListener implements OnClickListener {
+        public void onClick(DialogInterface dialog, int whichButton) {
+            dialog.dismiss();
+        }
+    }
 }

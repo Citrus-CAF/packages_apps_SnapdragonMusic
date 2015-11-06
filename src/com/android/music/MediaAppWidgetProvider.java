@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.RemoteViews;
 
@@ -35,9 +36,13 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
     static final String TAG = "MusicAppWidgetProvider";
     
     public static final String CMDAPPWIDGETUPDATE = "appwidgetupdate";
+    private static final String UPDATE_WIDGET_ACTION = "com.android.music.updatewidget";
 
     private static MediaAppWidgetProvider sInstance;
-    
+
+    private static boolean mPauseState = false;
+    private static boolean mNoneedperformUpdate = false;
+
     static synchronized MediaAppWidgetProvider getInstance() {
         if (sInstance == null) {
             sInstance = new MediaAppWidgetProvider();
@@ -46,7 +51,27 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
     }
 
     @Override
+    public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
+        if (action.equals(UPDATE_WIDGET_ACTION) && hasInstances(context)) {
+            //receive from MediaPlaybackService onDestroy
+            final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.album_appwidget);
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, this.getClass()));
+            views.setImageViewResource(R.id.control_play, R.drawable.ic_appwidget_music_play);
+            /* everytime pushUpdate(updateAppWidget) should do linkButtons, otherwise the buttons will not work */
+            linkButtons(context, views, false /* not playing */);
+            pushUpdate(context, appWidgetIds, views);
+            //this time the service is died,when service reactivate no need call performUpdate
+            //otherwise title will be falsh
+            mNoneedperformUpdate = true;
+        }
+        super.onReceive(context, intent);
+    }
+
+    @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        mNoneedperformUpdate = false;
         defaultAppWidget(context, appWidgetIds);
         
         // Send broadcast intent to any running MediaPlaybackService so it can
@@ -94,6 +119,10 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
         return (appWidgetIds.length > 0);
     }
 
+    void setPauseState(boolean mPaused) {
+        mPauseState = mPaused;
+    }
+
     /**
      * Handle a change notification coming over from {@link MediaPlaybackService}
      */
@@ -110,11 +139,19 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
      * Update all active widget instances by pushing changes 
      */
     void performUpdate(MediaPlaybackService service, int[] appWidgetIds) {
+        if (mNoneedperformUpdate) {
+            //this time no need performUpdate,otherwise title will be flash
+            mNoneedperformUpdate = false;
+            return;
+        }
         final Resources res = service.getResources();
         final RemoteViews views = new RemoteViews(service.getPackageName(), R.layout.album_appwidget);
         
         CharSequence titleName = service.getTrackName();
         CharSequence artistName = service.getArtistName();
+        if (MediaStore.UNKNOWN_STRING.equals(artistName)) {
+            artistName = res.getString(R.string.unknown_artist_name);
+        }
         CharSequence errorState = null;
         
         // Format title string with track number, or show SD card message
@@ -132,8 +169,6 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
             } else {
                 errorState = res.getText(R.string.sdcard_missing_title_nosdcard);
             }
-        } else if (titleName == null) {
-            errorState = res.getText(R.string.emptyplaylist);
         }
         
         if (errorState != null) {
@@ -153,6 +188,10 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
         if (playing) {
             views.setImageViewResource(R.id.control_play, R.drawable.ic_appwidget_music_pause);
         } else {
+            if (titleName == null && !mPauseState && (errorState == null)) {
+                views.setViewVisibility(R.id.title, View.GONE);
+                views.setTextViewText(R.id.artist, res.getText(R.string.emptyplaylist));
+            }
             views.setImageViewResource(R.id.control_play, R.drawable.ic_appwidget_music_play);
         }
 
@@ -177,7 +216,7 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
         final ComponentName serviceName = new ComponentName(context, MediaPlaybackService.class);
         
         if (playerActive) {
-            intent = new Intent(context, MediaPlaybackActivity.class);
+            intent = new Intent(context, MusicBrowserActivity.class);
             pendingIntent = PendingIntent.getActivity(context,
                     0 /* no requestCode */, intent, 0 /* no flags */);
             views.setOnClickPendingIntent(R.id.album_appwidget, pendingIntent);

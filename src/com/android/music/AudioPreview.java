@@ -31,6 +31,8 @@ import android.media.MediaPlayer.OnPreparedListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
+import android.provider.Downloads;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.text.TextUtils;
@@ -42,11 +44,16 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Toast;
+import android.view.KeyEvent;
+import android.content.BroadcastReceiver;
+import android.content.Intent;
+import android.content.IntentFilter;
 
 import java.io.IOException;
 
@@ -56,6 +63,7 @@ import java.io.IOException;
 public class AudioPreview extends Activity implements OnPreparedListener, OnErrorListener, OnCompletionListener
 {
     private final static String TAG = "AudioPreview";
+    private final static String HOST_DOWNLOADS = "downloads";
     private PreviewPlayer mPlayer;
     private TextView mTextLine1;
     private TextView mTextLine2;
@@ -63,18 +71,25 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     private SeekBar mSeekBar;
     private Handler mProgressRefresher;
     private boolean mSeeking = false;
-    private boolean mUiPaused = true;
     private int mDuration;
     private Uri mUri;
     private long mMediaId = -1;
     private static final int OPEN_IN_MUSIC = 1;
     private AudioManager mAudioManager;
     private boolean mPausedByTransientLossOfFocus;
+    private BroadcastReceiver mAudioTrackListener;
+
+    private int mSeekStopPosition;
+    private boolean isCompleted = false;
+    private Uri mMediaUri = null;
+    private static AudioPreview mAudioPreview;
+    private ImageView mImageViewDrmIcon;
 
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-        
+
+        mAudioPreview = this;
         Intent intent = getIntent();
         if (intent == null) {
             finish();
@@ -94,6 +109,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         mTextLine1 = (TextView) findViewById(R.id.line1);
         mTextLine2 = (TextView) findViewById(R.id.line2);
         mLoadingText = (TextView) findViewById(R.id.loading);
+        mImageViewDrmIcon = (ImageView) findViewById(R.id.drm_icon);
         if (scheme.equals("http")) {
             String msg = getString(R.string.streamloadingtext, mUri.getHost());
             mLoadingText.setText(msg);
@@ -123,7 +139,9 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         } else {
             mPlayer = player;
             mPlayer.setActivity(this);
-            // onResume will update the UI
+            if (mPlayer.isPrepared()) {
+                showPostPrepareUI();
+            }
         }
 
         AsyncQueryHandler mAsyncQueryHandler = new AsyncQueryHandler(getContentResolver()) {
@@ -135,6 +153,10 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
                     int artistIdx = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
                     int idIdx = cursor.getColumnIndex(MediaStore.Audio.Media._ID);
                     int displaynameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    int uriIdx = cursor.getColumnIndex(Downloads.Impl.COLUMN_MEDIAPROVIDER_URI);
+                    if (uriIdx >=0 && cursor.getString(uriIdx) != null) {
+                        mMediaUri = Uri.parse(cursor.getString(uriIdx));
+                    }
 
                     if (idIdx >=0) {
                         mMediaId = cursor.getLong(idIdx);
@@ -145,6 +167,9 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
                         mTextLine1.setText(title);
                         if (artistIdx >= 0) {
                             String artist = cursor.getString(artistIdx);
+                            if(artist == null || artist.equals(MediaStore.UNKNOWN_STRING)) {
+                                artist = getString(R.string.unknown_artist_name);
+                            }
                             mTextLine2.setText(artist);
                         }
                     } else if (displaynameIdx >= 0) {
@@ -156,6 +181,23 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
                     }
                 } else {
                     Log.w(TAG, "empty cursor");
+                }
+
+                // Show DRM lock icon on audio preview screen
+                String data = "";
+                try {
+                    int dataIdx = cursor
+                            .getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
+                    data = cursor.getString(dataIdx);
+                } catch (Exception e) {
+                    Log.i(TAG, "_data column not found");
+                }
+                boolean isDrm = !TextUtils.isEmpty(data)
+                        && (data.endsWith(".dm") || data.endsWith(".dcf"));
+                if (isDrm) {
+                    mImageViewDrmIcon.setVisibility(View.VISIBLE);
+                } else {
+                    mImageViewDrmIcon.setVisibility(View.GONE);
                 }
 
                 if (cursor != null) {
@@ -172,10 +214,16 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
                         MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST},
                         null, null, null);
             } else {
-                // Try to get the display name from another content provider.
-                // Don't specifically ask for the display name though, since the
-                // provider might not actually support that column.
-                mAsyncQueryHandler.startQuery(0, null, mUri, null, null, null, null);
+                final String authority = mUri.getAuthority();
+                // hide option menu if the uri may not be opened by music app
+                if (authority.contains("attachmentprovider") || authority.contains("mms")) {
+                    mMediaId = -1;
+                } else {
+                    // Try to get the display name from another content provider.
+                    // Don't specifically ask for the display name though, since the
+                    // provider might not actually support that column.
+                    mAsyncQueryHandler.startQuery(0, null, mUri, null, null, null, null);
+                }
             }
         } else if (scheme.equals("file")) {
             // check if this file is in the media database (clicking on a download
@@ -195,21 +243,38 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        mUiPaused = true;
-        if (mProgressRefresher != null) {
+    protected void onResume() {
+        super.onResume();
+        mScreenOff = false;
+        if (!isCompleted) {
             mProgressRefresher.removeCallbacksAndMessages(null);
+            mProgressRefresher.post(new ProgressRefresher());
         }
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        mUiPaused = false;
-        if (mPlayer.isPrepared()) {
-            showPostPrepareUI();
-        }
+    protected void onStart() {
+        super.onStart();
+        IntentFilter f = new IntentFilter();
+        f.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+        mAudioTrackListener = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(action)) {
+                    if (mPlayer != null && mPlayer.isPlaying()) {
+                        mPlayer.pause();
+                        updatePlayPause();
+                    }
+                 }
+             }
+        };
+        registerReceiver(mAudioTrackListener, f);
+
+        IntentFilter s = new IntentFilter();
+        s.addAction(Intent.ACTION_SCREEN_ON);
+        s.addAction(Intent.ACTION_SCREEN_OFF);
+        registerReceiver(mScreenTimeoutListener, new IntentFilter(s));
     }
 
     @Override
@@ -219,10 +284,33 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         return player;
     }
 
+     @Override
+    protected void onStop() {
+        super.onStop();
+        if(mAudioTrackListener != null) {
+        unregisterReceiver(mAudioTrackListener);
+        mAudioTrackListener = null;
+        }
+        if (mScreenTimeoutListener != null) {
+            unregisterReceiver(mScreenTimeoutListener);
+            mScreenTimeoutListener = null;
+        }
+    }
+
     @Override
     public void onDestroy() {
         stopPlayback();
         super.onDestroy();
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_UP &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
     }
 
     private void stopPlayback() {
@@ -310,6 +398,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         mAudioManager.requestAudioFocus(mAudioFocusListener, AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
         mPlayer.start();
+        isCompleted = false;
         mProgressRefresher.postDelayed(new ProgressRefresher(), 200);
     }
     
@@ -326,18 +415,33 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
 
     class ProgressRefresher implements Runnable {
 
-        @Override
         public void run() {
+            if (mScreenOff) return;
             if (mPlayer != null && !mSeeking && mDuration != 0) {
+                int progress = mPlayer.getCurrentPosition() / mDuration;
                 mSeekBar.setProgress(mPlayer.getCurrentPosition());
             }
             mProgressRefresher.removeCallbacksAndMessages(null);
-            if (!mUiPaused) {
-                mProgressRefresher.postDelayed(new ProgressRefresher(), 200);
-            }
+            mProgressRefresher.postDelayed(new ProgressRefresher(), 200);
         }
     }
     
+    private boolean mScreenOff;
+    private BroadcastReceiver mScreenTimeoutListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
+                mScreenOff = false;
+                if(!isCompleted) {
+                    mProgressRefresher.removeCallbacksAndMessages(null);
+                    mProgressRefresher.postDelayed(new ProgressRefresher(), 200);
+                }
+            } else if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
+                mScreenOff = true;
+            }
+        }
+    };
+
     private void updatePlayPause() {
         ImageButton b = (ImageButton) findViewById(R.id.playpause);
         if (b != null && mPlayer != null) {
@@ -362,9 +466,12 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
             if (mPlayer == null) {
                 return;
             }
-            mPlayer.seekTo(progress);
+            mSeekStopPosition = progress;
         }
         public void onStopTrackingTouch(SeekBar bar) {
+            if (mPlayer != null) {
+                mPlayer.seekTo(mSeekStopPosition);
+            }
             mSeeking = false;
         }
     };
@@ -376,6 +483,9 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     }
 
     public void onCompletion(MediaPlayer mp) {
+        // Leave 100ms for mediaplayer to change state.
+        SystemClock.sleep(100);
+        isCompleted = true;
         mSeekBar.setProgress(mDuration);
         updatePlayPause();
     }
@@ -400,7 +510,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         // database, and we could open it in the full music app instead.
         // Ideally, we would hand off the currently running mediaplayer
         // to the music UI, which can probably be done via a public static
-        menu.add(0, OPEN_IN_MUSIC, 0, "open in music");
+        menu.add(0, OPEN_IN_MUSIC, 0, R.string.open_in_music);
         return true;
     }
 
@@ -414,9 +524,35 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         item.setVisible(false);
         return false;
     }
-    
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+    // TODO Auto-generated method stub
+        switch (item.getItemId()) {
+            case OPEN_IN_MUSIC:
+                if (HOST_DOWNLOADS.equals(mUri.getHost()) && mMediaUri != null) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(mMediaUri, "audio/*");
+                    startActivity(intent);
+                } else {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(mUri, "audio/*");
+                    startActivity(intent);
+                }
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // Null pointer check here is to avoid monkey test failure.
+        // Key down event will be received even when acitivity is
+        // about to finish.
+        if (mPlayer == null) {
+            return true;
+        }
+
         switch (keyCode) {
             case KeyEvent.KEYCODE_HEADSETHOOK:
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
@@ -445,6 +581,9 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
             case KeyEvent.KEYCODE_MEDIA_STOP:
             case KeyEvent.KEYCODE_BACK:
                 stopPlayback();
+                if (MusicUtils.sService == null) {
+                    System.exit(0);
+                }
                 finish();
                 return true;
         }
@@ -484,6 +623,10 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         boolean isPrepared() {
             return mIsPrepared;
         }
+    }
+
+    public static AudioPreview getInstance(){
+        return mAudioPreview;
     }
 
 }

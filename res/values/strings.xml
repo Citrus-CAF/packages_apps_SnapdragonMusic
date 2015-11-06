@@ -3,16 +3,16 @@
 /*
 ** Copyright 2007, The Android Open Source Project
 **
-** Licensed under the Apache License, Version 2.0 (the "License"); 
-** you may not use this file except in compliance with the License. 
-** You may obtain a copy of the License at 
+** Licensed under the Apache License, Version 2.0 (the "License");
+** you may not use this file except in compliance with the License.
+** You may obtain a copy of the License at
 **
-**     http://www.apache.org/licenses/LICENSE-2.0 
+**     http://www.apache.org/licenses/LICENSE-2.0
 **
-** Unless required by applicable law or agreed to in writing, software 
-** distributed under the License is distributed on an "AS IS" BASIS, 
-** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-** See the License for the specific language governing permissions and 
+** Unless required by applicable law or agreed to in writing, software
+** distributed under the License is distributed on an "AS IS" BASIS,
+** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
 -->
@@ -50,9 +50,9 @@
     -->
     <skip/>
     <!-- Do not translate. Duration format for duration < 1 hour -->
-    <string translatable="false" name="durationformatshort"><xliff:g id="format">%2$d:%5$02d</xliff:g></string>
+    <string name="durationformatshort" translatable="false"><xliff:g id="format">%2$d:%5$02d</xliff:g></string>
     <!-- Do not translate. Duration format for duration >= 1 hour -->
-    <string translatable="false" name="durationformatlong"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
+    <string name="durationformatlong" translatable="false"><xliff:g id="format">%1$d:%3$02d:%5$02d</xliff:g></string>
 
     <!-- Menu item that takes the user back to the top level screen of the music player -->
     <string name="goto_start">Library</string>
@@ -60,28 +60,26 @@
     <string name="party_shuffle">Party shuffle</string>
     <!-- Menu item that switches the music player out of party shuffle mode -->
     <string name="party_shuffle_off">Party shuffle off</string>
+    <!-- Menu item that clear all playlists mode -->
+    <string name="clear_all_playlists">Clear all playlists</string>
     <!-- Menu item that deletes the currently selected item, which might be a single song, or a collection of songs.
          The user will be prompted to confirm before deletion actually takes place -->
     <string name="delete_item">Delete</string>
-    <!-- Menu item to play back all the songs in the currently showing list in shuffle mode -->
-    <string name="shuffle_all">Shuffle all</string>
     <!-- Menu item to play back all the songs in the currently showing list in list order -->
     <string name="play_all">Play all</string>
+    <!-- Menu item to play song in music -->
+    <string name="open_in_music">Open in music</string>
+    <!-- Menu item to share audio or video -->
+    <string name="share">Share</string>
 
     <!-- Delete confirmation dialog when deleting an entire artist -->
-    <string name="delete_artist_desc">Permanently delete all songs by <xliff:g id="artist">%s</xliff:g> from the SD card?</string>
-    <!-- Delete confirmation dialog when deleting an entire artist -->
-    <string name="delete_artist_desc_nosdcard">Permanently delete all songs by <xliff:g id="artist">%s</xliff:g> from USB storage?</string>
+    <string name="delete_artist_desc">Permanently delete all songs by <xliff:g id="artist">%s</xliff:g>?</string>
 
     <!-- Delete confirmation dialog when deleting an entire album -->
-    <string name="delete_album_desc">Permanently delete the entire album \"<xliff:g id="album">%s</xliff:g>\" from the SD card?</string>
-    <!-- Delete confirmation dialog when deleting an entire album -->
-    <string name="delete_album_desc_nosdcard">Permanently delete the entire album \"<xliff:g id="album">%s</xliff:g>\" from USB storage?</string>
+    <string name="delete_album_desc">Permanently delete the entire album \"<xliff:g id="album">%s</xliff:g>\"?</string>
 
     <!-- Delete confirmation dialog when deleting a single song -->
-    <string name="delete_song_desc">Permanently delete \"<xliff:g id="song">%s</xliff:g>\" from the SD card?</string>
-    <!-- Delete confirmation dialog when deleting a single song -->
-    <string name="delete_song_desc_nosdcard">Permanently delete \"<xliff:g id="song">%s</xliff:g>\" from USB storage?</string>
+    <string name="delete_song_desc">Permanently delete \"<xliff:g id="song">%s</xliff:g>\"?</string>
 
     <!-- Delete confirmation dialog, confirmation button text -->
     <string name="delete_confirm_button_text">OK</string>
@@ -98,6 +96,19 @@
     <!-- shown in dialog while the media scanner is starting up -->
     <string name="scanning_nosdcard">Scanning USB storage\u2026</string>
 
+    <string-array name="title_array_folder">
+        <item>Artists</item>
+        <item>Albums</item>
+        <item>Songs</item>
+        <item>Folder</item>
+        <item>Playlists</item>
+    </string-array>
+    <string-array name="title_array_songs">
+        <item>Artists</item>
+        <item>Albums</item>
+        <item>Songs</item>
+        <item>Playlists</item>
+    </string-array>
     <!-- title of the "current playlist" screen when not in party shuffle mode -->
     <string name="nowplaying_title">Now playing</string>
     <!-- title of the "current playlist" screen when in party shuffle mode-->
@@ -112,6 +123,10 @@
     <string name="tracks_menu">Songs</string>
     <!-- Songs screen title -->
     <string name="tracks_title">Songs</string>
+    <!-- Category label on Library screen -->
+    <string name="folder_menu">Folder</string>
+    <!-- Folder screen title -->
+    <string name="folders_title">Folder</string>
     <!-- Category label on Library screen -->
     <string name="playlists_menu">Playlists</string>
     <!-- Playlists screen title -->
@@ -136,6 +151,13 @@
     <string name="edit_playlist_menu">Edit</string>
     <!-- Playlist context menu item to rename the selected playlist-->
     <string name="rename_playlist_menu">Rename</string>
+    <!-- Dialog box message shown when clearing all playlists-->
+    <string name="clear_all_playlists_message">Do you want to clear all playlists?</string>
+    <!-- Dialog box message shown when deleting a playlist-->
+    <string name="delete_playlist_message">Do you want to delete \"<xliff:g id="name">%s</xliff:g>\"?</string>
+    <!-- Dialog box button -->
+    <string name="delete_playlist_button_ok">OK</string>
+    <string name="delete_playlist_button_cancel">Cancel</string>
     <!-- Transient popup message shown after deleting a playlist -->
     <string name="playlist_deleted_message">Playlist deleted.</string>
     <!-- Transient popup message shown after renaming a playlist -->
@@ -148,6 +170,8 @@
     <string name="podcasts_listitem">Podcasts</string>
     <!-- The name of the pseudo-playlist that holds all the podcasts, shown in title bar of songs list -->
     <string name="podcasts_title">Podcasts</string>
+    <!-- all recordings will show up in the media database in a playlist with thiis name -->
+    <string name="audio_db_playlist_name">My recordings</string>
     <!-- Title of screen when no sd card is present -->
     <string name="sdcard_missing_title">No SD card</string>
     <!-- Title of screen when no sd card is present -->
@@ -176,6 +200,10 @@
     <string name="unknown_artist_name">Unknown artist</string>
     <!-- Default name of album that doesn't have a name in the metadata -->
     <string name="unknown_album_name">Unknown album</string>
+    <!-- Default name of folder that doesn't have a path in the metadata -->
+    <string name="unknown_folder_name">Unknown path</string>
+    <!-- Default name of folder that doesn't have a count in the metadata -->
+    <string name="unknown_folder_count">Unknown count</string>
     <!-- Toast after turning shuffle on -->
     <string name="shuffle_on_notif">Shuffle is on.</string>
     <!-- Toast after turning shuffle off -->
@@ -192,6 +220,16 @@
     <string name="ringtone_menu_short">Use as ringtone</string>
     <!-- Toast after setting a song as phone ringtone -->
     <string name="ringtone_set">\"<xliff:g id="name" example="Alarm Bell">%s</xliff:g>\" set as phone ringtone.</string>
+    <!-- Individual song context menu item -->
+    <string name="ringtone_menu_1">Use as slot 1 ringtone</string>
+    <string name="ringtone_menu_2">Use as slot 2 ringtone</string>
+    <!-- Menu item -->
+    <string name="ringtone_menu_short_1">Use as ringtone 1</string>
+    <string name="ringtone_menu_short_2">Use as ringtone 2</string>
+    <!-- Toast after setting a song as phone ringtone -->
+    <string name="ringtone_set_1">\"<xliff:g id="name" example="Alarm Bell">%s</xliff:g>\" set as slot 1 ringtone.</string>
+    <!-- Toast after setting a song as phone ringtone -->
+    <string name="ringtone_set_2">\"<xliff:g id="name" example="Alarm Bell">%s</xliff:g>\" set as slot 2 ringtone.</string>
     <!-- Context menu item -->
     <string name="play_selection">Play</string>
     <!-- Context menu item -->
@@ -224,7 +262,7 @@
     <!-- Time span edit options that appear when editing system playlist "Recently added" -->
     <!-- Used to indicate the number of weeks the "recently added" playlist covers in a selector widget -->
     <string-array name="weeklist">
-        <item>"1 week"</item>
+        <item>"1 week  "</item>
         <item>"2 weeks"</item>
         <item>"3 weeks"</item>
         <item>"4 weeks"</item>
@@ -264,6 +302,8 @@
 
     <!-- Shown as a transient message whenever a file fails to play -->
     <string name="playback_failed">The player doesn\'t support this type of audio file.</string>
+    <!-- Shown as a transient message whenever a file fails to open -->
+    <string name="open_failed">Sorry, can not open file.</string>
 
     <!-- Text for the "cancel" button in the "delete" and "create playlist" confirmation dialogs -->
     <string name="cancel">Cancel</string>
@@ -283,6 +323,8 @@
     <string name="working_albums">Albums\u2026</string>
     <!-- Shown in the title bar while the list of songs is being retrieved in the background -->
     <string name="working_songs">Songs\u2026</string>
+    <!-- Shown in the title bar while the list of folders is being retrieved in the background -->
+    <string name="working_folders">Folders\u2026</string>
     <!-- Shown in the title bar while the list of playlists is being retrieved in the background -->
     <string name="working_playlists">Playlists\u2026</string>
 
@@ -302,6 +344,7 @@
 
     <!-- Shown in the search box as a hint -->
     <string name="search_hint">Search Music</string>
+    <string name="search_hint_video">Search Video</string>
 
     <!--The fast scroll thumb will show one character from this string depending on the position in the list -->
     <string name="fast_scroll_alphabet">\u0020ABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
@@ -310,6 +353,52 @@
     <string name="widget_initial_text">Touch to choose music.</string>
 
     <!-- Menu text for the item controlling the audio effects panel [CHAR LIMIT=15] -->
-    <string name="effectspanel">Sound effects</string>
+    <string name="effectspanel">Equalizer</string>
+
+    <string name="duplicate_playlist_name_alert">There is already a playlist named \"<xliff:g id="name">%s</xliff:g>\". Please select a different name.</string>
+    <string name="same_playlist_name_alert">Playlist \"<xliff:g id="name">%s</xliff:g>\" name is not changed. Please select a different name.</string>
+    <string name="button_ok">Ok</string>
+    <string name="list_empty">No music in the playlist.</string>
+
+    <!-- Shown when video is played after disable Gallery app from Settings -->
+    <string name="enable_gallery_app">Video cannot be played, please enable Gallery app from Settings.</string>
+    <string name="close_music">"End"</string>
+    <string name="delete_video_item_message">Do you want to delete \"<xliff:g id="name">%s</xliff:g>\"?</string>
+    <string name="video_deleted_message">Video file deleted.</string>
+
+    <!-- Menu item that takes the user link to net to see more music -->
+    <string name="more_music">More Music</string>
+    <!-- Menu item that takes the user link to net to see more video -->
+    <string name="more_video">More Video</string>
+    <!--gesture control playback status-->
+    <string name="music_gesture_play">"Play/pause audio"</string>
+    <string name="music_gesture_prev">"Play previous track"</string>
+    <string name="music_gesture_next">"Play next track"</string>
+
+    <!-- DRM Related Strings -->
+    <string name="no_permission_for_drm">"Sorry, Drm file can not be shared"</string>
+    <string name="drm_license_info">Drm license info</string>
+    <string name="drm_ringtone_error">Cannot set CD/SD files as ringtone</string>
+    <string name="drm_right_expired">DRM rights expired</string>
+
+    <string name="action_consumes_rights">Rights will be consumed for playing this media.</string>
+    <string name="rights_expired">Rights expired for the song.</string>
+    <string name="ring_tone_size_exceed">Drm ring tone size can\'t exceed 300kb.</string>
+    <string name="cant_set_ringtone_with_count_perm">Can\'t set DRM file with count permission to ringtone.</string>
+
+    <string name="navigation_drawer_title">"Music"</string>
+    <string name="action_settings">Settings</string>
+    <string name="equalizer_button_text">Snapdragon Audio+</string>
+    <string name="action_settings1">Settings1</string>
+    <string name="action_settings2">Settings2</string>
+    <string name="action_one">One</string>
+    <string name="action_two">Two</string>
+    <string name="action_three">Three</string>
+    <string name="shuffle_all">Shuffle All</string>
+
+    <string name="no_music_found">No Music Found</string>
+
+    <!--  Adding new string here for file delete error message -->
+    <string name="song_deleted_error_message">Couldn\'t play the track you requested</string>
 </resources>
 
