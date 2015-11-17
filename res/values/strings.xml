@@ -71,6 +71,8 @@
     <string name="open_in_music">Open in music</string>
     <!-- Menu item to share audio or video -->
     <string name="share">Share</string>
+     <!-- Menu item to details audio or video -->
+    <string name="details">Details</string>
 
     <!-- Delete confirmation dialog when deleting an entire artist -->
     <string name="delete_artist_desc">Permanently delete all songs by <xliff:g id="artist">%s</xliff:g>?</string>
@@ -400,5 +402,19 @@
 
     <!--  Adding new string here for file delete error message -->
     <string name="song_deleted_error_message">Couldn\'t play the track you requested</string>
+    <string name="song_title">SongName:</string>
+    <string name="album_title">AlbumName:</string>
+    <string name="artist_title">ArtistName:</string>
+    <string name="duration_title">Duration:</string>
+    <string name="path_title">Path:</string>
+    <string name="size_title">Size:</string>
+    <string name="duration_unit">" Min"</string>
+
+    <!-- Human readable sizes -->
+    <string name="size_bytes">B</string>
+    <string name="size_kilobytes">kB</string>
+    <string name="size_megabytes">MB</string>
+    <string name="size_gigabytes">GB</string>
+
 </resources>
 

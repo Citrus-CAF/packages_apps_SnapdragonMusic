@@ -21,6 +21,7 @@ import com.android.music.TrackBrowserActivityFragment.TrackListAdapter.ViewHolde
 import java.util.Arrays;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.SearchManager;
@@ -31,6 +32,7 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -106,6 +108,7 @@ public class TrackBrowserActivityFragment extends Fragment
     private static final int REMOVE = CHILD_MENU_BASE + 5;
     private static final int SEARCH = CHILD_MENU_BASE + 6;
     private static final int SHARE = CHILD_MENU_BASE + 7; // Menu to share audio
+    private static final int DETAILS = CHILD_MENU_BASE + 100;
 
     private static final String LOGTAG = "TrackBrowser";
     static boolean mIsRepeatPlay = false;
@@ -116,6 +119,9 @@ public class TrackBrowserActivityFragment extends Fragment
     private String mCurrentTrackName;
     private String mCurrentAlbumName;
     private String mCurrentArtistNameForAlbum;
+    private String mCurrentTrackDuration;
+    private String mCurrentTrackPath;
+    private String mCurrentTrackSize;
     private ListView mTrackList;
     private static Cursor mTrackCursor;
     private TrackListAdapter mAdapter;
@@ -221,7 +227,8 @@ public class TrackBrowserActivityFragment extends Fragment
                 MediaStore.Audio.Media.ALBUM,
                 MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.ARTIST_ID,
-                MediaStore.Audio.Media.DURATION
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.SIZE
         };
         mPlaylistMemberCols = new String[] {
                 MediaStore.Audio.Playlists.Members._ID,
@@ -231,6 +238,7 @@ public class TrackBrowserActivityFragment extends Fragment
                 MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.ARTIST_ID,
                 MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.SIZE,
                 MediaStore.Audio.Playlists.Members.PLAY_ORDER,
                 MediaStore.Audio.Playlists.Members.AUDIO_ID,
                 MediaStore.Audio.Media.IS_MUSIC
@@ -887,6 +895,7 @@ public class TrackBrowserActivityFragment extends Fragment
             menu.getMenu().add(0, USE_AS_RINGTONE, 0, R.string.ringtone_menu);
         }
         menu.getMenu().add(0, SHARE, 0, R.string.share);
+        menu.getMenu().add(0, DETAILS, 0, R.string.details);
     }
 
 
@@ -970,6 +979,9 @@ public class TrackBrowserActivityFragment extends Fragment
                 doSearch();
                 return true;
 
+            case DETAILS:
+                showDetails();
+                return true;
             case SHARE:
                 // Send intent to share audio
                 long id;
@@ -1033,6 +1045,39 @@ public class TrackBrowserActivityFragment extends Fragment
                 return true;
         }
         return super.onContextItemSelected(item);
+    }
+
+    private void showDetails() {
+        // TODO Auto-generated method stub
+        AlertDialog.Builder mdetaildialog = new AlertDialog.Builder(this.getActivity());
+        View detaillayout = LayoutInflater.from(this.getActivity()).inflate(R.layout.file_info,
+                null);
+        mdetaildialog.setTitle(R.string.details);
+        mdetaildialog.setView(detaillayout);
+        mdetaildialog.setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialoginterface, int i) {
+                dialoginterface.cancel();
+            }
+        });
+        fillData(detaillayout);
+        mdetaildialog.show();
+
+    }
+
+    private void fillData(View contentView) {
+        // TODO Auto-generated method stub
+        TextView songName = (TextView) contentView.findViewById(R.id.song_name);
+        TextView albumName = (TextView) contentView.findViewById(R.id.album_name);
+        TextView artistName = (TextView) contentView.findViewById(R.id.artist_name);
+        TextView durationName = (TextView) contentView.findViewById(R.id.duration_name);
+        TextView pathName = (TextView) contentView.findViewById(R.id.path_name);
+        TextView sizeName = (TextView) contentView.findViewById(R.id.size_name);
+        songName.setText(mCurrentTrackName);
+        albumName.setText(mCurrentAlbumName);
+        artistName.setText(mCurrentArtistNameForAlbum);
+        durationName.setText(mCurrentTrackDuration);
+        pathName.setText(mCurrentTrackPath);
+        sizeName.setText(mCurrentTrackSize);
     }
 
     void doSearch() {
@@ -1812,6 +1857,11 @@ public class TrackBrowserActivityFragment extends Fragment
             ImageView animation;
             ImageView playMenu;
             String mCurrentTrackName;
+            String mCurrentAlbumName;
+            String mCurrentArtistNameForAlbum;
+            String mCurrentTrackDuration;
+            String mCurrentTrackPath;
+            String mCurrentTrackSize;
             long  mSelectedId;
         }
 
@@ -1941,6 +1991,10 @@ public class TrackBrowserActivityFragment extends Fragment
             vh.mCurrentTrackName = songName;
             vh.mSelectedId = cursor.getLong(mAudioIdIdx);
             String albumName = cursor.getString(mAlbumIdx);
+            if (albumName == null || albumName.equals(MediaStore.UNKNOWN_STRING)) {
+                albumName = context.getString(R.string.unknown_album_name);
+            }
+            vh.mCurrentAlbumName = albumName;
             mActivity.mTextView1.setText(albumName);
             mActivity.mCurrentAlbumName = albumName;
             vh.line1.setTextColor(Color.BLACK);
@@ -1950,6 +2004,11 @@ public class TrackBrowserActivityFragment extends Fragment
                 @Override
                 public void onClick(final View v) {
                     mActivity.mCurrentTrackName = vh.mCurrentTrackName;
+                   mActivity.mCurrentArtistNameForAlbum = vh.mCurrentArtistNameForAlbum;
+                    mActivity.mCurrentAlbumName = vh.mCurrentAlbumName;
+                    mActivity.mCurrentTrackDuration = vh.mCurrentTrackDuration;
+                    mActivity.mCurrentTrackPath = vh.mCurrentTrackPath;
+                    mActivity.mCurrentTrackSize = vh.mCurrentTrackSize;
                     mActivity.mSelectedId =vh.mSelectedId;
                     PopupMenu popup = new PopupMenu(mActivity.getParentActivity(), v);
                     mActivity.onCreatePopupMenu(popup);
@@ -1963,10 +2022,20 @@ public class TrackBrowserActivityFragment extends Fragment
                 }
             });
             int secs = cursor.getInt(mDurationIdx) / 1000;
+            vh.mCurrentTrackDuration = MusicUtils.makeTimeString(context, secs)
+                    + context.getString(R.string.duration_unit);
             /*
              * if (secs == 0) { vh.duration.setText(""); } else {
              * vh.duration.setText(MusicUtils.makeTimeString(context, secs)); }
              */
+
+            String trackPath = cursor.getString(cursor
+                    .getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+            vh.mCurrentTrackPath = trackPath;
+
+            String trackSize = cursor.getString(cursor
+                    .getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE));
+            vh.mCurrentTrackSize = getHumanReadableSize(context, Integer.parseInt(trackSize));
 
             final StringBuilder builder = mBuilder;
             builder.delete(0, builder.length());
@@ -1979,6 +2048,7 @@ public class TrackBrowserActivityFragment extends Fragment
                 name = context.getString(R.string.unknown_artist_name);
             }
             builder.append(name);
+            vh.mCurrentArtistNameForAlbum = name;
             mActivity.mTextView2.setText(name);
 
             int len = builder.length();
@@ -2044,6 +2114,32 @@ public class TrackBrowserActivityFragment extends Fragment
                 clearAnimation();
                 mAnimView.setVisibility(View.INVISIBLE);
             }
+        }
+
+        private String getHumanReadableSize(Context context, int size) {
+            // TODO Auto-generated method stub
+            Resources res = context.getResources();
+            final int[] magnitude = {
+                                     R.string.size_bytes,
+                                     R.string.size_kilobytes,
+                                     R.string.size_megabytes,
+                                     R.string.size_gigabytes
+                                    };
+
+            double aux = size;
+            int cc = magnitude.length;
+            for (int i = 0; i < cc; i++) {
+                if (aux < 1024) {
+                    double cleanSize = Math.round(aux * 100);
+                    return Double.toString(cleanSize / 100) +
+                            " " + res.getString(magnitude[i]); //$NON-NLS-1$
+                } else {
+                    aux = aux / 1024;
+                }
+            }
+            double cleanSize = Math.round(aux * 100);
+            return Double.toString(cleanSize / 100) +
+                    " " + res.getString(magnitude[cc - 1]); //$NON-NLS-1$
         }
 
         private void clearAnimation() {

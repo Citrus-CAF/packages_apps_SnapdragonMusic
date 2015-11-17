@@ -25,6 +25,7 @@ import com.android.music.TrackBrowserFragment.TrackListAdapter.ViewHolder;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.ListActivity;
@@ -36,6 +37,7 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -116,6 +118,7 @@ public class TrackBrowserFragment extends Fragment implements
     private static final int REMOVE = CHILD_MENU_BASE + 5;
     private static final int SEARCH = CHILD_MENU_BASE + 6;
     private static final int SHARE = CHILD_MENU_BASE + 7; // Menu to share audio
+    private static final int DETAILS = CHILD_MENU_BASE + 100;
 
     private static final String LOGTAG = "TrackBrowser";
     private final static int TOTAL_LIST_ITEMS = 10;
@@ -127,6 +130,9 @@ public class TrackBrowserFragment extends Fragment implements
     private String mCurrentTrackName;
     private String mCurrentAlbumName;
     private String mCurrentArtistNameForAlbum;
+    private String mCurrentTrackDuration;
+    private String mCurrentTrackPath;
+    private String mCurrentTrackSize;
     private ListView mTrackList;
     private Cursor mTrackCursor;
     private TrackListAdapter mAdapter;
@@ -210,20 +216,25 @@ public class TrackBrowserFragment extends Fragment implements
             }
         }
 
-        mCursorCols = new String[] { MediaStore.Audio.Media._ID,
+        mCursorCols = new String[] {
+                MediaStore.Audio.Media._ID,
                 MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DATA,
                 MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media.ARTIST_ID,MediaStore.Audio.Media.ALBUM_ID,
-                MediaStore.Audio.Media.DURATION };
+                MediaStore.Audio.Media.ARTIST_ID, MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.SIZE
+        };
         mPlaylistMemberCols = new String[] {
                 MediaStore.Audio.Playlists.Members._ID,
                 MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DATA,
                 MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.ARTIST_ID,
-                MediaStore.Audio.Media.DURATION,MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.ALBUM_ID,
                 MediaStore.Audio.Playlists.Members.PLAY_ORDER,
                 MediaStore.Audio.Playlists.Members.AUDIO_ID,
-                MediaStore.Audio.Media.IS_MUSIC };
+                MediaStore.Audio.Media.IS_MUSIC,
+                MediaStore.Audio.Media.SIZE
+        };
         if (MusicUtils.isGroupByFolder() && mParent != -1) {
             mParentActivity.mToolbar.setNavigationContentDescription("back");
             mParentActivity.mToolbar
@@ -912,60 +923,7 @@ public class TrackBrowserFragment extends Fragment implements
         return ismusic;
     }
 
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View view,
-            ContextMenuInfo menuInfoIn) {
-        menu.add(0, PLAY_SELECTION, 0, R.string.play_selection);
-        mSubMenu = menu.addSubMenu(0, ADD_TO_PLAYLIST, 0,
-                R.string.add_to_playlist);
-        MusicUtils.makePlaylistMenu(mParentActivity, mSubMenu);
-        if (mEditMode) {
-            menu.add(0, REMOVE, 0, R.string.remove_from_playlist);
-        }
 
-        if (TelephonyManager.getDefault().isMultiSimEnabled()) {
-            int[] ringtones = { USE_AS_RINGTONE, USE_AS_RINGTONE_2 };
-            int[] menuStrings = { R.string.ringtone_menu_1,
-                    R.string.ringtone_menu_2 };
-            for (int i = 0; i < TelephonyManager.getDefault().getPhoneCount(); i++) {
-                menu.add(0, ringtones[i], 0, menuStrings[i]);
-            }
-        } else {
-            menu.add(0, USE_AS_RINGTONE, 0, R.string.ringtone_menu);
-        }
-
-        menu.add(0, DELETE_ITEM, 0, R.string.delete_item);
-        AdapterContextMenuInfo mi = (AdapterContextMenuInfo) menuInfoIn;
-        mSelectedPosition = mi.position;
-        mTrackCursor.moveToPosition(mSelectedPosition);
-        try {
-            int id_idx = mTrackCursor
-                    .getColumnIndexOrThrow(MediaStore.Audio.Playlists.Members.AUDIO_ID);
-            mSelectedId = mTrackCursor.getLong(id_idx);
-        } catch (IllegalArgumentException ex) {
-            mSelectedId = mi.id;
-        }
-
-        String path = MusicUtils.getSelectAudioPath(
-                mParentActivity.getApplicationContext(), mSelectedId);
-        if (path.endsWith(".dcf") || path.endsWith(".dm")) {
-            menu.add(0, DRM_LICENSE_INFO, 0, R.string.drm_license_info);
-        }
-
-        // only add the 'search' menu if the selected item is music
-        if (isMusic(mTrackCursor)) {
-            menu.add(0, SEARCH, 0, R.string.search_title);
-        }
-        mCurrentAlbumName = mTrackCursor.getString(mTrackCursor
-                .getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
-        mCurrentArtistNameForAlbum = mTrackCursor.getString(mTrackCursor
-                .getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
-        mCurrentTrackName = mTrackCursor.getString(mTrackCursor
-                .getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
-        menu.setHeaderTitle(mCurrentTrackName);
-        // Menu item to share audio
-        menu.add(0, SHARE, 0, R.string.share);
-    }
 
     public boolean onContextItemSelected(MenuItem item, int position) {
         switch (item.getItemId()) {
@@ -1046,6 +1004,10 @@ public class TrackBrowserFragment extends Fragment implements
             doSearch();
             return true;
 
+        case DETAILS:
+            showDetails();
+            return true;
+
         case SHARE:
             // Send intent to share audio
             long id;
@@ -1116,6 +1078,39 @@ public class TrackBrowserFragment extends Fragment implements
             return true;
         }
         return super.onContextItemSelected(item);
+    }
+
+    private void showDetails() {
+        // TODO Auto-generated method stub
+        AlertDialog.Builder mdetaildialog = new AlertDialog.Builder(this.getActivity());
+        View detaillayout = LayoutInflater.from(this.getActivity()).inflate(R.layout.file_info,
+                null);
+        mdetaildialog.setTitle(R.string.details);
+        mdetaildialog.setView(detaillayout);
+        mdetaildialog.setPositiveButton(R.string.button_ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialoginterface, int i) {
+                dialoginterface.cancel();
+            }
+        });
+        fillData(detaillayout);
+        mdetaildialog.show();
+
+    }
+
+    private void fillData(View contentView) {
+        // TODO Auto-generated method stub
+        TextView songName = (TextView) contentView.findViewById(R.id.song_name);
+        TextView albumName = (TextView) contentView.findViewById(R.id.album_name);
+        TextView artistName = (TextView) contentView.findViewById(R.id.artist_name);
+        TextView durationName = (TextView) contentView.findViewById(R.id.duration_name);
+        TextView pathName = (TextView) contentView.findViewById(R.id.path_name);
+        TextView sizeName = (TextView) contentView.findViewById(R.id.size_name);
+        songName.setText(mCurrentTrackName);
+        albumName.setText(mCurrentAlbumName);
+        artistName.setText(mCurrentArtistNameForAlbum);
+        durationName.setText(mCurrentTrackDuration);
+        pathName.setText(mCurrentTrackPath);
+        sizeName.setText(mCurrentTrackSize);
     }
 
     void doSearch() {
@@ -1769,6 +1764,11 @@ public class TrackBrowserFragment extends Fragment implements
             ImageView anim_icon, icon;
             AnimationDrawable mMusicAnimation;
             String mCurrentTrackName;
+            String mCurrentAlbumName;
+            String mCurrentArtistNameForAlbum;
+            String mCurrentTrackDuration;
+            String mCurrentTrackPath;
+            String mCurrentTrackSize;
             long mSelectedID;
             int position = -1;
         }
@@ -1927,6 +1927,8 @@ public class TrackBrowserFragment extends Fragment implements
             vh.mCurrentTrackName = cursor.getString(mTitleIdx);
             vh.mSelectedID = cursor.getLong(mAudioIdIdx);
             int secs = cursor.getInt(mDurationIdx) / 1000;
+            vh.mCurrentTrackDuration = MusicUtils.makeTimeString(context, secs)
+                    + context.getString(R.string.duration_unit);
             final StringBuilder builder = mBuilder;
             builder.delete(0, builder.length());
             String name = cursor.getString(mArtistIdx);
@@ -1954,10 +1956,11 @@ public class TrackBrowserFragment extends Fragment implements
                 // Reload the "unknown_artist_name" string in order to
                 // avoid that this string doesn't change when user
                 // changes the system language setting.
-                builder.append(context.getString(R.string.unknown_artist_name));
-            } else {
-                builder.append(name);
+                name = context.getString(R.string.unknown_artist_name);
             }
+            builder.append(name);
+            vh.mCurrentArtistNameForAlbum = name;
+
             int len = builder.length();
             if (vh.buffer2.length < len) {
                 vh.buffer2 = new char[len];
@@ -1979,8 +1982,19 @@ public class TrackBrowserFragment extends Fragment implements
 
             String albumArtName = cursor.getString(cursor
                     .getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM));
-            boolean unknownalbum = albumArtName == null
-                    || albumArtName.equals(MediaStore.UNKNOWN_STRING);
+            if (albumArtName == null || albumArtName.equals(MediaStore.UNKNOWN_STRING)) {
+                albumArtName = context.getString(R.string.unknown_album_name);
+            }
+            vh.mCurrentAlbumName = albumArtName;
+
+            String trackPath = cursor.getString(cursor
+                    .getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+            vh.mCurrentTrackPath = trackPath;
+
+            String trackSize = cursor.getString(cursor
+                    .getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE));
+            vh.mCurrentTrackSize = getHumanReadableSize(context, Integer.parseInt(trackSize));
+
             Bitmap albumArt;
             final ImageView iv = vh.play_indicator;
             iv.setTag(cursor.getPosition());
@@ -1992,6 +2006,11 @@ public class TrackBrowserFragment extends Fragment implements
                     // TODO Auto-generated method stub
                     // mActivity.mSelectedPosition = ;
                     mFragment.mCurrentTrackName = vh.mCurrentTrackName;
+                    mFragment.mCurrentArtistNameForAlbum = vh.mCurrentArtistNameForAlbum;
+                    mFragment.mCurrentAlbumName = vh.mCurrentAlbumName;
+                    mFragment.mCurrentTrackDuration = vh.mCurrentTrackDuration;
+                    mFragment.mCurrentTrackPath = vh.mCurrentTrackPath;
+                    mFragment.mCurrentTrackSize = vh.mCurrentTrackSize;
                     mFragment.mSelectedId = vh.mSelectedID;
                     PopupMenu popup = new PopupMenu(mFragment.getActivity(), iv);
                     popup.getMenu().add(0, PLAY_SELECTION, 0,
@@ -2019,6 +2038,8 @@ public class TrackBrowserFragment extends Fragment implements
                                 R.string.ringtone_menu);
                     }
                     popup.getMenu().add(0, SHARE, 0, R.string.share);
+                    popup.getMenu().add(0, DETAILS, 0, R.string.details);
+
                     popup.show();
                     popup.setOnMenuItemClickListener(new OnMenuItemClickListener() {
 
@@ -2089,6 +2110,32 @@ public class TrackBrowserFragment extends Fragment implements
                 clearAnimation();
                 mAnimView.setVisibility(View.INVISIBLE);
             }
+        }
+
+        private String getHumanReadableSize(Context context,int size) {
+            // TODO Auto-generated method stub
+            Resources res = context.getResources();
+            final int[] magnitude = {
+                                     R.string.size_bytes,
+                                     R.string.size_kilobytes,
+                                     R.string.size_megabytes,
+                                     R.string.size_gigabytes
+                                    };
+
+            double aux = size;
+            int cc = magnitude.length;
+            for (int i = 0; i < cc; i++) {
+                if (aux < 1024) {
+                    double cleanSize = Math.round(aux * 100);
+                    return Double.toString(cleanSize / 100) +
+                            " " + res.getString(magnitude[i]); //$NON-NLS-1$
+                } else {
+                    aux = aux / 1024;
+                }
+            }
+            double cleanSize = Math.round(aux * 100);
+            return Double.toString(cleanSize / 100) +
+                    " " + res.getString(magnitude[cc - 1]); //$NON-NLS-1$
         }
 
         private void clearAnimation() {
