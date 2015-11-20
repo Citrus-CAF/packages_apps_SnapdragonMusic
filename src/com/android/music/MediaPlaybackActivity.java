@@ -125,6 +125,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     Fragment mFragment;
     private boolean isBackPressed = false;
     private boolean mCheckIfSeekRequired = false;
+    private ImageView mFavoriteIcon;
 
     public MediaPlaybackActivity() {
     }
@@ -174,6 +175,15 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mTrackName = (TextView) findViewById(R.id.song_name);
         mCurrentPlaylist = (ImageButton) findViewById(R.id.animViewcurrPlaylist);
         mCurrentPlaylist.setOnClickListener(mQueueListener);
+        mFavoriteIcon = (ImageView) findViewById(R.id.favorite);
+        if(getApplicationContext().getResources().getBoolean(R.bool.enable_myfavorites)){
+            mFavoriteIcon.setVisibility(View.VISIBLE);
+            mFavoriteIcon.setImageResource(getFavoriteStatus() ? R.drawable.favorite_selected
+                    : R.drawable.favorite_unselected);
+            mFavoriteIcon.setOnClickListener(mFavoriteListener);
+        }else{
+            mFavoriteIcon.setVisibility(View.GONE);
+        }
         setTouchDelegate(mCurrentPlaylist);
         boolean isRtl = TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) ==
                             View.LAYOUT_DIRECTION_RTL;
@@ -502,6 +512,89 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             }
         }
     };
+
+    private View.OnClickListener mFavoriteListener = new View.OnClickListener() {
+        public void onClick(View v) {
+            long audioid;
+            try {
+                audioid = mService.getAudioId();
+            } catch (Exception ex) {
+                return;
+            }
+
+            int playlistId = MusicUtils.idForplaylist(MediaPlaybackActivity.this, "My Favorite");
+            int memberId = getMemberId(playlistId, audioid);
+            if (memberId == -1) {
+                addToFavoritePlaylist(playlistId, audioid);
+            } else {
+                removeFromPlaylist(playlistId, memberId);
+            }
+        }
+    };
+
+    private int getMemberId(int playlistId, long id) {
+        Uri uri = MediaStore.Audio.Playlists.Members.getContentUri(
+                "external", Long.valueOf(playlistId));
+
+        StringBuilder where = new StringBuilder();
+        where.append(MediaStore.Audio.Playlists.Members.AUDIO_ID + " = ");
+        where.append(id);
+
+        String[] mCursorCols = new String[] {
+                MediaStore.Audio.Playlists.Members._ID
+        };
+
+        Cursor cursor = getContentResolver().query(uri, mCursorCols, where.toString(), null, null);
+
+        int memberId = -1;
+
+        if (cursor != null && cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            memberId = cursor.getInt(0);
+        }
+
+        return memberId;
+    }
+
+    private void removeFromPlaylist(int playlistId, long memberId) {
+
+        Uri uri = MediaStore.Audio.Playlists.Members.getContentUri(
+                "external", Long.valueOf(playlistId));
+
+        getContentResolver().delete(
+                ContentUris.withAppendedId(uri, memberId), null, null);
+        mFavoriteIcon.setImageResource(R.drawable.favorite_unselected);
+
+    }
+
+    private void addToFavoritePlaylist(int playlistId, long audioId) {
+
+        long[] list = new long[] {
+                audioId
+        };
+
+        mFavoriteIcon.setImageResource(R.drawable.favorite_selected);
+
+        MusicUtils.addToPlaylist(this, list,playlistId);
+
+    }
+
+    private boolean getFavoriteStatus() {
+        long audioid;
+        try {
+            audioid = mService.getAudioId();
+        } catch (Exception ex) {
+            return false;
+        }
+        int playlistId = MusicUtils.idForplaylist(MediaPlaybackActivity.this, "My Favorite");
+        int memberId = getMemberId(playlistId, audioid);
+        if (memberId == -1) {
+            return false;
+        } else {
+            return true;
+        }
+
+    }
 
     private View.OnClickListener mShuffleListener = new View.OnClickListener() {
         public void onClick(View v) {
@@ -903,6 +996,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 
     public void updateNowPlaying(Activity a) {
         MusicUtils.updateNowPlaying(a, MusicBrowserActivity.isPanelExpanded);
+        mFavoriteIcon.setImageResource(getFavoriteStatus() ? R.drawable.favorite_selected
+                : R.drawable.favorite_unselected);
     }
 
     public static int getStatusBarHeight() {

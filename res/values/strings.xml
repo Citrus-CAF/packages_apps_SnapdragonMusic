@@ -416,5 +416,10 @@
     <string name="size_megabytes">MB</string>
     <string name="size_gigabytes">GB</string>
 
+    <string name="favorite">Favorite</string>
+    <string name="no_favorite">No Favorite</string>
+    <string name="favorite_playlist">My Favorite</string>
+    <string name="can_not_create_my_favorite">Can not create or overrite "My Favorite" playlist</string>
+
 </resources>
 

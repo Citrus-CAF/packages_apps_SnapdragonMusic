@@ -48,6 +48,13 @@
                 android:layout_height="fill_parent"
                 android:scaleType="centerCrop"
                 android:src="@drawable/albumart_mp_unknown" />
+            <ImageView
+                android:id="@+id/favorite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|right"
+                android:visibility="gone"
+                android:src="@drawable/favorite_selected" />
         </FrameLayout>
 
         <SeekBar

@@ -34,5 +34,7 @@
     <bool name="control_in_statusbar">false</bool>
     <bool name="delete_video_item">false</bool>
     <bool name="disable_animation">false</bool>
+    <bool name="enable_myfavorites">false</bool>
+
 
 </resources>

@@ -86,6 +86,7 @@ public class PlaylistBrowserFragment extends Fragment implements
     private final long RECENTLY_ADDED_PLAYLIST = -1;
     private final long ALL_SONGS_PLAYLIST = -2;
     private final long PODCASTS_PLAYLIST = -3;
+    private final long FAVORITE_PLAYLIST = -100;
     private PlaylistListAdapter mAdapter;
     private boolean mAdapterSent;
     private int mLastListPosCourse = -1;
@@ -270,6 +271,10 @@ public class PlaylistBrowserFragment extends Fragment implements
                             .replace(R.id.fragment_page, fragment,
                                     "track_fragment").commit();
                 } else {
+                    // Obtain the real id for "My Favorite" Playlist
+                    if (id == FAVORITE_PLAYLIST) {
+                        id = MusicUtils.idForplaylist(getActivity(), "My Favorite");
+                    }
                     args.putBoolean("editValue", true);
                     args.putString("playlist", Long.valueOf(id).toString());
                     fragment.setArguments(args);
@@ -509,6 +514,9 @@ public class PlaylistBrowserFragment extends Fragment implements
             } else if (id == PODCASTS_PLAYLIST) {
                 playPodcasts();
             } else {
+                if(id==FAVORITE_PLAYLIST){
+                    id = MusicUtils.idForplaylist(getActivity(), "My Favorite");
+                    }
                 MusicUtils.playPlaylist(parentActivity, id);
             }
             break;
@@ -677,6 +685,12 @@ public class PlaylistBrowserFragment extends Fragment implements
             recent.add(getResources().getString(R.string.recentlyadded));
             autoplaylistscursor.addRow(recent);
         }
+        if (parentActivity.getApplicationContext().getResources().getBoolean(R.bool.enable_myfavorites)) {
+            ArrayList<Object> favorite = new ArrayList<Object>(2);
+            favorite.add(FAVORITE_PLAYLIST);
+            favorite.add(getResources().getString(R.string.favorite_playlist));
+            autoplaylistscursor.addRow(favorite);
+        }
 
         // check if there are any podcasts
         Cursor counter = MusicUtils.query(parentActivity,
@@ -694,8 +708,24 @@ public class PlaylistBrowserFragment extends Fragment implements
             }
         }
 
-        Cursor cc = new MergeCursor(new Cursor[] { autoplaylistscursor, c });
-        return cc;
+        if (c != null && c.getCount() > 0) {
+            c.moveToFirst();
+            while (!c.isAfterLast()) {
+                String name = c.getString(1);
+                if (name.equals("My Favorite")) {
+                    c.moveToNext();
+                    continue;
+                }
+                ArrayList<Object> playlist = new ArrayList<Object>(2);
+                playlist.add(c.getInt(0));
+                playlist.add(name);
+                autoplaylistscursor.addRow(playlist);
+                c.moveToNext();
+            }
+        }
+
+        //Cursor cc = new MergeCursor(new Cursor[] { autoplaylistscursor, c });
+        return autoplaylistscursor;
     }
 
     class PlaylistListAdapter extends SimpleCursorAdapter {
@@ -766,6 +796,7 @@ public class PlaylistBrowserFragment extends Fragment implements
             vh.albumArtIcon2 = (ImageView) v.findViewById(R.id.icon1);
             vh.albumArtIcon3 = (ImageView) v.findViewById(R.id.icon2);
             vh.albumArtIcon4 = (ImageView) v.findViewById(R.id.icon3);
+
             vh.tv = (TextView) v.findViewById(R.id.line1);
             Resources r = context.getResources();
             mDefaultAlbumIcon = (BitmapDrawable) r
@@ -949,15 +980,31 @@ public class PlaylistBrowserFragment extends Fragment implements
 
             final int id = cursor.getInt(cursor
                     .getColumnIndexOrThrow(MediaStore.Audio.Playlists._ID));
-            Bitmap[] albumartArray = null;
-            albumartArray = PlaylistBrowserFragment.playlistMap.get(id);
 
-            if (albumartArray == null){
-                new DownloadAlbumArt(id, vh).execute();
+            final int favoriteId = MusicUtils.idForplaylist(context, "My Favorite");
+
+            Bitmap[] albumartArray = null;
+
+            if (id == FAVORITE_PLAYLIST) {
+                albumartArray = PlaylistBrowserFragment.playlistMap.get(favoriteId);
+            } else {
+                albumartArray = PlaylistBrowserFragment.playlistMap.get(id);
             }
-            else {
-                updateAlbumArray(id, vh);
+
+            if (albumartArray == null) {
+                if (id == FAVORITE_PLAYLIST) {
+                    new DownloadAlbumArt(favoriteId, vh).execute();
+                } else {
+                    new DownloadAlbumArt(id, vh).execute();
+                }
+            } else {
+                if (id == FAVORITE_PLAYLIST) {
+                    updateAlbumArray(favoriteId, vh);
+                } else {
+                    updateAlbumArray(id, vh);
+                }
             }
+
             final ImageView menu = (ImageView) view
                     .findViewById(R.id.play_indicator);
             menu.setTag(id);

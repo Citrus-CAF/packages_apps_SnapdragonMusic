@@ -562,10 +562,16 @@ public class MusicUtils {
 //                        sub.add(0, MusicBaseActivity.PLAYLIST_SELECTED, cur.getString(1)).setIntent(intent);
 //                    } else {
                         String name = cur.getString(1);
+                    // Do not add song to "My Favorite" playlist
+                    if (name.equals("My Favorite")) {
+                        cur.moveToNext();
+                        continue;
+                    }
                         if (cur.getString(1).equals("My recordings")) {
                             name = context.getResources()
                                     .getString(R.string.audio_db_playlist_name);
                         }
+
                         sub.add(1, Defs.PLAYLIST_SELECTED, 0, name).setIntent(intent);
 //                    }
                     cur.moveToNext();
@@ -736,6 +742,27 @@ public class MusicUtils {
                     R.plurals.NNNtrackstoplaylist, numinserted, numinserted);
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public static int idForplaylist(Context context, String name) {
+        Cursor c = query(context, MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+                new String[] {
+                    MediaStore.Audio.Playlists._ID
+                },
+                MediaStore.Audio.Playlists.NAME + "=?",
+                new String[] {
+                    name
+                },
+                MediaStore.Audio.Playlists.NAME);
+        int id = -1;
+        if (c != null) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                id = c.getInt(0);
+            }
+            c.close();
+        }
+        return id;
     }
 
     public static Cursor query(Context context, Uri uri, String[] projection,
