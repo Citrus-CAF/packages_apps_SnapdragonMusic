@@ -38,6 +38,7 @@ interface IMediaPlaybackService
     long getAlbumId();
     String getArtistName();
     long getArtistId();
+    String getData();
     void enqueue(in long [] list, int action);
     long [] getQueue();
     void moveQueueItem(int from, int to);
@@ -52,5 +53,7 @@ interface IMediaPlaybackService
     int getRepeatMode();
     int getMediaMountedCount();
     int getAudioSessionId();
+    int getHistSize();
+    boolean isComplete();
 }
 

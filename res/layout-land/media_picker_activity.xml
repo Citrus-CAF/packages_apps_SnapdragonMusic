@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2007 The Android Open Source Project
+<!--
+     Copyright (C) 2007 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -14,23 +15,132 @@
      limitations under the License.
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center_vertical" >
+    android:background="@android:color/white"
+    android:scrollbars="vertical" >
 
-    <include layout="@layout/sd_error" />
-
-    <include layout="@layout/buttonbar" />
-
-    <com.android.music.TouchInterceptor
-        android:id="@android:id/list"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:textSize="18sp"
-        android:drawSelectorOnTop="false"
-        android:fastScrollEnabled="true" /> 
+        android:background="@android:color/white"
+        android:orientation="vertical" >
 
-</LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#fafafa"
+            android:orientation="vertical" >
+
+            <LinearLayout
+                android:id="@+id/layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/white"
+                android:orientation="vertical" >
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/layoutsize"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true" >
+
+                    <ImageView
+                        android:id="@+id/imageView1"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/imagesize"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/albumart_mp_unknown" />
+
+                    <ImageView
+                        android:id="@+id/imageView4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentBottom="true"
+                        android:layout_alignParentRight="true"
+                        android:src="@drawable/floating_play" />
+
+                    <ImageView
+                        android:id="@+id/imageView2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentTop="true"
+                        android:layout_marginLeft="15dp"
+                        android:layout_marginTop="30dp"
+                        android:src="@drawable/ic_material_home_as_up_arrow" />
+
+                    <ImageView
+                        android:id="@+id/imageView3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_alignTop="@+id/imageView2"
+                        android:layout_marginRight="15dp"
+                        android:src="@drawable/ic_search_white_24dp" />
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="20dp"
+                    android:orientation="horizontal" >
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="left|center_horizontal|center"
+                        android:layout_weight="3"
+                        android:orientation="vertical" >
+
+                        <TextView android:text="@string/action_settings1"
+                            android:id="@+id/textView1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:alpha="0.75"
+                            android:ellipsize="marquee"
+                            android:fontFamily="sans-serif"
+                            android:singleLine="true"
+                            android:textColor="#000000"
+                            android:textSize="20sp" />
+
+                        <TextView android:text="@string/action_one"
+                            android:id="@+id/textView2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:alpha="0.50"
+                            android:ellipsize="end"
+                            android:fontFamily="sans-serif"
+                            android:singleLine="true"
+                            android:textColor="#000000"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/menu_overflow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|center_horizontal|center"
+                        android:layout_marginRight="10dp"
+                        android:src="@drawable/ic_menu_moreoverflow_albumbig" />
+                </LinearLayout>
+
+                <com.codeaurora.music.custom.TouchInterceptorScrollView
+                    android:id="@+id/media_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_weight="1.5"
+                    android:background="@android:color/white"
+                    android:divider="@android:color/white"
+                    android:dividerHeight="0dp"
+                    android:drawSelectorOnTop="true"
+                    android:fastScrollEnabled="true"
+                    android:textSize="18sp" >
+                </com.codeaurora.music.custom.TouchInterceptorScrollView>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</ScrollView>

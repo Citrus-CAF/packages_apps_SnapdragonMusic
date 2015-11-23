@@ -18,10 +18,12 @@
 -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="64dip"
+    android:layout_height="wrap_content"
+    android:alpha="0.9"
+    android:background="@color/background"
+    android:padding="4dp"
     android:gravity="center_vertical"
-    android:ignoreGravity="@+id/icon"
-    android:paddingLeft="47dip">
+    android:ignoreGravity="@+id/icon" >
 
     <include layout="@layout/track_list_item_common" />
 

@@ -27,14 +27,33 @@
         android:layout_weight="1"
         android:orientation="horizontal">
 
-        <ImageView
-            android:id="@+id/album"
-            android:background="@drawable/album_border_large"
+        <RelativeLayout
             android:layout_width="183dip"
             android:layout_height="183dip"
-            android:layout_marginLeft="12dip"
-            android:layout_marginRight="15dip"
-            android:layout_marginTop="12dip" />
+            android:layout_marginEnd="15dip"
+            android:layout_marginStart="12dip"
+            android:layout_marginTop="12dip" >
+
+            <ImageView
+                android:id="@+id/album"
+                android:layout_width="183dip"
+                android:layout_height="183dip"
+                android:layout_marginEnd="15dip"
+                android:layout_marginStart="12dip"
+                android:layout_marginTop="12dip"
+                android:background="@drawable/album_border_large" />
+
+            <ImageView
+                android:id="@+id/drm_lock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginBottom="16dip"
+                android:layout_marginRight="32dip"
+                android:src="@drawable/drm_image"
+                android:visibility="gone" />
+        </RelativeLayout>
 
         <!-- This is the LinearLayout that contains function buttons and album/artist/track info -->
         <LinearLayout
@@ -51,18 +70,24 @@
 
                <ImageButton android:id="@+id/curplaylist"
                     android:src="@drawable/ic_mp_current_playlist_btn"
-                    android:layout_width="82dip"
+                    android:layout_width="72dip"
                     android:layout_height="45dip"
-                    android:layout_marginRight="8dip"
+                    android:layout_marginEnd="8dip"
                     android:nextFocusLeft="@id/curplaylist" />
 
                <ImageButton android:id="@+id/shuffle"
-                    android:layout_width="82dip"
+                    android:layout_width="72dip"
                     android:layout_height="45dip"
-                    android:layout_marginRight="8dip" />
+                    android:layout_marginEnd="8dip" />
 
                <ImageButton android:id="@+id/repeat"
-                    android:layout_width="82dip"
+                    android:layout_width="72dip"
+                    android:layout_height="45dip"
+                    android:layout_marginEnd="8dip" />
+
+               <ImageButton android:id="@+id/sound_effect"
+                    android:src="@drawable/ic_mp_sound_effect_btn"
+                    android:layout_width="72dip"
                     android:layout_height="45dip" />
 
             </LinearLayout>
@@ -78,7 +103,7 @@
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="4dip"
+                    android:layout_marginEnd="4dip"
                     android:src="@drawable/ic_mp_artist_playback" />
 
                 <TextView android:id="@+id/artistname"
@@ -103,7 +128,7 @@
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="4dip"
+                    android:layout_marginEnd="4dip"
                     android:src="@drawable/ic_mp_album_playback" />
 
                 <TextView android:id="@+id/albumname"
@@ -128,7 +153,7 @@
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="4dip"
+                    android:layout_marginEnd="4dip"
                     android:src="@drawable/ic_mp_song_playback" />
 
                 <TextView android:id="@+id/trackname"

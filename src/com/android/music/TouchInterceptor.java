@@ -19,11 +19,14 @@ package com.android.music;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.database.ContentObserver;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LevelListDrawable;
+import android.os.Handler;
+import android.provider.MediaStore;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -74,6 +77,7 @@ public class TouchInterceptor extends ListView {
     private int mItemHeightExpanded;
     private int mItemHeightHalf;
     private Drawable mTrashcan;
+    public final int SCREEN_WIDTH = 5000;
 
     public TouchInterceptor(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -118,6 +122,12 @@ public class TouchInterceptor extends ListView {
                 case MotionEvent.ACTION_DOWN:
                     int x = (int) ev.getX();
                     int y = (int) ev.getY();
+
+                    // force children to be recreated
+                    try {
+                        layoutChildren();
+                    } catch (IllegalStateException ex) {
+                    }
                     int itemnum = pointToPosition(x, y);
                     if (itemnum == AdapterView.INVALID_POSITION) {
                         break;
@@ -127,8 +137,25 @@ public class TouchInterceptor extends ListView {
                     mDragPointY = y - item.getTop();
                     mXOffset = ((int)ev.getRawX()) - x;
                     mYOffset = ((int)ev.getRawY()) - y;
-                    // The left side of the item is the grabber for dragging the item
-                    if (x < 64) {
+                    if (isLayoutRtl()){
+                        // The right side of the item is the grabber for dragging the item
+                        if (x > item.getRight() - 64){
+                            item.setDrawingCacheEnabled(true);
+                            // Create a copy of the drawing cache so that it does not get recycled
+                            // by the framework when the list tries to clean up memory
+                            Bitmap bitmap = Bitmap.createBitmap(item.getDrawingCache());
+                            startDragging(bitmap, x, y);
+                            mDragPos = itemnum;
+                            mSrcDragPos = mDragPos;
+                            mHeight = getHeight();
+                            int touchSlop = mTouchSlop;
+                            mUpperBound = Math.min(y - touchSlop, mHeight / 3);
+                            mLowerBound = Math.max(y + touchSlop, mHeight * 2 /3);
+                            return false;
+                        }
+                    }
+                    else if (x < 128) {
+                        // The left side of the item is the grabber for dragging the item
                         item.setDrawingCacheEnabled(true);
                         // Create a copy of the drawing cache so that it does not get recycled
                         // by the framework when the list tries to clean up memory
@@ -293,14 +320,14 @@ public class TouchInterceptor extends ListView {
             vv.setVisibility(visibility);
         }
     }
-    
+
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         if (mGestureDetector != null) {
             mGestureDetector.onTouchEvent(ev);
         }
         if ((mDragListener != null || mDropListener != null) && mDragView != null) {
-            int action = ev.getAction(); 
+            int action = ev.getAction();
             switch (action) {
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_CANCEL:
@@ -470,4 +497,23 @@ public class TouchInterceptor extends ListView {
     public interface RemoveListener {
         void remove(int which);
     }
+
+    /**
+     *  Register the new playlist observer to monitor the database change
+     */
+    void registerContentObserver(Context context) {
+        context.getContentResolver().registerContentObserver(
+                MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, true, mContentObserver);
+    }
+
+    void unregisterContentObserver(Context context) {
+        context.getContentResolver().unregisterContentObserver(mContentObserver);
+    }
+
+    private final ContentObserver mContentObserver = new ContentObserver(new Handler()) {
+        @Override
+        public void onChange(boolean selfChange) {
+            super.onChange(selfChange);
+        }
+    };
 }

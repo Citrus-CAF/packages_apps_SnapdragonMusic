@@ -25,6 +25,7 @@ import android.database.Cursor;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -34,6 +35,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.view.KeyEvent;
 
 public class CreatePlaylist extends Activity
 {
@@ -73,6 +75,7 @@ public class CreatePlaylist extends Activity
         mPlaylist.setText(defaultname);
         mPlaylist.setSelection(defaultname.length());
         mPlaylist.addTextChangedListener(mTextWatcher);
+        setSaveButton();
     }
     
     TextWatcher mTextWatcher = new TextWatcher() {
@@ -80,24 +83,29 @@ public class CreatePlaylist extends Activity
             // don't care about this one
         }
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            String newText = mPlaylist.getText().toString();
-            if (newText.trim().length() == 0) {
-                mSaveButton.setEnabled(false);
-            } else {
-                mSaveButton.setEnabled(true);
-                // check if playlist with current name exists already, and warn the user if so.
-                if (idForplaylist(newText) >= 0) {
-                    mSaveButton.setText(R.string.create_playlist_overwrite_text);
-                } else {
-                    mSaveButton.setText(R.string.create_playlist_create_text);
-                }
-            }
+            // check if playlist with current name exists already, and warn the user if so.
+            setSaveButton();
         };
         public void afterTextChanged(Editable s) {
             // don't care about this one
         }
     };
-    
+
+    private void setSaveButton() {
+        String newText = mPlaylist.getText().toString();
+        if (newText.trim().length() == 0) {
+            mSaveButton.setEnabled(false);
+        } else {
+            mSaveButton.setEnabled(true);
+            // check if playlist with current name exists already, and warn the user if so.
+            if (idForplaylist(newText) >= 0) {
+                mSaveButton.setText(R.string.create_playlist_overwrite_text);
+            } else {
+                mSaveButton.setText(R.string.create_playlist_create_text);
+            }
+        }
+    }
+
     private int idForplaylist(String name) {
         Cursor c = MusicUtils.query(this, MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
                 new String[] { MediaStore.Audio.Playlists._ID },
@@ -123,6 +131,19 @@ public class CreatePlaylist extends Activity
     @Override
     public void onResume() {
         super.onResume();
+        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            finish();
+        }
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_UP &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
     }
 
     private String makePlaylistName() {

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2007 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/audio_player_modified"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#fafafa"
+    android:orientation="vertical" >
+
+    <include
+        android:id="@+id/header_layout"
+        layout="@layout/audio_player_header"
+        android:background="@drawable/playingbar_bg_rev"
+        android:paddingTop="15dp" />
+
+    <FrameLayout
+        android:id="@+id/album_art_view"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_below="@+id/header_layout"
+        android:layout_weight="10"
+        android:paddingTop="4dp" >
+
+        <FrameLayout
+            android:id="@+id/current_queue_view"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_marginBottom="15dp" >
+
+            <ImageView
+                android:id="@+id/album_icon_view"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/albumart_mp_unknown" />
+        </FrameLayout>
+
+        <SeekBar
+            android:id="@+id/progress"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginLeft="-15dp"
+            android:layout_marginRight="-15dp"
+            android:progressBackgroundTint="@color/greycheck"
+            android:indeterminateTint="@color/seekbarcolor"
+            android:progressTint="@color/seekbarcolor"
+            android:thumbTint="@color/seekbarcolor" />
+    </FrameLayout>
+
+    <RelativeLayout
+        android:id="@+id/timer_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/album_art_view"
+        android:layout_weight="0.3"
+        android:paddingTop="10dip" >
+
+        <TextView
+            android:id="@+id/currenttimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:alpha="0.54"
+            android:fontFamily="sans-serif"
+            android:paddingLeft="8dp"
+            android:textColor="#000000" />
+
+        <TextView
+            android:id="@+id/totaltimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:alpha="0.54"
+            android:fontFamily="sans-serif"
+            android:paddingRight="8dp"
+            android:textColor="#000000" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="38dp"
+        android:layout_weight="0.2"
+        android:orientation="horizontal" >
+
+        <ImageButton
+            android:id="@+id/loop_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/normal" />
+
+        <com.android.music.RepeatingImageButton
+            android:id="@+id/previcon"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_toEndOf="@+id/loop_view"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/pre" />
+
+        <ImageButton
+            android:id="@+id/play_pause"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/previcon"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/play" />
+
+        <com.android.music.RepeatingImageButton
+            android:id="@+id/nexticon"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_toEndOf="@+id/play_pause"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/nex" />
+
+        <ImageButton
+            android:id="@+id/randomicon"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_toEndOf="@+id/nexticon"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/random" />
+    </LinearLayout>
+
+</LinearLayout>

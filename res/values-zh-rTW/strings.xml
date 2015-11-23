@@ -68,6 +68,9 @@
     <string name="delete_playlist_menu" msgid="8998637685583495247">"刪除"</string>
     <string name="edit_playlist_menu" msgid="571618502105370684">"編輯"</string>
     <string name="rename_playlist_menu" msgid="3133463747389494668">"重新命名"</string>
+    <string name="delete_playlist_message">"要刪除「<xliff:g id="name">%s</xliff:g>」嗎？"</string>
+    <string name="delete_playlist_button_ok">"確定"</string>
+    <string name="delete_playlist_button_cancel">"取消"</string>
     <string name="playlist_deleted_message" msgid="9008053828193961455">"播放清單已刪除。"</string>
     <string name="playlist_renamed_message" msgid="7187580192703005990">"已重新命名播放清單。"</string>
     <string name="recentlyadded" msgid="110978416756366953">"最近新增的樂曲"</string>
@@ -153,4 +156,8 @@
     <string name="fast_scroll_alphabet" msgid="5548732936480723311">" ABCDEFGHIJKLMNOPQRSTUVWXYZ"</string>
     <string name="widget_initial_text" msgid="3166878738860903586">"輕觸即可選擇音樂。"</string>
     <string name="effectspanel" msgid="8804547581593509614">"音效"</string>
+    <string name="duplicate_playlist_name_alert">已存在名為\"<xliff:g id="name">%s</xliff:g>\"的播放清單，請選擇其他名稱。</string>
+    <string name="same_playlist_name_alert">播放清單\"<xliff:g id="name">%s</xliff:g>\"名稱未改變，請選擇其他名稱。</string>
+    <string name="button_ok">確定</string>
+    <string name="enable_gallery_app">視頻檔案無法開啟，請從設定啟用圖片庫。</string>
 </resources>
