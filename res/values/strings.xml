@@ -421,5 +421,9 @@
     <string name="favorite_playlist">My Favorite</string>
     <string name="can_not_create_my_favorite">Can not create or overrite "My Favorite" playlist</string>
 
+    <!-- add by filemanager -->
+    <string name="add_by_filemanager">Add by filemanager</string>
+    <string name="add_file_failed">Unable to add this file as the format is not supported or not in media library</string>
+
 </resources>
 
