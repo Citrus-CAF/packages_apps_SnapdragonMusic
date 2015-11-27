@@ -35,6 +35,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.view.KeyEvent;
 
 public class CreatePlaylist extends Activity
@@ -147,7 +148,6 @@ public class CreatePlaylist extends Activity
     }
 
     private String makePlaylistName() {
-
         String template = getString(R.string.new_playlist_name_template);
         int num = 1;
 
@@ -193,6 +193,12 @@ public class CreatePlaylist extends Activity
         public void onClick(View v) {
             String name = mPlaylist.getText().toString();
             if (name != null && name.length() > 0) {
+                if( name.equals("My Favorite") || name.equals("我的收藏")){
+                    Toast.makeText(CreatePlaylist.this, R.string.can_not_create_my_favorite, Toast.LENGTH_LONG).show();
+                    setResult(RESULT_CANCELED, null);
+                    finish();
+                    return;
+                }
                 ContentResolver resolver = getContentResolver();
                 int id = idForplaylist(name);
                 Uri uri;

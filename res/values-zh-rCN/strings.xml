@@ -206,4 +206,21 @@
     <string name="no_music_found">没有歌曲</string>
     <!--  Adding new string here for file delete error message -->
     <string name="song_deleted_error_message">无法播放您所要求的音乐文件</string>
+    <string name="song_title">歌曲名称:</string>
+    <string name="album_title">专辑名称:</string>
+    <string name="artist_title">音乐人:</string>
+    <string name="duration_title">歌曲时长:</string>
+    <string name="path_title">歌曲路径:</string>
+    <string name="size_title">歌曲大小:</string>
+    <string name="duration_unit">" 分钟"</string>
+    <string name="details">详情</string>
+    <string name="favorite">收藏</string>
+    <string name="no_favorite">取消收藏</string>
+    <string name="favorite_playlist">我的收藏</string>
+    <string name="can_not_create_my_favorite">不能创建或覆盖“我的收藏"列表</string>
+
+    <!-- add by filemanager -->
+    <string name="add_by_filemanager">"从文件管理器添加"</string>
+    <string name="add_file_failed">"无法添加，格式不支持或媒体库中还未扫描到此文件"</string>
+
 </resources>

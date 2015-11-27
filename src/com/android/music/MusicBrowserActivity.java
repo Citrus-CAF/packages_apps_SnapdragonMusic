@@ -29,12 +29,16 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
@@ -116,9 +120,22 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
         MusicUtils.updateGroupByFolder(this);
         init();
         initView();
+        createFavoritePlaylist();
         String shuf = getIntent().getStringExtra("autoshuffle");
         if ("true".equals(shuf)) {
             mToken = MusicUtils.bindToService(this, autoshuffle);
+        }
+    }
+
+    private void createFavoritePlaylist() {
+        // TODO Auto-generated method stub
+        ContentResolver resolver = getContentResolver();
+        int id = MusicUtils.idForplaylist(this, "My Favorite");
+        Uri uri;
+        if (id < 0) {
+            ContentValues values = new ContentValues(1);
+            values.put(MediaStore.Audio.Playlists.NAME, "My Favorite");
+            uri = resolver.insert(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, values);
         }
     }
 

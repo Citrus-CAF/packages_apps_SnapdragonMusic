@@ -50,6 +50,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.LruCache;
@@ -83,9 +84,12 @@ public class PlaylistBrowserFragment extends Fragment implements
     private final int RENAME_PLAYLIST = CHILD_MENU_BASE + 3;
     private final int CHANGE_WEEKS = CHILD_MENU_BASE + 4;
     private final int CLEAR_ALL_PLAYLISTS = CHILD_MENU_BASE + 5;
+    private final int ADD_BY_FILEMANAGER = CHILD_MENU_BASE + 6;
+    private final int REQUEST_CODE_FILE = CHILD_MENU_BASE + 7;
     private final long RECENTLY_ADDED_PLAYLIST = -1;
     private final long ALL_SONGS_PLAYLIST = -2;
     private final long PODCASTS_PLAYLIST = -3;
+    private final long FAVORITE_PLAYLIST = -100;
     private PlaylistListAdapter mAdapter;
     private boolean mAdapterSent;
     private int mLastListPosCourse = -1;
@@ -101,6 +105,7 @@ public class PlaylistBrowserFragment extends Fragment implements
     private String[] mPlaylistMemberCols;
     private String[] mPlaylistMemberCols1;
     private Toolbar mToolbar;
+    private int mPlaylistId;
     static final LruCache<Integer, Bitmap[]> playlistMap = new LruCache<Integer, Bitmap[]>(
             20);
 
@@ -270,6 +275,10 @@ public class PlaylistBrowserFragment extends Fragment implements
                             .replace(R.id.fragment_page, fragment,
                                     "track_fragment").commit();
                 } else {
+                    // Obtain the real id for "My Favorite" Playlist
+                    if (id == FAVORITE_PLAYLIST) {
+                        id = MusicUtils.idForplaylist(getActivity(), "My Favorite");
+                    }
                     args.putBoolean("editValue", true);
                     args.putString("playlist", Long.valueOf(id).toString());
                     fragment.setArguments(args);
@@ -509,6 +518,9 @@ public class PlaylistBrowserFragment extends Fragment implements
             } else if (id == PODCASTS_PLAYLIST) {
                 playPodcasts();
             } else {
+                if(id==FAVORITE_PLAYLIST){
+                    id = MusicUtils.idForplaylist(getActivity(), "My Favorite");
+                    }
                 MusicUtils.playPlaylist(parentActivity, id);
             }
             break;
@@ -545,6 +557,14 @@ public class PlaylistBrowserFragment extends Fragment implements
             intent.putExtra("rename", Long.valueOf(id));
             startActivityForResult(intent, RENAME_PLAYLIST);
             break;
+
+        case ADD_BY_FILEMANAGER:
+            mPlaylistId = id;
+            Intent innerIntent = new Intent(Intent.ACTION_GET_CONTENT);
+            innerIntent.setType("audio/*");
+            innerIntent.addCategory("android.intent.category.ADD_MUSIC");
+            startActivityForResult(innerIntent, REQUEST_CODE_FILE);
+            break;
         }
         return true;
     }
@@ -559,7 +579,120 @@ public class PlaylistBrowserFragment extends Fragment implements
                 getPlaylistCursor(mAdapter.getQueryHandler(), null);
             }
             break;
+        case REQUEST_CODE_FILE:
+            if (resultCode == parentActivity.RESULT_OK) {
+                Uri uri = intent.getData();
+               if (getUriFromPath(parentActivity,uri) != 0) {
+                    long [] selectSong = new long [1];
+                    selectSong[0] = getUriFromPath(parentActivity,uri);
+                        MusicUtils.addToPlaylist(parentActivity.getApplicationContext(),
+                                selectSong, mPlaylistId);
+                } else {
+                    Toast.makeText(parentActivity, R.string.add_file_failed, Toast.LENGTH_SHORT).show();
+                }
+            }
+            break;
         }
+    }
+
+    private long getUriFromPath(Context context, Uri uri) {
+        String path = getMediaPath(parentActivity, uri);
+        String filetype = null;
+        long songid = 0;
+        ContentResolver resolver = context.getContentResolver();
+        Cursor c = null;
+        try {
+            c = resolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, null,
+                    MediaStore.Audio.Media.DATA + "=?", new String[] {
+                        path
+                    }, null);
+            if (c !=null && c.getCount()>0) {
+                c.moveToFirst();
+                songid = c.getLong(c.getColumnIndexOrThrow(MediaStore.Audio.Media._ID));
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (c != null) {
+                c.close();
+                c = null;
+            }
+        }
+        return songid;
+    }
+
+    public static String getMediaPath(final Context context, final Uri uri) {
+
+        // DocumentProvider
+        if (DocumentsContract.isDocumentUri(context, uri)) {
+
+            // MediaProvider
+            if (isMediaDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                Uri contentUri = null;
+                if ("audio".equals(type)) {
+                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                }
+
+                final String selection = "_id=?";
+                final String[] selectionArgs = new String[] {
+                        split[1]
+                };
+
+                return getDataColumn(context, contentUri, selection, selectionArgs);
+            }
+        }
+        // MediaStore (and general)
+        else if ("content".equalsIgnoreCase(uri.getScheme())) {
+            return getDataColumn(context, uri, null, null);
+        }
+        // File
+        else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            return uri.getPath();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the value of the data column for this Uri. This is useful for MediaStore Uris, and other
+     * file-based ContentProviders.
+     *
+     * @param context The context.
+     * @param uri The Uri to query.
+     * @param selection (Optional) Filter used in the query.
+     * @param selectionArgs (Optional) Selection arguments used in the query.
+     * @return The value of the _data column, which is typically a file path.
+     */
+    public static String getDataColumn(Context context, Uri uri, String selection,
+            String[] selectionArgs) {
+
+        Cursor cursor = null;
+        final String column = "_data";
+        final String[] projection = {
+                column
+        };
+
+        try {
+            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
+                    null);
+            if (cursor != null && cursor.moveToFirst()) {
+                final int column_index = cursor.getColumnIndexOrThrow(column);
+                return cursor.getString(column_index);
+            }
+        } finally {
+            if (cursor != null)
+                cursor.close();
+        }
+        return null;
+    }
+
+    public static boolean isMediaDocument(Uri uri) {
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 
     private void playRecentlyAdded() {
@@ -677,6 +810,12 @@ public class PlaylistBrowserFragment extends Fragment implements
             recent.add(getResources().getString(R.string.recentlyadded));
             autoplaylistscursor.addRow(recent);
         }
+        if (parentActivity.getApplicationContext().getResources().getBoolean(R.bool.enable_myfavorites)) {
+            ArrayList<Object> favorite = new ArrayList<Object>(2);
+            favorite.add(FAVORITE_PLAYLIST);
+            favorite.add(getResources().getString(R.string.favorite_playlist));
+            autoplaylistscursor.addRow(favorite);
+        }
 
         // check if there are any podcasts
         Cursor counter = MusicUtils.query(parentActivity,
@@ -694,8 +833,24 @@ public class PlaylistBrowserFragment extends Fragment implements
             }
         }
 
-        Cursor cc = new MergeCursor(new Cursor[] { autoplaylistscursor, c });
-        return cc;
+        if (c != null && c.getCount() > 0) {
+            c.moveToFirst();
+            while (!c.isAfterLast()) {
+                String name = c.getString(1);
+                if (name.equals("My Favorite")) {
+                    c.moveToNext();
+                    continue;
+                }
+                ArrayList<Object> playlist = new ArrayList<Object>(2);
+                playlist.add(c.getInt(0));
+                playlist.add(name);
+                autoplaylistscursor.addRow(playlist);
+                c.moveToNext();
+            }
+        }
+
+        //Cursor cc = new MergeCursor(new Cursor[] { autoplaylistscursor, c });
+        return autoplaylistscursor;
     }
 
     class PlaylistListAdapter extends SimpleCursorAdapter {
@@ -766,6 +921,7 @@ public class PlaylistBrowserFragment extends Fragment implements
             vh.albumArtIcon2 = (ImageView) v.findViewById(R.id.icon1);
             vh.albumArtIcon3 = (ImageView) v.findViewById(R.id.icon2);
             vh.albumArtIcon4 = (ImageView) v.findViewById(R.id.icon3);
+
             vh.tv = (TextView) v.findViewById(R.id.line1);
             Resources r = context.getResources();
             mDefaultAlbumIcon = (BitmapDrawable) r
@@ -949,15 +1105,31 @@ public class PlaylistBrowserFragment extends Fragment implements
 
             final int id = cursor.getInt(cursor
                     .getColumnIndexOrThrow(MediaStore.Audio.Playlists._ID));
-            Bitmap[] albumartArray = null;
-            albumartArray = PlaylistBrowserFragment.playlistMap.get(id);
 
-            if (albumartArray == null){
-                new DownloadAlbumArt(id, vh).execute();
+            final int favoriteId = MusicUtils.idForplaylist(context, "My Favorite");
+
+            Bitmap[] albumartArray = null;
+
+            if (id == FAVORITE_PLAYLIST) {
+                albumartArray = PlaylistBrowserFragment.playlistMap.get(favoriteId);
+            } else {
+                albumartArray = PlaylistBrowserFragment.playlistMap.get(id);
             }
-            else {
-                updateAlbumArray(id, vh);
+
+            if (albumartArray == null) {
+                if (id == FAVORITE_PLAYLIST) {
+                    new DownloadAlbumArt(favoriteId, vh).execute();
+                } else {
+                    new DownloadAlbumArt(id, vh).execute();
+                }
+            } else {
+                if (id == FAVORITE_PLAYLIST) {
+                    updateAlbumArray(favoriteId, vh);
+                } else {
+                    updateAlbumArray(id, vh);
+                }
             }
+
             final ImageView menu = (ImageView) view
                     .findViewById(R.id.play_indicator);
             menu.setTag(id);
@@ -980,6 +1152,10 @@ public class PlaylistBrowserFragment extends Fragment implements
                     if (id >= 0) {
                         popup.getMenu().add(0, RENAME_PLAYLIST, 0,
                                 R.string.rename_playlist_menu);
+                    }
+                    if (parentActivity.getResources()
+                            .getBoolean(R.bool.add_playlist_by_filemanager)) {
+                        popup.getMenu().add(0, ADD_BY_FILEMANAGER, 0, R.string.add_by_filemanager);
                     }
                     popup.show();
                     popup.setOnMenuItemClickListener(new OnMenuItemClickListener() {
