@@ -47,7 +47,6 @@ import android.drm.DrmStore.RightsStatus;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.Color;
 import android.media.AudioManager;
@@ -91,6 +90,7 @@ import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.view.KeyEvent;
 
 import com.android.music.SysApplication;
+import com.android.music.TrackBrowserFragment.WaveView;
 
 import java.text.Collator;
 import java.util.Arrays;
@@ -147,8 +147,7 @@ public class TrackBrowserActivityFragment extends Fragment
     private ImageView mImageView;
     private boolean mIsparentActivityFInishing;
     private BitmapDrawable mDefaultAlbumIcon;
-    private static AnimationDrawable mCurrPlayAnimation;
-    private static ImageView mAnimView;
+    private static WaveView mAnimView;
     private static boolean mPause = false;
 
     public TrackBrowserActivityFragment()
@@ -545,7 +544,7 @@ public class TrackBrowserActivityFragment extends Fragment
         mReScanHandler.removeCallbacksAndMessages(null);
         mParentActivity.unregisterReceiver(mStatusListener);
         mPause = true;
-        stopAnimation();
+        if (mAnimView != null) mAnimView.animate(false);
         super.onPause();
     }
 
@@ -1260,39 +1259,13 @@ public class TrackBrowserActivityFragment extends Fragment
         if(prevV!=null)
         {
             ViewHolder vh1 = (ViewHolder) prevV.getTag();
-            if(vh1.mMusicAnimation.isRunning())
-                vh1.mMusicAnimation.stop();
             vh1.anim_icon.setVisibility(View.INVISIBLE);
 
         }
         MusicUtils.playAll(mParentActivity, mTrackCursor, position);
         vh.anim_icon.setVisibility(View.VISIBLE);
-        vh.anim_icon.setBackgroundResource(R.drawable.animation_list);
-        vh.mMusicAnimation = (AnimationDrawable) vh.anim_icon.getBackground();
-        setCurrPlayAnimation(vh.mMusicAnimation);
-        startAnimation();
-        vh.mMusicAnimation.setVisible(true, true);
         prevV= v;
     }
-
-    private static void setCurrPlayAnimation(AnimationDrawable anim) {
-        stopAnimation();
-        mCurrPlayAnimation = anim;
-    }
-
-    private static void startAnimation() {
-        mCurrPlayAnimation.start();
-    }
-
-    private static void stopAnimation() {
-        if (mAnimView != null) {
-            mAnimView.clearAnimation();
-            if (mPause) {
-                mAnimView.setBackgroundDrawable(null);
-            }
-        }
-        mCurrPlayAnimation = null;
-   }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
@@ -1851,10 +1824,9 @@ public class TrackBrowserActivityFragment extends Fragment
             CharArrayBuffer buffer1;
             char [] buffer2;
             ImageView drm_icon;
-            ImageView anim_icon, icon;
-            AnimationDrawable mMusicAnimation;
+            ImageView icon;
+            WaveView anim_icon;
             int position = -1;
-            ImageView animation;
             ImageView playMenu;
             String mCurrentTrackName;
             String mCurrentAlbumName;
@@ -1973,7 +1945,7 @@ public class TrackBrowserActivityFragment extends Fragment
             vh.line2 = (TextView) v.findViewById(R.id.line2);
             vh.buffer1 = new CharArrayBuffer(100);
             vh.buffer2 = new char[200];
-            vh.animation = (ImageView) v.findViewById(R.id.play_animator);
+            vh.anim_icon = (WaveView) v.findViewById(R.id.play_animator);
             vh.playMenu = (ImageView) v.findViewById(R.id.select_artist);
             ((MediaPlaybackActivity) mActivity.getParentActivity()).setTouchDelegate(vh.playMenu);
             vh.position = testpos;
@@ -2059,7 +2031,7 @@ public class TrackBrowserActivityFragment extends Fragment
 
             vh.line2.setText("    "+name);
             vh.line2.setTextColor(Color.BLACK);
-            ImageView iv1 = vh.anim_icon;
+            WaveView iv1 = vh.anim_icon;
             long id = -1;
             if (MusicUtils.sService != null) {
                 // TODO: IPC call on each bind??
@@ -2073,8 +2045,7 @@ public class TrackBrowserActivityFragment extends Fragment
                 }
             }
 
-           mAnimView = null;
-           mAnimView = vh.animation;
+           mAnimView = vh.anim_icon;
 
             // Determining whether and where to show the "now playing indicator
             // is tricky, because we don't actually keep track of where the songs
@@ -2087,31 +2058,12 @@ public class TrackBrowserActivityFragment extends Fragment
             // For this reason, we don't show the play indicator at all when in edit
             // playlist mode (except when you're viewing the "current playlist",
             // which is not really a playlist)
-            if ( (mIsNowPlaying && cursor.getPosition() == id) ||
-                 (!mIsNowPlaying && cursor.getLong(mAudioIdIdx) == id)) {
-                // We set different icon according to different play state
+            if ((mIsNowPlaying && cursor.getPosition() == id) ||
+                    (!mIsNowPlaying && cursor.getLong(mAudioIdIdx) == id)) {
                 mAnimView.setVisibility(View.VISIBLE);
-                if (MusicUtils.isPlaying()) {
-                    clearAnimation();
-                    mAnimView.setBackgroundResource(R.drawable.animation_list);
-                    vh.mMusicAnimation = null;
-                    vh.mMusicAnimation = (AnimationDrawable) mAnimView
-                            .getBackground();
-                    setCurrPlayAnimation(vh.mMusicAnimation);
-                    startAnimation();
-                    vh.mMusicAnimation.setVisible(true, true);
-                } else {
-                    mAnimView.setBackgroundDrawable(null);
-                    mAnimView.setBackgroundResource(R.drawable.wave_stop);
-                    mAnimView.clearAnimation();
-
-                    if (vh.mMusicAnimation != null
-                            && vh.mMusicAnimation.isRunning()) {
-                        stopAnimation();
-                    }
-                }
+                mAnimView.animate(MusicUtils.isPlaying());
             } else {
-                clearAnimation();
+                mAnimView.animate(false);
                 mAnimView.setVisibility(View.INVISIBLE);
             }
         }
@@ -2140,13 +2092,6 @@ public class TrackBrowserActivityFragment extends Fragment
             double cleanSize = Math.round(aux * 100);
             return Double.toString(cleanSize / 100) +
                     " " + res.getString(magnitude[cc - 1]); //$NON-NLS-1$
-        }
-
-        private void clearAnimation() {
-            if (mAnimView != null) {
-                mAnimView.clearAnimation();
-                mAnimView.setBackgroundDrawable(null);
-            }
         }
 
         @Override

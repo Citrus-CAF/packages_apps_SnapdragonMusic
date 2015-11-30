@@ -50,10 +50,11 @@ import android.drm.DrmStore.Action;
 //import android.drm.DrmStore.DrmDeliveryType;
 import android.drm.DrmStore.RightsStatus;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.Paint;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -96,6 +97,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.PopupMenu.OnMenuItemClickListener;
+import android.util.AttributeSet;
 import android.view.KeyEvent;
 
 import com.android.music.SysApplication;
@@ -155,8 +157,7 @@ public class TrackBrowserFragment extends Fragment implements
     private TextView mSdErrorMessageView;
     private View mSdErrorMessageIcon;
     private RelativeLayout mShuffleLayout;
-    private AnimationDrawable mCurrPlayAnimation;
-    private ImageView mAnimView;
+    private WaveView mAnimView;
     public boolean mPause = false;
     private String mFolderName;
     private boolean mCreateShortcut = false;
@@ -479,7 +480,7 @@ public class TrackBrowserFragment extends Fragment implements
         mReScanHandler.removeCallbacksAndMessages(null);
         mParentActivity.unregisterReceiver(mStatusListener);
         mPause = true;
-        stopAnimation();
+        if (mAnimView != null) mAnimView.animate(false);
         super.onPause();
     }
 
@@ -1328,24 +1329,6 @@ public class TrackBrowserFragment extends Fragment implements
         MusicUtils.playAll(mParentActivity, mTrackCursor, position);
     }
 
-    private void setCurrPlayAnimation(AnimationDrawable anim) {
-        stopAnimation();
-        mCurrPlayAnimation = anim;
-    }
-
-    private void startAnimation() {
-        mCurrPlayAnimation.start();
-    }
-
-    private void stopAnimation() {
-        if (mAnimView != null) {
-            mAnimView.clearAnimation();
-        if (mPause) {
-            mAnimView.setBackgroundDrawable(null);
-        }
-        }
-    }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         switch (requestCode) {
@@ -1761,8 +1744,8 @@ public class TrackBrowserFragment extends Fragment implements
             CharArrayBuffer buffer1;
             char[] buffer2;
             ImageView drm_icon;
-            ImageView anim_icon, icon;
-            AnimationDrawable mMusicAnimation;
+            WaveView anim_icon;
+            ImageView icon;
             String mCurrentTrackName;
             String mCurrentAlbumName;
             String mCurrentArtistNameForAlbum;
@@ -1908,7 +1891,7 @@ public class TrackBrowserFragment extends Fragment implements
             vh.buffer1 = new CharArrayBuffer(100);
             vh.buffer2 = new char[200];
             // vh.drm_icon = (ImageView) v.findViewById(R.id.drm_icon);
-            vh.anim_icon = (ImageView) v.findViewById(R.id.animView);
+            vh.anim_icon = (WaveView) v.findViewById(R.id.animView);
             vh.icon = (ImageView) v.findViewById(R.id.icon);
 
             v.setTag(vh);
@@ -2089,25 +2072,9 @@ public class TrackBrowserFragment extends Fragment implements
                     || (!mIsNowPlaying && cursor.getLong(mAudioIdIdx) == id)) {
                 // We set different icon according to different play state
                 mAnimView.setVisibility(View.VISIBLE);
-                if (MusicUtils.isPlaying()) {
-                    clearAnimation();
-                    mAnimView.setBackgroundResource(R.drawable.animation_list);
-                    vh.mMusicAnimation = (AnimationDrawable) mAnimView
-                            .getBackground();
-                    setCurrPlayAnimation(vh.mMusicAnimation);
-                    startAnimation();
-                    vh.mMusicAnimation.setVisible(true, true);
-                } else {
-                    mAnimView.setBackgroundDrawable(null);
-                    mAnimView.setBackgroundResource(R.drawable.wave_stop);
-                    mAnimView.clearAnimation();
-                    if (vh.mMusicAnimation != null
-                            && vh.mMusicAnimation.isRunning()) {
-                        stopAnimation();
-                    }
-                }
+                mAnimView.animate(MusicUtils.isPlaying());
             } else {
-                clearAnimation();
+                mAnimView.animate(false);
                 mAnimView.setVisibility(View.INVISIBLE);
             }
         }
@@ -2136,13 +2103,6 @@ public class TrackBrowserFragment extends Fragment implements
             double cleanSize = Math.round(aux * 100);
             return Double.toString(cleanSize / 100) +
                     " " + res.getString(magnitude[cc - 1]); //$NON-NLS-1$
-        }
-
-        private void clearAnimation() {
-            if (mAnimView != null) {
-                mAnimView.clearAnimation();
-                mAnimView.setBackgroundDrawable(null);
-            }
         }
 
         @Override
@@ -2226,5 +2186,75 @@ public class TrackBrowserFragment extends Fragment implements
     public void onScroll(AbsListView view, int firstVisibleItem,
             int visibleItemCount, int totalItemCount) {
         // TODO Auto-generated method stub
+    }
+
+    public static class WaveView extends View {
+        private static final float SPACE = 0.5f;
+        private static final float STOP = 11f / 12;
+        private static final int FRAME_DELAY = 10;
+
+        private float mBars[] = new float[4];
+        private float mBarsNext[] = new float[4];
+
+        private boolean mAnimate;
+        private int mFrame;
+
+        private int mWaveColor;
+        private int mWaveColorInactive;
+
+        private Paint mPaint;
+
+        public WaveView(Context context, AttributeSet attrs) {
+            super(context, attrs);
+
+            Resources res = getResources();
+            mWaveColor = res.getColor(R.color.wave_color);
+            mWaveColorInactive = res.getColor(R.color.wave_color_inactive);
+
+            mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        }
+
+        public WaveView(Context context) {
+            this(context, null);
+        }
+
+        public void animate(boolean animate) {
+            mAnimate = animate;
+            mFrame = 0;
+            invalidate();
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+
+            mPaint.setColor(mAnimate ? mWaveColor : mWaveColorInactive);
+
+            float height = (float) getHeight();
+            float width = height;
+            float all = mBars.length + (mBars.length - 1) * SPACE;
+
+            if (mFrame % FRAME_DELAY == 0) {
+                for (int i = mBarsNext.length - 1; i >= 0; --i) {
+                    mBarsNext[i] = (float) Math.random();
+                }
+            }
+            mFrame++;
+
+            for (int i = mBars.length - 1; i >= 0 ; --i) {
+                float left = width * i * (1 + SPACE) / all;
+                float right = left + width / all;
+
+                if (mAnimate) {
+                    mBars[i] = (mBars[i] * FRAME_DELAY + mBarsNext[i]) / (FRAME_DELAY + 1);
+                    float top = mBars[i] * height;
+                    canvas.drawRect(left, top, right, height, mPaint);
+                } else {
+                    canvas.drawRect(left, STOP * height, right, height, mPaint);
+                }
+            }
+
+            if (mAnimate) invalidate();
+        }
     }
 }

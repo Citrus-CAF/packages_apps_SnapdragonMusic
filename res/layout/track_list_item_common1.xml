@@ -76,11 +76,10 @@
 
         <!-- The height is set to half the height of the parent, which is 64 dip -->
 
-        <ImageView
+        <view class="com.android.music.TrackBrowserFragment$WaveView"
             android:id="@+id/play_animator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.3"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:visibility="invisible" />
 
         <ImageView android:layout_marginRight="10dp"
