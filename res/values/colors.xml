@@ -25,5 +25,6 @@
     <color name="app_theme_color">#f57f17</color>
     <color name="seekbarcolor">#f4511e</color>
 
+    <color name="wave_color">#f4511e</color>
+    <color name="wave_color_inactive">#000000</color>
 </resources>
-
