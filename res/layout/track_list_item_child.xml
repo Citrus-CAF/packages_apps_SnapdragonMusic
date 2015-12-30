@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:id="@+id/iconLayout"
-        android:paddingLeft="20dip"
+        android:paddingStart="20dip"
          >
         <ImageView android:id="@+id/icon"
             android:layout_width="48dp"
@@ -41,9 +41,9 @@
     <RelativeLayout android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_toRightOf="@+id/iconLayout"
-        android:layout_toLeftOf="@+id/play_indicator_child"
-        android:paddingLeft="8dip" >
+        android:layout_toEndOf="@+id/iconLayout"
+        android:layout_toStartOf="@+id/play_indicator_child"
+        android:paddingStart="8dip" >
         <TextView android:id="@+id/line1"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:layout_width="wrap_content"

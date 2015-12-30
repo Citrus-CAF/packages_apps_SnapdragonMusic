@@ -29,7 +29,7 @@
         android:layout_height="@dimen/icon_size"
         android:layout_centerVertical="true"
         android:layout_gravity="center_vertical"
-        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
         android:background="#e1e1e1"
         android:columnCount="2"
         android:rowCount="2" >
@@ -72,9 +72,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_toRightOf="@+id/iconTabbedView"
-        android:paddingLeft="16dip"
-        android:layout_toLeftOf="@id/play_indicator">
+        android:layout_toEndOf="@+id/iconTabbedView"
+        android:paddingStart="16dip"
+        android:layout_toStartOf="@id/play_indicator">
 
         <TextView
             android:id="@+id/line1"

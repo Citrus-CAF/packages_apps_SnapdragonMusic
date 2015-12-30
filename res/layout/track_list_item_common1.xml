@@ -34,7 +34,7 @@
 
     <!-- The height is set to half the height of the parent, which is 64 dip -->
 
-    <LinearLayout android:layout_marginLeft="28dp"
+    <LinearLayout android:layout_marginStart="28dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
@@ -82,7 +82,7 @@
             android:layout_height="24dp"
             android:visibility="invisible" />
 
-        <ImageView android:layout_marginRight="10dp"
+        <ImageView android:layout_marginEnd="10dp"
             android:id="@+id/select_artist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

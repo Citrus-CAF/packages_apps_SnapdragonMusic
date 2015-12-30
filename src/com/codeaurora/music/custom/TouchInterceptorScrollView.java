@@ -36,13 +36,17 @@ import com.android.music.R.dimen;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.WindowManager;
 
 public class TouchInterceptorScrollView extends TouchInterceptor {
 
     private final String TAG = "TouchInterceptorScrollView";
+    private Context mContext;
+    private WindowManager mWM;
 
     public TouchInterceptorScrollView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        mContext = context;
     }
 
     @Override
@@ -54,7 +58,20 @@ public class TouchInterceptorScrollView extends TouchInterceptor {
         } catch (NullPointerException e) {
             Log.e(TAG, "exception caught");
         }
-        setMeasuredDimension(SCREEN_WIDTH, (int) (count * getResources()
+        setMeasuredDimension(getDisplayWidth(), (int) (count * getResources()
                 .getDimension(R.dimen.list_item_size)));
     }
+    private int getDisplayWidth() {
+        int width = SCREEN_WIDTH;
+        if (mWM != null) {
+            width = mWM.getDefaultDisplay().getWidth();
+        } else {
+            mWM = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+            if (mWM != null) {
+                width = mWM.getDefaultDisplay().getWidth();
+            }
+        }
+        return width;
+    }
+
 }

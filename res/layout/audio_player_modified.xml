@@ -62,8 +62,8 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_marginLeft="-15dp"
-            android:layout_marginRight="-15dp"
+            android:layout_marginStart="-15dp"
+            android:layout_marginEnd="-15dp"
             android:progressBackgroundTint="@color/greycheck"
             android:indeterminateTint="@color/seekbarcolor"
             android:progressTint="@color/seekbarcolor"
@@ -84,17 +84,17 @@
             android:layout_height="wrap_content"
             android:alpha="0.54"
             android:fontFamily="sans-serif"
-            android:paddingLeft="8dp"
+            android:paddingStart="8dp"
             android:textColor="#000000" />
 
         <TextView
             android:id="@+id/totaltimer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:alpha="0.54"
             android:fontFamily="sans-serif"
-            android:paddingRight="8dp"
+            android:paddingEnd="8dp"
             android:textColor="#000000" />
     </RelativeLayout>
 
@@ -116,41 +116,50 @@
             android:background="@android:color/transparent"
             android:src="@drawable/normal" />
 
-        <com.android.music.RepeatingImageButton
-            android:id="@+id/previcon"
+        <RelativeLayout
+            android:id="@+id/container"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_toEndOf="@+id/loop_view"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:src="@drawable/pre" />
+            android:layout_toEndOf="@id/loop_view"
+            android:layout_weight="3" >
 
-        <ImageButton
-            android:id="@+id/play_pause"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/previcon"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:src="@drawable/play" />
+            <com.android.music.RepeatingImageButton
+                android:id="@+id/previcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_alignParentLeft="true"
+                android:paddingLeft="12dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/pre" />
 
-        <com.android.music.RepeatingImageButton
-            android:id="@+id/nexticon"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_toEndOf="@+id/play_pause"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:src="@drawable/nex" />
+            <ImageButton
+                android:id="@+id/play_pause"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_centerInParent="true"
+                android:background="@android:color/transparent"
+                android:src="@drawable/play" />
+
+            <com.android.music.RepeatingImageButton
+                android:id="@+id/nexticon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:paddingRight="12dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/nex" />
+        </RelativeLayout>
 
         <ImageButton
             android:id="@+id/randomicon"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_toEndOf="@+id/nexticon"
+            android:layout_toEndOf="@+id/container"
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:src="@drawable/random" />

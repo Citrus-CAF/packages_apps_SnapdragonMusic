@@ -50,7 +50,7 @@
     <ImageView android:id="@+id/list_menu_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:src="@drawable/ic_menu_moreoverflow_normal_holo_light"
         android:clickable="true"/>
@@ -58,8 +58,8 @@
    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_toLeftOf="@id/list_menu_button"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@id/list_menu_button"
         android:paddingTop="@dimen/album_card_text_margin"
         android:orientation="vertical">
     <!-- The height is set to half the height of the parent, which is 64 dip -->

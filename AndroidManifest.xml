@@ -38,7 +38,8 @@
         android:taskAffinity="android.task.music"
         android:hardwareAccelerated="true"
         android:allowTaskReparenting="true"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:supportsRtl="true">
         <meta-data
             android:name="android.app.default_searchable"
             android:value="com.android.music.QueryBrowserActivity"

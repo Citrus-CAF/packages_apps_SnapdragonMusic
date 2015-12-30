@@ -33,7 +33,7 @@
         android:layout_centerVertical="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingLeft="8dip" >
+        android:paddingStart="8dip" >
 
         <ImageView
             android:id="@+id/icon"
@@ -48,9 +48,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_toLeftOf="@+id/menuLayout"
-        android:layout_toRightOf="@+id/iconLayout"
-        android:paddingLeft="8dip" >
+        android:layout_toStartOf="@+id/menuLayout"
+        android:layout_toEndOf="@+id/iconLayout"
+        android:paddingStart="8dip" >
 
         <TextView
             android:id="@+id/line1"
@@ -98,10 +98,10 @@
             android:id="@+id/animView"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:layout_gravity="center_vertical"
-            android:layout_toLeftOf="@+id/play_indicator"
+            android:layout_toStartOf="@+id/play_indicator"
             android:background="@android:color/transparent" />
 
         <ImageView
