@@ -1593,7 +1593,6 @@ public class MediaPlaybackService extends Service {
             Log.d(LOGTAG, "event = "+event);
             switch (event) {
             case FileObserver.DELETE_SELF:
-                gotoNext(true);
                 return;
             }
         }
