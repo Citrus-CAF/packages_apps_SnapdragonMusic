@@ -96,6 +96,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private static final int USE_AS_RINGTONE = CHILD_MENU_BASE;
     private static final int SAVE_AS_PLAYLIST = CHILD_MENU_BASE + 2;
     private static final int CLEAR_PLAYLIST = CHILD_MENU_BASE + 4;
+    private static final int INVALID_PLAYLIST_ID = -1;
 
     private static final String TAG = "MediaPlaybackActivity";
     private boolean mSeeking = false;
@@ -587,6 +588,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             return false;
         }
         int playlistId = MusicUtils.idForplaylist(MediaPlaybackActivity.this, "My Favorite");
+        if (playlistId == INVALID_PLAYLIST_ID) {
+            return false;
+        }
         int memberId = getMemberId(playlistId, audioid);
         if (memberId == -1) {
             return false;
