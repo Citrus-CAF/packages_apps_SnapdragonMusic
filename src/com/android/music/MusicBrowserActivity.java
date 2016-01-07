@@ -72,6 +72,7 @@ import android.widget.Toolbar.OnMenuItemClickListener;
 
 public class MusicBrowserActivity extends MediaPlaybackActivity implements
         MusicUtils.Defs {
+    private static final String TAG = "MusicBrowserActivity";
 
     private ServiceToken mToken;
     private ListView mDrawerListView;
@@ -115,7 +116,7 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
                 mPlaylistId = Long.parseLong(bundle.getString("playlist"));
             }
         } catch (NumberFormatException e) {
-            Log.w("MusicBrowserActivity", "Playlist id missing or broken");
+            Log.w(TAG, "Playlist id missing or broken");
         }
         MusicUtils.updateGroupByFolder(this);
         init();
@@ -135,7 +136,11 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
         if (id < 0) {
             ContentValues values = new ContentValues(1);
             values.put(MediaStore.Audio.Playlists.NAME, "My Favorite");
-            uri = resolver.insert(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, values);
+            try {
+                uri = resolver.insert(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, values);
+            } catch (UnsupportedOperationException e) {
+                Log.w(TAG, "external storage not ready");
+            }
         }
     }
 
@@ -241,7 +246,7 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
                     }
                 }
             } catch (NumberFormatException e) {
-                Log.w("MusicBrowserActivity", "Playlist id missing");
+                Log.w(TAG, "Playlist id missing");
             }
             initView();
         }
