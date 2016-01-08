@@ -1438,7 +1438,8 @@ public class TrackBrowserFragment extends Fragment implements
             String[] projection = {MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media._ID,
                     MediaStore.Audio.Media.IS_MUSIC,"parent", MediaStore.Audio.Media.TITLE,
                     MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.DURATION,
-                    MediaStore.Audio.Media.ALBUM_ID};
+                    MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.DATA,
+                    MediaStore.Audio.Media.SIZE};
             String selection = "is_music=1 AND parent = '" + mParent + "'";
             ret = queryhandler.doQuery(Uri.parse(uriString), projection, selection, null,
                     mSortOrder, async);
