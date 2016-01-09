@@ -2929,7 +2929,8 @@ public class MediaPlaybackService extends Service {
                     @Override
                     public void run() {
                         if (mIsSupposedToBePlaying
-                            && mCurrentMediaPlayer != null) {
+                            && mCurrentMediaPlayer != null
+                            && mIsInitialized) {
                             mCurrentMediaPlayer.setNextMediaPlayer(mp);
                             mNextMediaPlayer = mp;
                         }
