@@ -1792,7 +1792,8 @@ public class MediaPlaybackService extends Service {
         if (getAudioId() < 0) {
             // streaming
             views.setTextViewText(R.id.trackname, getPath());
-            views.setTextViewText(R.id.artistalbum, null);
+            views.setTextViewText(R.id.artist, null);
+            views.setTextViewText(R.id.album, null);
         } else {
             String artist = getArtistName();
             views.setTextViewText(R.id.trackname, getTrackName());
@@ -1803,10 +1804,8 @@ public class MediaPlaybackService extends Service {
             if (album == null || album.equals(MediaStore.UNKNOWN_STRING)) {
                 album = getString(R.string.unknown_album_name);
             }
-
-            views.setTextViewText(
-                    R.id.artistalbum,
-                    getString(R.string.notification_artist_album, artist, album));
+            views.setTextViewText(R.id.artist, artist);
+            views.setTextViewText(R.id.album, album);
         }
 
         views.setImageViewResource(R.id.pause,
