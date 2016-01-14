@@ -2071,7 +2071,6 @@ public class MediaPlaybackService extends Service {
                 Log.d(LOGTAG, "No play queue");
                 return;
             }
-
             int pos = getNextPosition(force);
             if (pos < 0) {
                 gotoIdleState();
@@ -2930,7 +2929,12 @@ public class MediaPlaybackService extends Service {
                             && mCurrentMediaPlayer != null
                             && mIsInitialized) {
                             mCurrentMediaPlayer.setNextMediaPlayer(mp);
+                            if (mNextMediaPlayer != null) {
+                                mNextMediaPlayer.release();
+                            }
                             mNextMediaPlayer = mp;
+                        } else {
+                            mp.release();
                         }
                     }
                 }, 300);
@@ -3015,6 +3019,7 @@ public class MediaPlaybackService extends Service {
                     mCurrentMediaPlayer.release();
                     if (mNextMediaPlayer != null) {
                         mNextMediaPlayer.release();
+                        mNextMediaPlayer = null;
                     }
                     // Creating a new MediaPlayer and settings its wakemode does not
                     // require the media service, so it's OK to do this now, while the
