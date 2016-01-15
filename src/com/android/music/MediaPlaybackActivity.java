@@ -155,6 +155,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         IntentFilter metaChangeFilter = new IntentFilter();
         metaChangeFilter.addAction(MediaPlaybackService.META_CHANGED);
         metaChangeFilter.addAction(MediaPlaybackService.QUEUE_CHANGED);
+        metaChangeFilter.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         registerReceiver(mTrackListListener, metaChangeFilter);
         new MusicUtils.BitmapDownloadThread(this, null, 0, 20).start();
     }
