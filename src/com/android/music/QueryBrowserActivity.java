@@ -434,6 +434,7 @@ public class QueryBrowserActivity extends ListActivity implements
             vh.line1 = (TextView) v.findViewById(R.id.line1);
             vh.line2 = (TextView) v.findViewById(R.id.line2);
             vh.icon = (ImageView) v.findViewById(R.id.icon);
+            v.findViewById(R.id.animView).setVisibility(View.INVISIBLE);
             v.findViewById(R.id.play_indicator).setVisibility(View.INVISIBLE);
             v.setTag(vh);
             return v;
