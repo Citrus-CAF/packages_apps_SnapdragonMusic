@@ -303,6 +303,9 @@ public class MediaPlaybackService extends Service {
                     mPlayer.setVolume(mCurrentVolume);
                     break;
                 case SERVER_DIED:
+                    if (mPlayer == null) {
+                        break;
+                    }
                     if (isPlaying()) {
                         pause(false);
                         if (isAppOnForeground(MediaPlaybackService.this)) {
@@ -2964,6 +2967,10 @@ public class MediaPlaybackService extends Service {
          */
         public void release() {
             stop();
+            if (mNextMediaPlayer != null) {
+                mNextMediaPlayer.reset();
+                mNextMediaPlayer.release();
+            }
             mCurrentMediaPlayer.release();
         }
 
