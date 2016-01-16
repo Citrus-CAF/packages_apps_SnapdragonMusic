@@ -51,6 +51,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -365,36 +366,61 @@ public class TrackBrowserActivityFragment extends Fragment
         //attaching listview listener
         mTrackList.setOnItemClickListener(this);
         // don't set the album art until after the view has been layed out
-        mTrackList.post(new Runnable() {
-
-            public void run() {
-                setAlbumArtBackground();
-            }
-        });
+        if (mGetArtworkAsyncTask != null
+                && mGetArtworkAsyncTask.getStatus() != AsyncTask.Status.FINISHED) {
+            mGetArtworkAsyncTask.cancel(true);
+        }
+        mGetArtworkAsyncTask = new GetArtworkAsyncTask();
+        mGetArtworkAsyncTask.execute();
 
         return rootView;
     }
 
-    private void setAlbumArtBackground() {
+    private AsyncTask<Void, Void, Bitmap> mGetArtworkAsyncTask = null;
+
+    private class GetArtworkAsyncTask extends AsyncTask<Void, Void, Bitmap> {
+
+        @Override
+        protected Bitmap doInBackground(Void... params) {
+            return getArtwork();
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            if (!isCancelled()) {
+                setAlbumArtBackground(bitmap);
+            }
+        }
+    }
+
+    private Bitmap getArtwork() {
+        if (!mEditMode) {
+            long albumid = Long.valueOf(mAlbumId);
+            Bitmap bm = MusicUtils.getArtwork(mParentActivity,
+                    -1, albumid, false);
+            return bm;
+        }
+        return null;
+    }
+
+    private void setAlbumArtBackground(Bitmap bm) {
         if (!mEditMode) {
             try {
-                long albumid = Long.valueOf(mAlbumId);
-                Bitmap bm = MusicUtils.getArtwork(mParentActivity,
-                        -1, albumid, false);
                 if (bm != null) {
-
                     mImageView.setImageBitmap(bm);
                     MusicUtils.setBackground(mImageView, bm);
                     mTrackList.setCacheColorHint(0);
                     return;
-                }else{
+                } else {
                     mImageView.setImageBitmap(MusicUtils.getDefaultArtwork(mParentActivity));
                 }
             } catch (Exception ex) {
             }
         }
-    //  mTrackList.setBackgroundColor(0xff000000);
-        mTrackList.setCacheColorHint(0);
+        //  mTrackList.setBackgroundColor(0xff000000);
+        if (mTrackList != null) {
+            mTrackList.setCacheColorHint(0);
+        }
     }
 
     public void onServiceConnected(ComponentName name, IBinder service)
