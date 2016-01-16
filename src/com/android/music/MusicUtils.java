@@ -1665,7 +1665,7 @@ public class MusicUtils {
         ContentResolver res = context.getContentResolver();
         Cursor c = res.query(Uri.parse("content://media/external/fs_id"), null, null, null, null);
         int id = -1;
-        if (c != null) {
+        if (c != null && c.getCount() > 0) {
             c.moveToFirst();
             id = c.getInt(0);
             c.close();
