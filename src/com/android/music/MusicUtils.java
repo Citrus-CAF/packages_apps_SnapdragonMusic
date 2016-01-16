@@ -1798,7 +1798,7 @@ public class MusicUtils {
         BitmapDrawable defaultArtwork = (BitmapDrawable) context.getResources()
                 .getDrawable(R.drawable.unknown_artists);
 
-        if (cursor.moveToPosition(from)) {
+        if (cursor != null && cursor.moveToPosition(from)) {
 
             do {
 
