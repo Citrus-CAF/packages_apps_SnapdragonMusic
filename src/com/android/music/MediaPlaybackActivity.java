@@ -1859,7 +1859,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             if (msg.what == GET_ALBUM_ART
                     && (mAlbumId != albumid || albumid < 0)) {
                 // while decoding the new image, show the default album art
-                Message numsg = mHandler.obtainMessage(ALBUM_ART_DECODED, null);
+                Message numsg = mHandler.obtainMessage(ALBUM_ART_DECODED,
+                        MusicUtils.getDefaultArtwork(MediaPlaybackActivity.this));
                 mHandler.removeMessages(ALBUM_ART_DECODED);
                 mHandler.sendMessageDelayed(numsg, 600);
                 // Don't allow default artwork here, because we want to fall back to
