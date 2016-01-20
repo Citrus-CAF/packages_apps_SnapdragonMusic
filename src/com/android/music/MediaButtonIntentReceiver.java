@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
 import android.view.KeyEvent;
 
 /**
@@ -35,6 +36,7 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
     private static long mLastClickTime = 0;
     private static boolean mDown = false;
     private static boolean mLaunched = false;
+    private static PowerManager.WakeLock mWakeLock = null;
 
     private static Handler mHandler = new Handler() {
         @Override
@@ -57,6 +59,14 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
     
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (mWakeLock == null) {
+            PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, this.getClass().getName());
+            mWakeLock.setReferenceCounted(false);
+        }
+        // hold wakelock for 3s as to ensure button press event thorougly processed.
+        mWakeLock.acquire(3000);
+
         String intentAction = intent.getAction();
         if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intentAction)) {
             Intent i = new Intent(context, MediaPlaybackService.class);
