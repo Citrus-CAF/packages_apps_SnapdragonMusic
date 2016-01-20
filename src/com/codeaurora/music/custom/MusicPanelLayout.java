@@ -686,10 +686,10 @@ public class MusicPanelLayout extends ViewGroup {
             canvas.getClipBounds(mSampleRectangle);
             if (!mOverlayData) {
                 if (mIsSlippingUp) {
-                    mSampleRectangle.bottom = Math.min(mSampleRectangle.bottom,
+                    mSampleRectangle.bottom = Math.max(mSampleRectangle.bottom,
                             mSlippingView.getTop());
                 } else {
-                    mSampleRectangle.top = Math.max(mSampleRectangle.top,
+                    mSampleRectangle.top = Math.min(mSampleRectangle.top,
                             mSlippingView.getBottom());
                 }
             }

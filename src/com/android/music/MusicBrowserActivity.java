@@ -257,7 +257,6 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
     public void onResume() {
         // TODO Auto-generated method stub
         super.onResume();
-        updateNowPlaying(this);
     }
 
     public void showScreen(int position) {
