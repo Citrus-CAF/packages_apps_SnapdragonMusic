@@ -585,8 +585,12 @@ public class PlaylistBrowserFragment extends Fragment implements
                if (getUriFromPath(parentActivity,uri) != 0) {
                     long [] selectSong = new long [1];
                     selectSong[0] = getUriFromPath(parentActivity,uri);
-                        MusicUtils.addToPlaylist(parentActivity.getApplicationContext(),
-                                selectSong, mPlaylistId);
+                    int id = mPlaylistId;
+                    if (mPlaylistId == FAVORITE_PLAYLIST) {
+                        id = MusicUtils.idForplaylist(getActivity(), "My Favorite");
+                    }
+                    MusicUtils.addToPlaylist(parentActivity.getApplicationContext(),
+                            selectSong, id);
                 } else {
                     Toast.makeText(parentActivity, R.string.add_file_failed, Toast.LENGTH_SHORT).show();
                 }
@@ -1155,7 +1159,10 @@ public class PlaylistBrowserFragment extends Fragment implements
                     }
                     if (parentActivity.getResources()
                             .getBoolean(R.bool.add_playlist_by_filemanager)) {
-                        popup.getMenu().add(0, ADD_BY_FILEMANAGER, 0, R.string.add_by_filemanager);
+                        if (id != RECENTLY_ADDED_PLAYLIST) {
+                            popup.getMenu().add(0, ADD_BY_FILEMANAGER, 0,
+                                    R.string.add_by_filemanager);
+                        }
                     }
                     popup.show();
                     popup.setOnMenuItemClickListener(new OnMenuItemClickListener() {
