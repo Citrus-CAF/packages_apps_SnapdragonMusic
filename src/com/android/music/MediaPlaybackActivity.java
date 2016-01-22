@@ -1933,4 +1933,12 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mProgress.setProgress(mProgress.getMax());
         //updatePlayPause();
         }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            updateNowPlaying(mActivity);
+        }
+    }
 }
