@@ -290,7 +290,6 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setDataAndType(Uri.EMPTY, "vnd.android.cursor.dir/track");
         intent.putExtra("album", mCurrentAlbumId);
-        Cursor c = (Cursor) getExpandableListAdapter().getChild(groupPosition, childPosition);
         mArtistCursor.moveToPosition(groupPosition);
         mCurrentArtistId = mArtistCursor.getString(mArtistCursor.getColumnIndex(MediaStore.Audio.Artists._ID));
         intent.putExtra("artist", mCurrentArtistId);
@@ -396,11 +395,19 @@ public class ArtistAlbumBrowserActivity extends ExpandableListActivity
                 Log.d("Artist/Album", "no child");
                 return;
             }
-            Cursor c = (Cursor) getExpandableListAdapter().getChild(gpos, cpos);
-            c.moveToPosition(cpos);
-            mCurrentArtistId = null;
-            mCurrentAlbumId = Long.valueOf(mi.id).toString();
-            mCurrentAlbumName = c.getString(c.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM));
+            Cursor c = null;
+            try {
+                c = (Cursor) getExpandableListAdapter().getChild(gpos, cpos);
+                c.moveToPosition(cpos);
+                mCurrentArtistId = null;
+                mCurrentAlbumId = Long.valueOf(mi.id).toString();
+                mCurrentAlbumName = c.getString(c.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM));
+            }catch (Exception e){
+            } finally {
+                if (c != null) {
+                    c.close();
+                }
+            }
             gpos = gpos - getExpandableListView().getHeaderViewsCount();
             mArtistCursor.moveToPosition(gpos);
             mCurrentArtistNameForAlbum = mArtistCursor.getString(

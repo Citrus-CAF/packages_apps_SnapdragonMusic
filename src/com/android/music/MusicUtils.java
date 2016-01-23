@@ -1268,18 +1268,18 @@ public class MusicUtils {
         if (albumid < 0 && songid < 0) {
             throw new IllegalArgumentException("Must specify an album or a song id");
         }
-
+        ParcelFileDescriptor pfd = null;
         try {
             if (albumid < 0) {
                 Uri uri = Uri.parse("content://media/external/audio/media/" + songid + "/albumart");
-                ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(uri, "r");
+                pfd = context.getContentResolver().openFileDescriptor(uri, "r");
                 if (pfd != null) {
                     FileDescriptor fd = pfd.getFileDescriptor();
                     bm = BitmapFactory.decodeFileDescriptor(fd);
                 }
             } else {
                 Uri uri = ContentUris.withAppendedId(sArtworkUri, albumid);
-                ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(uri, "r");
+                pfd = context.getContentResolver().openFileDescriptor(uri, "r");
                 if (pfd != null) {
                     FileDescriptor fd = pfd.getFileDescriptor();
                     bm = BitmapFactory.decodeFileDescriptor(fd);
@@ -1287,6 +1287,13 @@ public class MusicUtils {
             }
         } catch (IllegalStateException ex) {
         } catch (FileNotFoundException ex) {
+        } finally {
+            try {
+                if (pfd != null) {
+                    pfd.close();
+                }
+            } catch (IOException e) {
+            }
         }
         if (bm != null) {
             mCachedBit = bm;

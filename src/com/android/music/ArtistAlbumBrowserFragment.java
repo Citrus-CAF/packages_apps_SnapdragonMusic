@@ -318,10 +318,18 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
         Fragment fragment = null;
         fragment = new TrackBrowserActivityFragment();
         Bundle args = new Bundle();
-        Cursor c = (Cursor) mExpandableListView.getExpandableListAdapter()
-                .getChild(groupPosition, childPosition);
-        String album = c.getString(c
-                .getColumnIndex(MediaStore.Audio.Albums.ALBUM));
+        Cursor c = null;
+        try {
+            c = (Cursor) mExpandableListView.getExpandableListAdapter()
+                    .getChild(groupPosition, childPosition);
+            String album = c.getString(c
+                    .getColumnIndex(MediaStore.Audio.Albums.ALBUM));
+        } catch (Exception e) {
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
         mArtistCursor.moveToPosition(groupPosition);
         mCurrentArtistId = mArtistCursor.getString(mArtistCursor
                 .getColumnIndex(MediaStore.Audio.Artists._ID));
