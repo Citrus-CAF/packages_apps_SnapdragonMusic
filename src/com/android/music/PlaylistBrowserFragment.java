@@ -1083,6 +1083,10 @@ public class PlaylistBrowserFragment extends Fragment implements
                                 }
                             }
                         } catch (SQLiteException ex) {
+                        } finally {
+                            if (cursor != null) {
+                                cursor.close();
+                            }
                         }
                     }
                     playlistMap.put(id, mAlbumArtArray);

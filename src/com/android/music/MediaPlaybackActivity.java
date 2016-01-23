@@ -545,14 +545,19 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         String[] mCursorCols = new String[] {
                 MediaStore.Audio.Playlists.Members._ID
         };
-
-        Cursor cursor = getContentResolver().query(uri, mCursorCols, where.toString(), null, null);
-
+        Cursor cursor = null;
         int memberId = -1;
-
-        if (cursor != null && cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            memberId = cursor.getInt(0);
+        try {
+            cursor = getContentResolver().query(uri, mCursorCols, where.toString(), null, null);
+            if (cursor != null && cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                memberId = cursor.getInt(0);
+            }
+        } catch (Exception e) {
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
 
         return memberId;
@@ -955,12 +960,20 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             if (resultCode == RESULT_OK) {
                 Uri uri = intent.getData();
                 if (uri != null) {
-                    Cursor c = updateTrackCursor();
-                    if (c != null) {
-                        long[] list = MusicUtils
-                                .getSongListForCursor(updateTrackCursor());
-                        int plid = Integer.parseInt(uri.getLastPathSegment());
-                        MusicUtils.addToPlaylist(this, list, plid);
+                    Cursor c = null;
+                    try {
+                        c = updateTrackCursor();
+                        if (c != null) {
+                            long[] list = MusicUtils
+                                    .getSongListForCursor(c);
+                            int plid = Integer.parseInt(uri.getLastPathSegment());
+                            MusicUtils.addToPlaylist(this, list, plid);
+                        }
+                    } catch (Exception e) {
+                    } finally {
+                        if (c != null) {
+                            c.close();
+                        }
                     }
                 }
             }
