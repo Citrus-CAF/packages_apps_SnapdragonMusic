@@ -276,6 +276,10 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
             }
         }
 
+        int maxTabPosition = mNavigationAdapter.getCount()-1;
+        if(position > maxTabPosition){
+           position = 0;
+        }
         mNavigationAdapter.setClickPosition(position);
         mDrawerListView.invalidateViews();
         FragmentManager fragmentManager = getFragmentManager();
