@@ -2851,6 +2851,7 @@ public class MediaPlaybackService extends Service {
         private Handler mHandler;
         private boolean mIsInitialized = false;
         private boolean mIsComplete = false;
+        private boolean mIsNextPrepared = false;
 
         public MultiPlayer() {
             mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
@@ -2863,10 +2864,19 @@ public class MediaPlaybackService extends Service {
             }
         }
 
+        private MediaPlayer.OnPreparedListener mNextPreparedListener =
+                new MediaPlayer.OnPreparedListener(){
+            @Override
+            public void onPrepared(MediaPlayer mp){
+                Log.d(LOGTAG, "next MediaPlayer Prepared");
+                mIsNextPrepared = true;
+            }
+        };
+
         private boolean setDataSourceImpl(MediaPlayer player, String path) {
             try {
                 player.reset();
-                player.setOnPreparedListener(null);
+                player.setOnPreparedListener(mNextPreparedListener);
                 if (path.startsWith("content://")) {
                     player.setDataSource(MediaPlaybackService.this, Uri.parse(path));
                 } else {
@@ -2914,7 +2924,7 @@ public class MediaPlaybackService extends Service {
                     public void run() {
                         if (mIsSupposedToBePlaying
                             && mCurrentMediaPlayer != null
-                            && mIsInitialized) {
+                            && mIsInitialized && mIsNextPrepared) {
                             mCurrentMediaPlayer.setNextMediaPlayer(mp);
                             if (mNextMediaPlayer != null) {
                                 mNextMediaPlayer.release();
@@ -2923,6 +2933,7 @@ public class MediaPlaybackService extends Service {
                         } else {
                             mp.release();
                         }
+                        mIsNextPrepared = false;
                     }
                 }, 300);
             } else {
