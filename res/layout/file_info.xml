@@ -28,76 +28,83 @@
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="fill_parent"
     android:orientation="vertical"
     android:padding="20dp" >
 
-    <TextView
+    <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/song_title" />
+        android:orientation="vertical" >
 
-    <TextView
-        android:id="@+id/song_name"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp" />
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/song_title" />
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/album_title" />
+        <TextView
+            android:id="@+id/song_name"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp" />
 
-    <TextView
-        android:id="@+id/album_name"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp" />
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/album_title" />
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/artist_title" />
+        <TextView
+            android:id="@+id/album_name"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp" />
 
-    <TextView
-        android:id="@+id/artist_name"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp" />
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/artist_title" />
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/duration_title" />
+        <TextView
+            android:id="@+id/artist_name"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp" />
 
-    <TextView
-        android:id="@+id/duration_name"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp" />
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/duration_title" />
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/size_title" />
+        <TextView
+            android:id="@+id/duration_name"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp" />
 
-    <TextView
-        android:id="@+id/size_name"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp" />
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/size_title" />
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/path_title" />
+        <TextView
+            android:id="@+id/size_name"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp" />
 
-    <TextView
-        android:id="@+id/path_name"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp" />
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/path_title" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/path_name"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp" />
+
+    </LinearLayout>
+
+</ScrollView>
