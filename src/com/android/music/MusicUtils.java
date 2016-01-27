@@ -475,6 +475,9 @@ public class MusicUtils {
     }
 
     public static long [] getSongListForPlaylist(Context context, long plid) {
+        if (plid == -1) {
+            return sEmptyList;
+        }
         final String[] ccols = new String[] { MediaStore.Audio.Playlists.Members.AUDIO_ID };
         Cursor cursor = query(context, MediaStore.Audio.Playlists.Members.getContentUri("external", plid),
                 ccols, null, null, MediaStore.Audio.Playlists.Members.DEFAULT_SORT_ORDER);
@@ -720,6 +723,8 @@ public class MusicUtils {
             // this shouldn't happen (the menuitems shouldn't be visible
             // unless the selected item represents something playable
             Log.e("MusicBase", "ListSelection null");
+        } else if (playlistid == -1) {
+            Log.e(TAG,"addToPlaylist failed playlistid="+playlistid);
         } else {
             int size = ids.length;
             ContentResolver resolver = context.getContentResolver();

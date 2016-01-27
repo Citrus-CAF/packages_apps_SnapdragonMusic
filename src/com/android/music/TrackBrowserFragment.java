@@ -1397,6 +1397,8 @@ public class TrackBrowserFragment extends Fragment implements
                 } else {
                     // Nothing is playing.
                 }
+            } else if (mPlaylist.equals("-1")) {
+                Log.e(LOGTAG, "getTrackCursor failed mPlaylist="+mPlaylist);
             } else if (mPlaylist.equals("podcasts")) {
                 where.append(" AND " + MediaStore.Audio.Media.IS_PODCAST + "=1");
                 Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;

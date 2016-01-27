@@ -547,6 +547,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         };
         Cursor cursor = null;
         int memberId = -1;
+        if (playlistId == -1) {
+            return memberId;
+        }
         try {
             cursor = getContentResolver().query(uri, mCursorCols, where.toString(), null, null);
             if (cursor != null && cursor.getCount() > 0) {
