@@ -1209,6 +1209,10 @@ public class MusicUtils {
      */
     public static Bitmap getArtwork(Context context, long song_id,
             long album_id, boolean allowdefault) {
+        if (context == null) {
+            Log.d(TAG, "getArtwork failed because context is null");
+            return null;
+        }
 
         if (album_id < 0) {
             // This is something that is not in the database, so get the album
