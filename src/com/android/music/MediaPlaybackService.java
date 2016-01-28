@@ -2892,6 +2892,8 @@ public class MediaPlaybackService extends Service {
             } catch (IllegalArgumentException ex) {
                 // TODO: notify the user why the file couldn't be opened
                 return false;
+            } catch (IllegalStateException ex) {
+                return false;
             }
             player.setOnCompletionListener(listener);
             player.setOnErrorListener(errorListener);
