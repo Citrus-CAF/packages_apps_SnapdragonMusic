@@ -895,7 +895,9 @@ public class MusicUtils {
             v.setVisibility(View.GONE);
         }
         TextView tv = (TextView) a.findViewById(R.id.sd_message);
-        tv.setText(message);
+        if (tv != null) {
+            tv.setText(message);
+        }
     }
 
     public static void hideDatabaseError(Activity a) {
@@ -1580,6 +1582,9 @@ public class MusicUtils {
     }
 
     public static void updateNowPlaying(Activity a, boolean isExpanded) {
+        if (sService == null) {
+            return;
+        }
         View nowPlayingView = ((MediaPlaybackActivity) a).getNowPlayingView();
         if (nowPlayingView == null) {
             Log.e(TAG, "Draglayout null");

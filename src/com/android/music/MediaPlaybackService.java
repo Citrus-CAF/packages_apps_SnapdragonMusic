@@ -2924,7 +2924,8 @@ public class MediaPlaybackService extends Service {
                     public void run() {
                         if (mIsSupposedToBePlaying
                             && mCurrentMediaPlayer != null
-                            && mIsInitialized && mIsNextPrepared) {
+                            && mIsInitialized && mIsNextPrepared
+                            && mCurrentMediaPlayer.isPlaying()) {
                             mCurrentMediaPlayer.setNextMediaPlayer(mp);
                             if (mNextMediaPlayer != null) {
                                 mNextMediaPlayer.release();
@@ -2939,6 +2940,9 @@ public class MediaPlaybackService extends Service {
             } else {
                 // failed to open next, we'll transition the old fashioned way,
                 // which will skip over the faulty file
+                if (mp != null) {
+                    mp.release();
+                }
                 if (mNextMediaPlayer != null) {
                     mNextMediaPlayer.release();
                     mNextMediaPlayer = null;
