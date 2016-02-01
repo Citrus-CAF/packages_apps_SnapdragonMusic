@@ -121,12 +121,19 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
         MusicUtils.updateGroupByFolder(this);
         init();
         initView();
-        createFavoritePlaylist();
+        mFavoritePlaylistThread.start();
         String shuf = getIntent().getStringExtra("autoshuffle");
         if ("true".equals(shuf)) {
             mToken = MusicUtils.bindToService(this, autoshuffle);
         }
     }
+
+    private Thread mFavoritePlaylistThread = new Thread() {
+        @Override
+        public void run() {
+            createFavoritePlaylist();
+        }
+    };
 
     private void createFavoritePlaylist() {
         // TODO Auto-generated method stub
