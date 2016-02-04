@@ -723,7 +723,7 @@ public class TrackBrowserActivityFragment extends Fragment
                         // compilation album
                         fancyName = mTrackCursor.getString(idx);
                     }
-                    cursor.deactivate();
+                    cursor.close();
                 }
             } else if (mRootPath != null) {
                 fancyName = mRootPath;
@@ -754,7 +754,7 @@ public class TrackBrowserActivityFragment extends Fragment
                         cursor.moveToFirst();
                         fancyName = cursor.getString(0);
                     }
-                    cursor.deactivate();
+                    cursor.close();
                 }
             }
         } else if (mGenre != null) {
@@ -770,7 +770,7 @@ public class TrackBrowserActivityFragment extends Fragment
                     cursor.moveToFirst();
                     fancyName = cursor.getString(0);
                 }
-                cursor.deactivate();
+                cursor.close();
             }
         }
 
@@ -2129,6 +2129,10 @@ public class TrackBrowserActivityFragment extends Fragment
                 cursor = null;
             }
             if (cursor != mActivity.mTrackCursor) {
+                if (mActivity.mTrackCursor != null) {
+                    mActivity.mTrackCursor.close();
+                    mActivity.mTrackCursor = null;
+                }
                 mActivity.mTrackCursor = cursor;
                 super.changeCursor(cursor);
                 getColumnIndices(cursor);

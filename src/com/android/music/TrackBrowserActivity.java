@@ -518,7 +518,7 @@ public class TrackBrowserActivity extends ListActivity
                         // compilation album
                         fancyName = mTrackCursor.getString(idx);
                     }    
-                    cursor.deactivate();
+                    cursor.close();
                 }
             } else if (mRootPath != null) {
                 fancyName = mRootPath;
@@ -549,7 +549,7 @@ public class TrackBrowserActivity extends ListActivity
                         cursor.moveToFirst();
                         fancyName = cursor.getString(0);
                     }
-                    cursor.deactivate();
+                    cursor.close();
                 }
             }
         } else if (mGenre != null) {
@@ -564,7 +564,7 @@ public class TrackBrowserActivity extends ListActivity
                     cursor.moveToFirst();
                     fancyName = cursor.getString(0);
                 }
-                cursor.deactivate();
+                cursor.close();
             }
         }
 
@@ -1821,6 +1821,10 @@ public class TrackBrowserActivity extends ListActivity
                 cursor = null;
             }
             if (cursor != mActivity.mTrackCursor) {
+                if (mActivity.mTrackCursor != null) {
+                    mActivity.mTrackCursor.close();
+                    mActivity.mTrackCursor = null;
+                }
                 mActivity.mTrackCursor = cursor;
                 super.changeCursor(cursor);
                 getColumnIndices(cursor);

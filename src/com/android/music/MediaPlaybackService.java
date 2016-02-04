@@ -166,7 +166,7 @@ public class MediaPlaybackService extends Service {
     private long [] mPlayList = null;
     private int mPlayListLen = 0;
     private Vector<Integer> mHistory = new Vector<Integer>(MAX_HISTORY_SIZE);
-    private Cursor mCursor;
+    private TrackInfo mCurrentTrackInfo;
     private int mPlayPos = -1;
     private int mNextPlayPos = -1;
     private static final String LOGTAG = "MediaPlaybackService";
@@ -276,6 +276,18 @@ public class MediaPlaybackService extends Service {
 
     private RemoteControlClient mRemoteControlClient;
 
+    private class TrackInfo {
+        public long mId;
+        public String mArtistName;
+        public long mArtistId;
+        public String mAlbumName;
+        public long mAlbumId;
+        public String mTrackName;
+        public String mData;
+        public int mPodcast;
+        public long mBookmark;
+    }
+
     private Handler mMediaplayerHandler = new Handler() {
         float mCurrentVolume = 1.0f;
         @Override
@@ -331,12 +343,8 @@ public class MediaPlaybackService extends Service {
                         }
                         break;
                     }
-                    if (mCursor != null) {
-                        mCursor.close();
-                        mCursor = null;
-                    }
                     if (mPlayPos >= 0 && mPlayPos < mPlayList.length) {
-                        mCursor = getCursorForId(mPlayList[mPlayPos]);
+                        mCurrentTrackInfo = getTrackInfoFromId(mPlayList[mPlayPos]);
                     }
                     notifyChange(META_CHANGED);
                     notifyChange(PLAYSTATE_CHANGED);
@@ -641,11 +649,6 @@ public class MediaPlaybackService extends Service {
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         mMediaplayerHandler.removeCallbacksAndMessages(null);
 
-        if (mCursor != null) {
-            mCursor.close();
-            mCursor = null;
-        }
-
         unregisterReceiver(mIntentReceiver);
         if (mUnmountReceiver != null) {
             unregisterReceiver(mUnmountReceiver);
@@ -817,6 +820,10 @@ public class MediaPlaybackService extends Service {
                         new String [] {"_id"}, "_id=" + mPlayList[mPlayPos] , null, null);
             if (crsr == null || crsr.getCount() == 0) {
                 // wait a bit and try again
+                if (crsr != null) {
+                    crsr.close();
+                    crsr = null;
+                }
                 SystemClock.sleep(3000);
                 crsr = getContentResolver().query(
                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -1039,17 +1046,13 @@ public class MediaPlaybackService extends Service {
 
     private boolean openItem (long playItemUid) {
         boolean isSuccess = false;
-        if (mCursor != null) {
-            mCursor.close();
-            mCursor = null;
-        }
         if (mPlayListLen == 0) {
             Log.e(LOGTAG, "Playlist Length = 0");
             return isSuccess;
         }
         stop(false);
-        mCursor = getCursorForId(playItemUid);
-        if (mCursor != null) {
+        mCurrentTrackInfo = getTrackInfoFromId(playItemUid);
+        if (mCurrentTrackInfo != null) {
             long [] list = new long[] { playItemUid };
             enqueue(list, NOW);
             Log.i(LOGTAG, "Opened UID: " + playItemUid);
@@ -1118,9 +1121,8 @@ public class MediaPlaybackService extends Service {
                 public void onReceive(Context context, Intent intent) {
                     String action = intent.getAction();
                     if (action.equals(Intent.ACTION_MEDIA_EJECT)) {
-                        if (mCursor != null && !mCursor.isAfterLast()) {
-                            String curTrackPath = mCursor.getString(mCursor.getColumnIndexOrThrow(
-                                    MediaStore.Audio.Media.DATA));
+                        if (mCurrentTrackInfo != null ) {
+                            String curTrackPath = mCurrentTrackInfo.mData;
                             // if the currently playing track is on the SD card
                             if (curTrackPath != null && curTrackPath.contains(intent.getData().getPath())) {
                                 saveQueue(true);
@@ -1340,8 +1342,7 @@ public class MediaPlaybackService extends Service {
         }
         mPlayListLen += addlen;
         if (mPlayListLen == 0) {
-            mCursor.close();
-            mCursor = null;
+            mCurrentTrackInfo = null;
             notifyChange(META_CHANGED);
         }
     }
@@ -1485,8 +1486,9 @@ public class MediaPlaybackService extends Service {
         }
     }
 
-    private Cursor getCursorForId(long lid) {
+    private TrackInfo getTrackInfoFromId(long lid) {
         String id = String.valueOf(lid);
+        TrackInfo ret = null;
         Cursor c = null;
         try {
             c = getContentResolver().query(
@@ -1494,6 +1496,7 @@ public class MediaPlaybackService extends Service {
                     mCursorCols, "_id=" + id, null, null);
             if (c != null && c.getCount() > 0) {
                 c.moveToFirst();
+                ret = parseTrackInfoFromCurrentTrackInfo(c);
             } else {
                 if (c != null) {
                     c.close();
@@ -1501,39 +1504,50 @@ public class MediaPlaybackService extends Service {
                 }
             }
         } catch (Exception e) {
+            ret = null;
+        } finally {
             if (c != null) {
                 c.close();
                 c = null;
             }
         }
-        return c;
+        return ret;
+    }
+
+    private TrackInfo parseTrackInfoFromCurrentTrackInfo(Cursor c) {
+        TrackInfo ret = new TrackInfo();
+        try {
+            ret.mId = c.getLong(IDCOLIDX);
+            ret.mAlbumId = c.getLong(c.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID));
+            ret.mAlbumName = c.getString(c.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
+            ret.mArtistId = c.getLong(c.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID));
+            ret.mArtistName = c.getString(c.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
+            ret.mTrackName = c.getString(c.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
+            ret.mData = c.getString(c.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+            ret.mPodcast = c.getInt(PODCASTCOLIDX);
+            ret.mBookmark = c.getLong(c.getColumnIndexOrThrow(MediaStore.Audio.Media.BOOKMARK));
+        } catch (IllegalArgumentException e) {
+            ret = null;
+        }
+        return ret;
     }
 
     private void openCurrentAndNext() {
         synchronized (this) {
-            if (mCursor != null) {
-                mCursor.close();
-                mCursor = null;
-            }
-
             if (mPlayListLen == 0) {
                 return;
             }
             stop(false);
 
-            mCursor = getCursorForId(mPlayList[mPlayPos]);
-            if (null == mCursor || 0 == mCursor.getCount()) return;
+            mCurrentTrackInfo = getTrackInfoFromId(mPlayList[mPlayPos]);
+            if (null == mCurrentTrackInfo) return;
             while(true) {
                 if (open(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI + "/" +
-                                mCursor.getLong(IDCOLIDX))) {
+                                mCurrentTrackInfo.mId)) {
                     break;
                 }
                 // if we get here then opening the file failed. We can close the cursor now, because
                 // we're either going to create a new one next, or stop trying
-                if (mCursor != null) {
-                    mCursor.close();
-                    mCursor = null;
-                }
                 if (mOpenFailedCounter++ < 10 &&  mPlayListLen > 1) {
                     int pos = getNextPosition(false);
                     if (pos < 0) {
@@ -1547,7 +1561,7 @@ public class MediaPlaybackService extends Service {
                     mPlayPos = pos;
                     stop(false);
                     mPlayPos = pos;
-                    mCursor = getCursorForId(mPlayList[mPlayPos]);
+                    mCurrentTrackInfo = getTrackInfoFromId(mPlayList[mPlayPos]);
                 } else {
                     mOpenFailedCounter = 0;
                     if (!mQuietMode) {
@@ -1623,8 +1637,8 @@ public class MediaPlaybackService extends Service {
             }
             String actualFilePath = "";
             int status = 0;
-            // if mCursor is null, try to associate path with a database cursor
-            if (mCursor == null) {
+            // if mCurrentTrackInfo is null, try to associate path with a database cursor
+            if (mCurrentTrackInfo == null) {
                 ContentResolver resolver = getContentResolver();
                 Uri uri;
                 String where;
@@ -1638,28 +1652,36 @@ public class MediaPlaybackService extends Service {
                    where = MediaStore.Audio.Media.DATA + "=?";
                    selectionArgs = new String[] { path };
                 }
+                Cursor c = null;
                 try {
-                    mCursor = resolver.query(uri, mCursorCols, where, selectionArgs, null);
-                    if  (mCursor != null) {
-                        if (mCursor.getCount() == 0) {
-                            mCursor.close();
-                            mCursor = null;
+                    c = resolver.query(uri, mCursorCols, where, selectionArgs, null);
+                    if  (c != null) {
+                        if (c.getCount() == 0) {
+                            c.close();
+                            c = null;
+                            mCurrentTrackInfo = null;
                         } else {
-                            mCursor.moveToNext();
+                            c.moveToNext();
+                            mCurrentTrackInfo = parseTrackInfoFromCurrentTrackInfo(c);
                             ensurePlayListCapacity(1);
                             mPlayListLen = 1;
-                            mPlayList[0] = mCursor.getLong(IDCOLIDX);
+                            mPlayList[0] = mCurrentTrackInfo.mId;
                             mPlayPos = 0;
                         }
                     }
                     notifyChange(META_CHANGED);
-                } catch (UnsupportedOperationException ex) {
+                } catch (Exception ex) {
+                    mCurrentTrackInfo = null;
+                } finally {
+                    if (c != null) {
+                        c.close();
+                        c = null;
+                    }
                 }
             }
 
-            if (mCursor != null && (mCursor.getCount() != 0)) {
-                actualFilePath = mCursor.getString(mCursor
-                        .getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+            if (mCurrentTrackInfo != null) {
+                actualFilePath = mCurrentTrackInfo.mData;
             }
             //TODO: DRM changes here.
 //            if (actualFilePath != null
@@ -1830,10 +1852,7 @@ public class MediaPlaybackService extends Service {
             mPlayer.stop();
         }
         mFileToPlay = null;
-        if (mCursor != null) {
-            mCursor.close();
-            mCursor = null;
-        }
+        mCurrentTrackInfo = null;
         if (remove_status_icon) {
             gotoIdleState();
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -2124,7 +2143,7 @@ public class MediaPlaybackService extends Service {
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.Audio.Media.BOOKMARK, pos);
                 Uri uri = ContentUris.withAppendedId(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, mCursor.getLong(IDCOLIDX));
+                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, mCurrentTrackInfo.mId);
                 getContentResolver().update(uri, values, null, null);
             }
         } catch (SQLiteException ex) {
@@ -2309,10 +2328,7 @@ public class MediaPlaybackService extends Service {
                 if (mPlayListLen == 0) {
                     stop(true);
                     mPlayPos = -1;
-                    if (mCursor != null) {
-                        mCursor.close();
-                        mCursor = null;
-                    }
+                    mCurrentTrackInfo = null;
                 } else {
                     if (mPlayPos >= mPlayListLen) {
                         mPlayPos = 0;
@@ -2471,73 +2487,73 @@ public class MediaPlaybackService extends Service {
 
     public String getArtistName() {
         synchronized(this) {
-            if (mCursor == null) {
+            if (mCurrentTrackInfo == null) {
                 return null;
             }
-            return mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
+            return mCurrentTrackInfo.mArtistName;
         }
     }
 
     public long getArtistId() {
         synchronized (this) {
-            if (mCursor == null) {
+            if (mCurrentTrackInfo == null) {
                 return -1;
             }
-            return mCursor.getLong(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID));
+            return mCurrentTrackInfo.mArtistId;
         }
     }
 
     public String getAlbumName() {
         synchronized (this) {
-            if (mCursor == null) {
+            if (mCurrentTrackInfo == null) {
                 return null;
             }
-            return mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
+            return mCurrentTrackInfo.mAlbumName;
         }
     }
 
     public long getAlbumId() {
         synchronized (this) {
-            if (mCursor == null) {
+            if (mCurrentTrackInfo == null) {
                 return -1;
             }
-            return mCursor.getLong(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID));
+            return mCurrentTrackInfo.mAlbumId;
         }
     }
 
     public String getTrackName() {
         synchronized (this) {
-            if (mCursor == null) {
+            if (mCurrentTrackInfo == null) {
                 return null;
             }
-            return mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
+            return mCurrentTrackInfo.mTrackName;
         }
     }
 
     public String getData() {
         synchronized (this) {
-            if (mCursor == null) {
+            if (mCurrentTrackInfo == null) {
                 return null;
             }
-            return mCursor.getString(mCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+            return mCurrentTrackInfo.mData;
         }
     }
 
     private boolean isPodcast() {
         synchronized (this) {
-            if (mCursor == null) {
+            if (mCurrentTrackInfo == null) {
                 return false;
             }
-            return (mCursor.getInt(PODCASTCOLIDX) > 0);
+            return (mCurrentTrackInfo.mPodcast > 0);
         }
     }
 
     private long getBookmark() {
         synchronized (this) {
-            if (mCursor == null) {
+            if (mCurrentTrackInfo == null) {
                 return 0;
             }
-            return mCursor.getLong(BOOKMARKCOLIDX);
+            return mCurrentTrackInfo.mBookmark;
         }
     }
 
@@ -2992,8 +3008,8 @@ public class MediaPlaybackService extends Service {
                 mIsComplete = true;
                 if (mp == mCurrentMediaPlayer && mNextMediaPlayer != null) {
                     if (mPlayPos == mNextPlayPos) {
-                        mCursor = getCursorForId(mPlayList[mNextPlayPos]);
-                        if (mCursor == null) {
+                        mCurrentTrackInfo = getTrackInfoFromId(mPlayList[mNextPlayPos]);
+                        if (mCurrentTrackInfo == null) {
                            stop();
                            mNextMediaPlayer.release();
                            mNextMediaPlayer = null;

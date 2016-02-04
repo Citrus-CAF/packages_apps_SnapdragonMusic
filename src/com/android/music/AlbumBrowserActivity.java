@@ -726,6 +726,10 @@ public class AlbumBrowserActivity extends Activity implements
                 cursor = null;
             }
             if (cursor != mActivity.mAlbumCursor) {
+                if (mActivity.mAlbumCursor != null) {
+                    mActivity.mAlbumCursor.close();
+                    mActivity.mAlbumCursor = null;
+                }
                 mActivity.mAlbumCursor = cursor;
                 getColumnIndices(cursor);
                 super.changeCursor(cursor);

@@ -851,6 +851,7 @@ public class PlaylistBrowserFragment extends Fragment implements
                 autoplaylistscursor.addRow(playlist);
                 c.moveToNext();
             }
+            c.close();
         }
 
         //Cursor cc = new MergeCursor(new Cursor[] { autoplaylistscursor, c });
@@ -1028,6 +1029,7 @@ public class PlaylistBrowserFragment extends Fragment implements
                                 .getContentUri("external", Long.valueOf(id));
                         Cursor ret = parentActivity.getContentResolver().query(
                                 uri, mPlaylistMemberCols1, null, null, null);
+                        try {
                         if (ret.moveToFirst()) {
                             int count = ret.getCount();
                             if (count > 4)
@@ -1047,6 +1049,12 @@ public class PlaylistBrowserFragment extends Fragment implements
                                 }
                                 mAlbumArtArray[j] = b;
                                 ret.moveToNext();
+                            }
+                        }
+                        } catch (SQLiteException e) {
+                        } finally {
+                            if (ret != null) {
+                                ret.close();
                             }
                         }
                     } else {
@@ -1189,6 +1197,10 @@ public class PlaylistBrowserFragment extends Fragment implements
                 cursor = null;
             }
             if (cursor != mFragment.mPlaylistCursor) {
+                if (mFragment.mPlaylistCursor != null) {
+                    mFragment.mPlaylistCursor.close();
+                    mFragment.mPlaylistCursor = null;
+                }
                 mFragment.mPlaylistCursor = cursor;
                 super.changeCursor(cursor);
                 getColumnIndices(cursor);

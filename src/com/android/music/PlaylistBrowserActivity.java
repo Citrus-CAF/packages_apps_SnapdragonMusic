@@ -799,6 +799,10 @@ public class PlaylistBrowserActivity extends Activity implements
                 cursor = null;
             }
             if (cursor != mActivity.mPlaylistCursor) {
+                if (mActivity.mPlaylistCursor != null) {
+                    mActivity.mPlaylistCursor.close();
+                    mActivity.mPlaylistCursor = null;
+                }
                 mActivity.mPlaylistCursor = cursor;
                 super.changeCursor(cursor);
                 getColumnIndices(cursor);
