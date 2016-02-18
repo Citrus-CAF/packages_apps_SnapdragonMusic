@@ -542,6 +542,10 @@ public class QueryBrowserActivity extends ListActivity implements
                 cursor = null;
             }
             if (cursor != mActivity.mQueryCursor && cursor != null && !cursor.isClosed()) {
+                if (mActivity.mQueryCursor != null) {
+                    mActivity.mQueryCursor.close();
+                    mActivity.mQueryCursor = null;
+                }
                 mActivity.mQueryCursor = cursor;
                 super.changeCursor(cursor);
             }

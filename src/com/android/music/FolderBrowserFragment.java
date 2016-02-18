@@ -602,6 +602,10 @@ public class FolderBrowserFragment extends Fragment
                 cursor = null;
             }
             if (cursor != mFragment.mFilesCursor) {
+                if (mFragment.mFilesCursor != null) {
+                    mFragment.mFilesCursor.close();
+                    mFragment.mFilesCursor = null;
+                }
                 mFragment.mFilesCursor = cursor;
                 getColumnIndices(cursor);
                 super.changeCursor(cursor);

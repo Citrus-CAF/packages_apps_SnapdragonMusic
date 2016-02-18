@@ -545,6 +545,10 @@ public class FolderBrowserActivity extends ListActivity
                 cursor = null;
             }
             if (cursor != mActivity.mFilesCursor) {
+                if (mActivity.mFilesCursor != null) {
+                    mActivity.mFilesCursor.close();
+                    mActivity.mFilesCursor = null;
+                }
                 mActivity.mFilesCursor = cursor;
                 getColumnIndices(cursor);
                 super.changeCursor(cursor);

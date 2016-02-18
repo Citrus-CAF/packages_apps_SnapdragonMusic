@@ -1006,6 +1006,10 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
                 cursor = null;
             }
             if (cursor != mFragment.mArtistCursor) {
+                if (mFragment.mArtistCursor != null) {
+                    mFragment.mArtistCursor.close();
+                    mFragment.mArtistCursor = null;
+                }
                 mFragment.mArtistCursor = cursor;
                 getColumnIndices(cursor);
                 super.changeCursor(cursor);
