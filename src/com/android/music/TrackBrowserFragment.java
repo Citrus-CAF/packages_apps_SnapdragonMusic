@@ -124,6 +124,7 @@ public class TrackBrowserFragment extends Fragment implements
 
     private static final String LOGTAG = "TrackBrowser";
     private final static int TOTAL_LIST_ITEMS = 10;
+    private static final String FAVORITE_PLAYLIST = "-100";
 
     private String[] mCursorCols;
     private String[] mPlaylistMemberCols;
@@ -1424,6 +1425,10 @@ public class TrackBrowserFragment extends Fragment implements
                 ret = queryhandler.doQuery(uri, mCursorCols, where.toString(),
                         null, MediaStore.Audio.Media.DEFAULT_SORT_ORDER, async);
             } else {
+                if (mPlaylist.equals(FAVORITE_PLAYLIST)) {
+                    mPlaylist = String.valueOf(
+                         MusicUtils.idForplaylist(getActivity(), "My Favorite"));
+                }
                 Uri uri = MediaStore.Audio.Playlists.Members.getContentUri(
                         "external", Long.valueOf(mPlaylist));
                 if (!TextUtils.isEmpty(filter)) {
