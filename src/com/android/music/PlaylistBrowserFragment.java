@@ -793,7 +793,7 @@ public class PlaylistBrowserFragment extends Fragment implements
     }
 
     private Cursor mergedCursor(Cursor c) {
-        if (c == null) {
+        if (c == null || !isAdded()) {
             return null;
         }
         if (c instanceof MergeCursor) {
