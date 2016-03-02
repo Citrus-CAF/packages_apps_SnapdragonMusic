@@ -8,11 +8,23 @@ LOCAL_SRC_FILES := $(call all-java-files-under, src) \
 
 LOCAL_STATIC_JAVA_LIBRARIES = android-support-v4
 LOCAL_STATIC_JAVA_LIBRARIES += android-support-v7-appcompat
+LOCAL_STATIC_JAVA_LIBRARIES += android-support-design
+
+LOCAL_RESOURCE_DIR = \
+        $(LOCAL_PATH)/res \
+        frameworks/support/v7/appcompat/res \
+        frameworks/support/design/res
+
 LOCAL_PACKAGE_NAME := Music
 
 LOCAL_CERTIFICATE := platform
 
 LOCAL_PROGUARD_FLAG_FILES := proguard.flags
+
+LOCAL_AAPT_FLAGS := \
+        --auto-add-overlay \
+        --extra-packages android.support.v7.appcompat \
+        --extra-packages android.support.design
 
 include $(BUILD_PACKAGE)
 
