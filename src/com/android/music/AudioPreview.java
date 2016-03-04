@@ -218,6 +218,9 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
                 // hide option menu if the uri may not be opened by music app
                 if (authority.contains("attachmentprovider") || authority.contains("mms")) {
                     mMediaId = -1;
+                    if (mPlayer != null && mPlayer.isPrepared()) {
+                        setNames();
+                    }
                 } else {
                     // Try to get the display name from another content provider.
                     // Don't specifically ask for the display name though, since the
