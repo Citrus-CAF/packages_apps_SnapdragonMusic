@@ -60,6 +60,8 @@ import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Audio.Playlists;
 import android.provider.MediaStore.Video.VideoColumns;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -913,16 +915,29 @@ public class TrackBrowserActivityFragment extends Fragment
             int[] ringtones = { USE_AS_RINGTONE, USE_AS_RINGTONE_2 };
             int[] menuStrings = { R.string.ringtone_menu_1,
                                   R.string.ringtone_menu_2 };
+            int[] menuSimNameStrings = { R.string.ringtone_menu_sim_name_1,
+                                         R.string.ringtone_menu_sim_name_2 };
             for (int i = 0; i < TelephonyManager.getDefault().getPhoneCount(); i++) {
-                menu.getMenu().add(0, ringtones[i], 0, menuStrings[i]);
+                if (TelephonyManager.getDefault().getSimState(i) == TelephonyManager.SIM_STATE_READY
+                    && getActivity() != null) {
+                    String menuItem;
+                    SubscriptionInfo info =
+                              SubscriptionManager.from(getActivity()).
+                                  getActiveSubscriptionInfoForSimSlotIndex(i);
+                    if (info != null) {
+                        menuItem = getString(menuSimNameStrings[i], info.getDisplayName());
+                    } else {
+                        menuItem = getString(menuStrings[i]);
+                    }
+                    menu.getMenu().add(0, ringtones[i], 0, menuItem);
+                }
             }
-        } else {
+        } else if (TelephonyManager.getDefault().getSimState() == TelephonyManager.SIM_STATE_READY) {
             menu.getMenu().add(0, USE_AS_RINGTONE, 0, R.string.ringtone_menu);
         }
         menu.getMenu().add(0, SHARE, 0, R.string.share);
         menu.getMenu().add(0, DETAILS, 0, R.string.details);
     }
-
 
     private boolean onContextItemSelected(MenuItem item, int position) {
         switch (item.getItemId()) {

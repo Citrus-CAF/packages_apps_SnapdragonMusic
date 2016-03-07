@@ -225,6 +225,8 @@
     <!-- Individual song context menu item -->
     <string name="ringtone_menu_1">Use as slot 1 ringtone</string>
     <string name="ringtone_menu_2">Use as slot 2 ringtone</string>
+    <string name="ringtone_menu_sim_name_1">Use as slot 1 \"<xliff:g id="NAME">%s</xliff:g>\" ringtone</string>
+    <string name="ringtone_menu_sim_name_2">Use as slot 2 \"<xliff:g id="NAME">%s</xliff:g>\" ringtone</string>
     <!-- Menu item -->
     <string name="ringtone_menu_short_1">Use as ringtone 1</string>
     <string name="ringtone_menu_short_2">Use as ringtone 2</string>
