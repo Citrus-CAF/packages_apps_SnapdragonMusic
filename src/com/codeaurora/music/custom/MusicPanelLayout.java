@@ -401,10 +401,7 @@ public class MusicPanelLayout extends ViewGroup {
 
                 w -= lp.leftMargin + lp.rightMargin;
             } else if (mSlippingView == childView) {
-                if (h < SCREEN_HEIGHT_CONTROL)
-                    h = h - MARGIN_BOTTOM;
-                else
-                    h = h - MediaPlaybackActivity.getStatusBarHeight();
+                h = h - MediaPlaybackActivity.getStatusBarHeight();
 
             }
             int childWSpec;

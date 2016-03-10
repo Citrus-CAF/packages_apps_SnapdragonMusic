@@ -102,7 +102,7 @@ public class MediaPlaybackService extends Service {
     private HashMap<Byte, Boolean> mAttributePairs = new HashMap<Byte, Boolean>();
 
     public static final String PLAYSTATE_CHANGED = "com.android.music.playstatechanged";
-    public static final String META_CHANGED = "com.android.music.metachanged";
+    public static final String META_CHANGED = "com.android.music.metadatachanged";
     public static final String SHUFFLE_CHANGED = "com.android.music.shuffle";
     public static final String REPEAT_CHANGED = "com.android.music.repeat";
     public static final String QUEUE_CHANGED = "com.android.music.queuechanged";
@@ -1238,7 +1238,7 @@ public class MediaPlaybackService extends Service {
      * "album" - String: the name of the album
      * "track" - String: the name of the track
      * The intent has an action that is one of
-     * "com.android.music.metachanged"
+     * "com.android.music.metadatachanged"
      * "com.android.music.queuechanged",
      * "com.android.music.playbackcomplete"
      * "com.android.music.playstatechanged"
