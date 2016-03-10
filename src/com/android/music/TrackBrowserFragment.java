@@ -237,7 +237,7 @@ public class TrackBrowserFragment extends Fragment implements
                 MediaStore.Audio.Media.IS_MUSIC,
                 MediaStore.Audio.Media.SIZE
         };
-        if (MusicUtils.isGroupByFolder() && mParent != -1) {
+        if (MusicUtils.isGroupByFolder() && mParent != -1 && mParentActivity.mToolbar != null) {
             mParentActivity.mToolbar.setNavigationContentDescription("back");
             mParentActivity.mToolbar
                     .setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
