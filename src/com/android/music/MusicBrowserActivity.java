@@ -103,9 +103,9 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
      */
     @Override
     public void onCreate(Bundle icicle) {
-        super.onCreate(icicle);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+        super.onCreate(icicle);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         setContentView(R.layout.music_browser);
         mActivityInstance = this;

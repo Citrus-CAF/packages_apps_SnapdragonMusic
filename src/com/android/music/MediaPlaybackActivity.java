@@ -91,7 +91,9 @@ import com.codeaurora.music.custom.MusicPanelLayout.BoardState;
 
 import java.util.Locale;
 
-public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
+import android.support.v7.app.AppCompatActivity;
+
+public class MediaPlaybackActivity extends AppCompatActivity implements MusicUtils.Defs,
         ServiceConnection, OnCompletionListener {
     private static final int USE_AS_RINGTONE = CHILD_MENU_BASE;
     private static final int SAVE_AS_PLAYLIST = CHILD_MENU_BASE + 2;
@@ -146,11 +148,11 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle icicle) {
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(icicle);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         mAlbumArtWorker = new Worker("album art worker");
         mAlbumArtHandler = new AlbumArtHandler(mAlbumArtWorker.getLooper());
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         mActivity = this;
         IntentFilter metaChangeFilter = new IntentFilter();
         metaChangeFilter.addAction(MediaPlaybackService.META_CHANGED);

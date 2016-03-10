@@ -29,49 +29,74 @@
 
 package com.codeaurora.music.custom;
 
-import com.android.music.R;
-import com.android.music.TouchInterceptor;
-import com.android.music.R.dimen;
 
+import com.android.music.TouchInterceptor;
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.WindowManager;
+import android.support.v4.view.NestedScrollingChild;
+import android.support.v4.view.NestedScrollingChildHelper;
 
-public class TouchInterceptorScrollView extends TouchInterceptor {
+public class TouchInterceptorScrollView extends TouchInterceptor implements
+    NestedScrollingChild{
 
     private final String TAG = "TouchInterceptorScrollView";
-    private Context mContext;
-    private WindowManager mWM;
+    private final NestedScrollingChildHelper mNestedScrollingChildHelper;
 
     public TouchInterceptorScrollView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        mContext = context;
+        mNestedScrollingChildHelper = new NestedScrollingChildHelper(this);
+        setNestedScrollingEnabled(true);
     }
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int count = 0;
-        try {
-            count = getAdapter().getCount();
-        } catch (NullPointerException e) {
-            Log.e(TAG, "exception caught");
-        }
-        setMeasuredDimension(getDisplayWidth(), (int) (count * getResources()
-                .getDimension(R.dimen.list_item_size)));
-    }
-    private int getDisplayWidth() {
-        int width = SCREEN_WIDTH;
-        if (mWM != null) {
-            width = mWM.getDefaultDisplay().getWidth();
-        } else {
-            mWM = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-            if (mWM != null) {
-                width = mWM.getDefaultDisplay().getWidth();
-            }
-        }
-        return width;
+    public void setNestedScrollingEnabled(boolean enabled) {
+        mNestedScrollingChildHelper.setNestedScrollingEnabled(enabled);
     }
 
+    @Override
+    public boolean isNestedScrollingEnabled() {
+        return mNestedScrollingChildHelper.isNestedScrollingEnabled();
+    }
+
+    @Override
+    public boolean startNestedScroll(int axes) {
+        return mNestedScrollingChildHelper.startNestedScroll(axes);
+    }
+
+    @Override
+    public void stopNestedScroll() {
+        mNestedScrollingChildHelper.stopNestedScroll();
+    }
+
+    @Override
+    public boolean hasNestedScrollingParent() {
+        return mNestedScrollingChildHelper.hasNestedScrollingParent();
+    }
+
+    @Override
+    public boolean dispatchNestedScroll(int dxConsumed, int dyConsumed,
+                   int dxUnconsumed, int dyUnconsumed, int[] offsetInWindow) {
+        return mNestedScrollingChildHelper.dispatchNestedScroll(dxConsumed,
+                    dyConsumed, dxUnconsumed, dyUnconsumed, offsetInWindow);
+    }
+
+    @Override
+    public boolean dispatchNestedPreScroll(int dx, int dy, int[] consumed,
+                    int[] offsetInWindow) {
+        return mNestedScrollingChildHelper.dispatchNestedPreScroll(dx, dy,
+               consumed, offsetInWindow);
+    }
+
+    @Override
+    public boolean dispatchNestedFling(float velocityX, float velocityY,
+                    boolean consumed) {
+        return mNestedScrollingChildHelper.dispatchNestedFling(velocityX,
+               velocityY, consumed);
+    }
+
+    @Override
+    public boolean dispatchNestedPreFling(float velocityX, float velocityY) {
+        return mNestedScrollingChildHelper.dispatchNestedPreFling(velocityX,
+               velocityY);
+    }
 }
