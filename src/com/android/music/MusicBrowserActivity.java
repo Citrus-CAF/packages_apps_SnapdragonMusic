@@ -161,6 +161,7 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
                       getResources().getDisplayMetrics());
         mDrawerListView.getLayoutParams().height = height;
         RelativeLayout equalizerLayout = (RelativeLayout) findViewById(R.id.equalizer_btn_view);
+        RelativeLayout exitLayout = (RelativeLayout) findViewById(R.id.exit_btn_view);
         mNavigationAdapter = new NavigationDrawerListAdapter(this);
         mDrawerListView.setAdapter(mNavigationAdapter);
         activeTab = MusicUtils.getIntPref(this, "activetab", 0);
@@ -190,6 +191,18 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
             public void onClick(View v) {
                 MusicUtils.startSoundEffectActivity(MusicBrowserActivity.this);
                 mDrawerLayout.closeDrawer(Gravity.START);
+            }
+        });
+
+        exitLayout.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    MusicUtils.sService.stop();
+                    SysApplication.getInstance().exit();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         });
 

@@ -178,6 +178,7 @@
     <string name="more_music">更多音乐</string>
     <string name="more_video">更多视频</string>
     <string name="equalizer_button_text">"音效"</string>
+    <string name="exit_button_text">"退出"</string>
     <string name="navigation_drawer_title">"音乐"</string>
     <string-array name="title_array_folder">
         <item>音乐人</item>
