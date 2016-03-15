@@ -272,6 +272,8 @@ public class MediaPlaybackService extends Service {
     private int mCardId;
 
     private MediaAppWidgetProvider mAppWidgetProvider = MediaAppWidgetProvider.getInstance();
+    private MediaAppWidgetProviderLarge mAppWidgetProviderLarge =
+            MediaAppWidgetProviderLarge.getInstance();
 
     // interval after which we stop the service when idle
     private static final int IDLE_DELAY = 60000;
@@ -486,6 +488,11 @@ public class MediaPlaybackService extends Service {
                 // because they were just added.
                 int[] appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
                 mAppWidgetProvider.performUpdate(MediaPlaybackService.this, appWidgetIds);
+            } else if (MediaAppWidgetProviderLarge.CMDAPPWIDGETUPDATE_LARGE.equals(cmd)) {
+                // Someone asked us to refresh a set of specific widgets, probably
+                // because they were just added.
+                int[] appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
+                mAppWidgetProviderLarge.performUpdate(MediaPlaybackService.this, appWidgetIds);
             }
         }
     };
@@ -1314,6 +1321,7 @@ public class MediaPlaybackService extends Service {
 
         // Share this notification directly with our widgets
         mAppWidgetProvider.notifyChange(this, what);
+        mAppWidgetProviderLarge.notifyChange(this, what);
     }
 
     private void ensurePlayListCapacity(int size) {
@@ -1436,11 +1444,13 @@ public class MediaPlaybackService extends Service {
             saveBookmarkIfNeeded();
             // avoid "Selected playlist is empty" flicks in the music widget
             mAppWidgetProvider.setPauseState(true);
+            mAppWidgetProviderLarge.setPauseState(true);
             openCurrentAndNext();
             if (oldId != getAudioId()) {
                 notifyChange(META_CHANGED);
             }
             mAppWidgetProvider.setPauseState(false);
+            mAppWidgetProviderLarge.setPauseState(false);
         }
     }
 
@@ -2117,10 +2127,12 @@ public class MediaPlaybackService extends Service {
             saveBookmarkIfNeeded();
             // avoid "Selected playlist is empty" flicks in the music widget
             mAppWidgetProvider.setPauseState(true);
+            mAppWidgetProviderLarge.setPauseState(true);
             stop(false);
             mPlayPos = pos;
             openCurrentAndNext();
             mAppWidgetProvider.setPauseState(false);
+            mAppWidgetProviderLarge.setPauseState(false);
             play();
             notifyChange(META_CHANGED);
             notifyChange(PLAYSTATE_CHANGED);
