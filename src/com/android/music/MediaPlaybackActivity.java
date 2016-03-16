@@ -18,35 +18,34 @@ package com.android.music;
 
 import com.android.music.MusicUtils.ServiceToken;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.app.KeyguardManager;
 import android.app.NotificationManager;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.media.audiofx.AudioEffect;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -60,15 +59,19 @@ import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SubMenu;
 import android.view.TouchDelegate;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.View.OnClickListener;
+import android.view.animation.AccelerateInterpolator;
+import android.widget.AbsListView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -76,25 +79,27 @@ import android.widget.FrameLayout;
 import android.widget.PopupMenu;
 import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
-import com.android.music.SysApplication;
 import com.codeaurora.music.custom.FragmentsFactory;
 import com.codeaurora.music.custom.MusicPanelLayout;
-import com.codeaurora.music.custom.MusicPanelLayout.ViewHookSlipListener;
 import com.codeaurora.music.custom.MusicPanelLayout.BoardState;
+import com.codeaurora.music.lyric.Lyric;
+import com.codeaurora.music.lyric.LyricAdapter;
+import com.codeaurora.music.lyric.LyricView;
+import com.codeaurora.music.lyric.PlayListItem;
 
+import java.io.File;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import android.support.v7.app.AppCompatActivity;
-
-public class MediaPlaybackActivity extends AppCompatActivity implements MusicUtils.Defs,
-        ServiceConnection, OnCompletionListener {
+public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
+        ServiceConnection, OnCompletionListener, AbsListView.OnScrollListener{
     private static final int USE_AS_RINGTONE = CHILD_MENU_BASE;
     private static final int SAVE_AS_PLAYLIST = CHILD_MENU_BASE + 2;
     private static final int CLEAR_PLAYLIST = CHILD_MENU_BASE + 4;
@@ -129,6 +134,25 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
     private boolean isBackPressed = false;
     private boolean mCheckIfSeekRequired = false;
     private ImageView mFavoriteIcon;
+    private boolean mEnableMyFavorites = false;
+    private ImageView mLyricIcon;
+    private LinearLayout mLandControlPanel;
+    private LinearLayout mAudioPlayerBody;
+    private LyricView mLyricView;
+    private LyricAdapter mLyricAdapter;
+    private PlayListItem mCurPlayListItem;
+    private Lyric mLyric;
+    private boolean mHasLrc = false;
+    private boolean mIsLyricDisplay = false;
+    private boolean mIsTouchTrigger = false;
+    private boolean mOrientationChanged = false;
+    private boolean mMetaChanged = false;
+    private boolean mIsExeLyricAnimal = false;
+    private int mFirstVisibleItem = 0;
+    private int mLyricSrollState = SCROLL_STATE_IDLE;
+    private String mStrTrackName = null;
+    private ResumeScrollTask mResumeScrollTask;
+    private final Timer mResumeTimer = new Timer("resumeTimer");
 
     public MediaPlaybackActivity() {
     }
@@ -160,6 +184,8 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
         metaChangeFilter.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         registerReceiver(mTrackListListener, metaChangeFilter);
         new MusicUtils.BitmapDownloadThread(this, null, 0, 20).start();
+        mEnableMyFavorites
+                = getApplicationContext().getResources().getBoolean(R.bool.enable_myfavorites);
     }
 
     public void init() {
@@ -169,26 +195,42 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
         mNowPlayingIcon = (ImageView) findViewById(R.id.nowplay_icon);
         mNowPlayingIcon.setOnClickListener(mPauseListener);
         setTouchDelegate(mNowPlayingIcon);
-        mCurrentTime = (TextView) findViewById(R.id.currenttimer);
-        mTotalTime = (TextView) findViewById(R.id.totaltimer);
-        mProgress = (ProgressBar) findViewById(R.id.progress);
-        mQueueLayout = (FrameLayout) findViewById(R.id.current_queue_view);
         mAlbum = (ImageView) findViewById(R.id.album);
-        mAlbumIcon = (ImageView) findViewById(R.id.album_icon_view);
         mArtistName = (TextView) findViewById(R.id.artist_name);
         mTrackName = (TextView) findViewById(R.id.song_name);
         mCurrentPlaylist = (ImageButton) findViewById(R.id.animViewcurrPlaylist);
         mCurrentPlaylist.setOnClickListener(mQueueListener);
+        setTouchDelegate(mCurrentPlaylist);
+        seekmethod = 1;
+
+        mDeviceHasDpad
+                = (getResources().getConfiguration().navigation == Configuration.NAVIGATION_DPAD);
+
+        mTouchSlop = ViewConfiguration.get(this).getScaledTouchSlop();
+        mMenuOverFlow = (ImageButton) findViewById(R.id.menu_overflow_audio_header);
+        mMenuOverFlow.setOnClickListener(mActiveButtonPopUpMenuListener);
+        setTouchDelegate(mMenuOverFlow);
+        SysApplication.getInstance().addActivity(this);
+        mLyricAdapter = new LyricAdapter(this);
+        mAudioPlayerBody = (LinearLayout)findViewById(R.id.audio_player_body);
+        initAudioPlayerBodyView();
+    }
+
+    private void initAudioPlayerBodyView() {
+        mCurrentTime = (TextView) findViewById(R.id.currenttimer);
+        mTotalTime = (TextView) findViewById(R.id.totaltimer);
+        mProgress = (ProgressBar) findViewById(R.id.progress);
+        mQueueLayout = (FrameLayout) findViewById(R.id.current_queue_view);
         mFavoriteIcon = (ImageView) findViewById(R.id.favorite);
-        if(getApplicationContext().getResources().getBoolean(R.bool.enable_myfavorites)){
+        if (mEnableMyFavorites) {
             mFavoriteIcon.setVisibility(View.VISIBLE);
             mFavoriteIcon.setImageResource(getFavoriteStatus() ? R.drawable.favorite_selected
                     : R.drawable.favorite_unselected);
             mFavoriteIcon.setOnClickListener(mFavoriteListener);
-        }else{
+        } else {
             mFavoriteIcon.setVisibility(View.GONE);
         }
-        setTouchDelegate(mCurrentPlaylist);
+        mAlbumIcon = (ImageView) findViewById(R.id.album_icon_view);
         boolean isRtl = TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) ==
                             View.LAYOUT_DIRECTION_RTL;
         mPrevButton = (RepeatingImageButton) findViewById(R.id.previcon);
@@ -202,12 +244,8 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
         mNextButton.setOnClickListener(mNextListener);
         mNextButton.setRepeatListener(mFfwdListener, 260);
         mNextButton.setImageResource(isRtl ? R.drawable.pre : R.drawable.nex);
-        seekmethod = 1;
         MusicPanelLayout.mSeekBarView = mProgress;
         MusicPanelLayout.mSongsQueueView = mQueueLayout;
-
-        mDeviceHasDpad = (getResources().getConfiguration().navigation == Configuration.NAVIGATION_DPAD);
-
         mShuffleButton = (ImageButton) findViewById(R.id.randomicon);
         mShuffleButton.setOnClickListener(mShuffleListener);
         mRepeatButton = (ImageButton) findViewById(R.id.loop_view);
@@ -217,12 +255,22 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
             seeker.setOnSeekBarChangeListener(mSeekListener);
         }
         mProgress.setMax(1000);
-        mTouchSlop = ViewConfiguration.get(this).getScaledTouchSlop();
-        mMenuOverFlow = (ImageButton) findViewById(R.id.menu_overflow_audio_header);
-        mMenuOverFlow.setOnClickListener(mActiveButtonPopUpMenuListener);
-        setTouchDelegate(mMenuOverFlow);
-        SysApplication.getInstance().addActivity(this);
-
+        mLyricView = (LyricView) findViewById(R.id.lv_lyric);
+        mLyricView.setAdapter(mLyricAdapter);
+        mLyricView.setSelection(mFirstVisibleItem);
+        mLyricView.setOnScrollListener(this);
+        mLyricIcon = (ImageView) findViewById(R.id.lyric);
+        mLyricIcon.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mIsLyricDisplay) {
+                    hideLyric();
+                } else {
+                    showLyric();
+                }
+            }
+        });
+        mLandControlPanel = (LinearLayout)findViewById(R.id.land_control_panel);
     }
 
     int mInitialX = -1;
@@ -477,11 +525,23 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
     public void closeQueuePanel(){
         mSlidingPanelLayout.mIsQueueEnabled = false;
         mAlbumIcon.setVisibility(View.VISIBLE);
+        mLyricIcon.setVisibility(View.VISIBLE);
+        if (mLandControlPanel != null) {
+            mLandControlPanel.setVisibility(View.VISIBLE);
+        }
+        if (mHasLrc && mIsLyricDisplay) {
+            mLyricView.setVisibility(View.VISIBLE);
+            queueNextRefreshForLyric(REFRESH_MILLIONS);
+            mLyricIcon.setImageResource(R.drawable.ic_lyric_selected);
+        }
+        if (mEnableMyFavorites) {
+            mFavoriteIcon.setVisibility(View.VISIBLE);
+        }
         mMenuOverFlow.setOnClickListener(mActiveButtonPopUpMenuListener);
         mCurrentPlaylist.setImageResource(R.drawable.list);
         if (mFragment != null) {
             MusicUtils.isFragmentRemoved = true;
-            getFragmentManager().beginTransaction().remove(mFragment).commit();
+            getFragmentManager().beginTransaction().remove(mFragment).commitAllowingStateLoss();
         }
     }
 
@@ -491,6 +551,10 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
             if (mAlbumIcon.getVisibility() == View.GONE) {
                 mSlidingPanelLayout.mIsQueueEnabled = false;
                 mAlbumIcon.setVisibility(View.VISIBLE);
+                mLyricIcon.setVisibility(View.VISIBLE);
+                if (mEnableMyFavorites) {
+                    mFavoriteIcon.setVisibility(View.VISIBLE);
+                }
                 mMenuOverFlow.setOnClickListener(mActiveButtonPopUpMenuListener);
                 mCurrentPlaylist.setImageResource(R.drawable.list);
                 if (mFragment != null) {
@@ -498,10 +562,22 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
                     getFragmentManager().beginTransaction().remove(mFragment)
                             .commit();
                 }
+                if (mHasLrc && mIsLyricDisplay) {
+                    mLyricView.setVisibility(View.VISIBLE);
+                    queueNextRefreshForLyric(REFRESH_MILLIONS);
+                    mLyricIcon.setImageResource(R.drawable.ic_lyric_selected);
+                }
+                if (mLandControlPanel != null) {
+                    mLandControlPanel.setVisibility(View.VISIBLE);
+                }
             } else {
                 MusicUtils.isFragmentRemoved = false;
                 mSlidingPanelLayout.mIsQueueEnabled = true;
                 mAlbumIcon.setVisibility(View.GONE);
+                mLyricIcon.setVisibility(View.GONE);
+                if (mEnableMyFavorites) {
+                    mFavoriteIcon.setVisibility(View.GONE);
+                }
                 mCurrentPlaylist.setImageResource(R.drawable.list_active);
                 mMenuOverFlow.setOnClickListener(mPopUpMenuListener);
                 mFragment = new TrackBrowserFragment();
@@ -513,6 +589,13 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
                         .beginTransaction()
                         .add(R.id.current_queue_view, mFragment,
                                 "track_fragment").commit();
+                if (mHasLrc) {
+                    mLyricView.setVisibility(View.GONE);
+                    stopQueueNextRefreshForLyric();
+                }
+                if (mLandControlPanel != null) {
+                    mLandControlPanel.setVisibility(View.GONE);
+                }
             }
         }
     };
@@ -807,12 +890,24 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
         super.onResume();
         updateNowPlaying(this);
         updateTrackInfo();
+        queueNextRefreshForLyric(REFRESH_MILLIONS);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        stopQueueNextRefreshForLyric();
     }
 
     @Override
     public void onDestroy() {
         mAlbumArtWorker.quit();
         unregisterReceiver(mTrackListListener);
+        if (mLyricAdapter != null) {
+            mLyricAdapter.release();
+        }
+        mLyric.release();
+        mLyricView = null;
         super.onDestroy();
     }
 
@@ -1539,9 +1634,12 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
                 setRepeatButtonImage();
                 setShuffleButtonImage();
                 setPauseButtonImage();
+                if (mEnableMyFavorites) {
+                    mFavoriteIcon.setImageResource(getFavoriteStatus() ?
+                            R.drawable.favorite_selected : R.drawable.favorite_unselected);
+                }
                 return;
-            }
-            else{
+            } else {
                 mSlidingPanelLayout.setHookState(BoardState.HIDDEN);
                 mNowPlayingView.setVisibility(View.GONE);
             }
@@ -1607,6 +1705,34 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
             }
         } catch (RemoteException ex) {
         }
+        updateLyricDisplay();
+    }
+
+    private void updateLyricDisplay() {
+        try {
+            if (mService != null && mService.isPlaying()) {
+                if (mIsLyricDisplay) {
+                    String trackName = mService.getTrackName();
+                    if (!mHasLrc || (mMetaChanged && trackName != null
+                            && !trackName.equals(mStrTrackName))) {
+                        setLyric(mService.getData(), trackName);
+                    } else {
+                        mMetaChanged = false;
+                    }
+                    if (mHasLrc) {
+                        queueNextRefreshForLyric(REFRESH_MILLIONS);
+                    }
+                }
+            } else {
+                stopQueueNextRefreshForLyric();
+            }
+            if (mHasLrc && mIsLyricDisplay && mLyricView.getVisibility() != View.VISIBLE &&
+                    MusicUtils.isFragmentRemoved) {
+                mLyricView.setVisibility(View.VISIBLE);
+                mLyricIcon.setImageResource(R.drawable.ic_lyric_selected);
+            }
+        } catch (RemoteException ex) {
+        }
     }
 
     private ImageView mAlbum;
@@ -1626,6 +1752,7 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
     private static final int QUIT = 2;
     private static final int GET_ALBUM_ART = 3;
     private static final int ALBUM_ART_DECODED = 4;
+    private static final int REFRESH_LYRIC = 1;
 
     private void queueNextRefresh(long delay) {
         if (!paused) {
@@ -1728,6 +1855,7 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(MediaPlaybackService.META_CHANGED)) {
+                mMetaChanged = true;
                 // redraw the artist/title info and
                 // set new max for progress bar
                 updateTrackInfo();
@@ -1875,7 +2003,8 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
             long albumid = ((AlbumSongIdWrapper) msg.obj).albumid;
             long songid = ((AlbumSongIdWrapper) msg.obj).songid;
             if (msg.what == GET_ALBUM_ART
-                    && (mAlbumId != albumid || albumid < 0)) {
+                    && (mAlbumId != albumid || albumid < 0 || mOrientationChanged)) {
+                mOrientationChanged = false;
                 // while decoding the new image, show the default album art
                 Message numsg = mHandler.obtainMessage(ALBUM_ART_DECODED,
                         MusicUtils.getDefaultArtwork(MediaPlaybackActivity.this));
@@ -1955,8 +2084,393 @@ public class MediaPlaybackActivity extends AppCompatActivity implements MusicUti
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        stopQueueNextRefreshForLyric();
+        mAudioPlayerBody.removeAllViews();
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View view = inflater.inflate(R.layout.audio_player_body, null);
+        ViewGroup.LayoutParams layoutParams = mAudioPlayerBody.getLayoutParams();
+        mAudioPlayerBody.addView(view, layoutParams);
+        initAudioPlayerBodyView();
+        mOrientationChanged = true;
+        updateTrackInfo();
+        setPauseButtonImage();
+        setRepeatButtonImage();
+        setShuffleButtonImage();
+
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             updateNowPlaying(mActivity);
+        }
+        if (!MusicUtils.isFragmentRemoved) {
+            mSlidingPanelLayout.mIsQueueEnabled = true;
+            mAlbumIcon.setVisibility(View.GONE);
+            mLyricIcon.setVisibility(View.GONE);
+            if (mEnableMyFavorites) {
+                mFavoriteIcon.setVisibility(View.GONE);
+            }
+            mCurrentPlaylist.setImageResource(R.drawable.list_active);
+            mMenuOverFlow.setOnClickListener(mPopUpMenuListener);
+            mFragment = new TrackBrowserFragment();
+            Bundle args = new Bundle();
+            args.putString("playlist", "nowplaying");
+            args.putBoolean("editValue", true);
+            mFragment.setArguments(args);
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.current_queue_view, mFragment,
+                            "track_fragment").commitAllowingStateLoss();
+            if (mHasLrc) {
+                mLyricView.setVisibility(View.GONE);
+                stopQueueNextRefreshForLyric();
+            }
+            if (mLandControlPanel != null) {
+                mLandControlPanel.setVisibility(View.GONE);
+            }
+        }
+        mLyricAdapter.setInvalidate();
+        queueNextRefreshForLyric(REFRESH_MILLIONS);
+    }
+
+    public static final String SRC_PATH = "/Music/lrc/";
+    private static final long REFRESH_MILLIONS = 500;
+    private static final int LYRIC_SCROLL_INTERVAL = 150;
+    private static final int ENTER_LYRIC_ANIMAL_INTERVAL = 200;
+
+    private void showLyric() {
+        if (mIsExeLyricAnimal) {
+            return;
+        }
+        mIsExeLyricAnimal = true;
+        if (!mHasLrc || (!mIsLyricDisplay)) {
+            try {
+                stopQueueNextRefreshForLyric();
+                setLyric(mService.getData(),mService.getTrackName());
+            } catch (RemoteException ex) {
+                return;
+            }
+        }
+        if (mHasLrc) {
+            queueNextRefreshForLyric(REFRESH_MILLIONS);
+            enterLyricAnimal();
+        } else {
+            mIsExeLyricAnimal = false;
+        }
+    }
+
+    private void enterLyricAnimal() {
+        try {
+            if (mLyricView != null) {
+                int centerX = 0;
+                int centerY = 0;
+                int startWidth = 0;
+                int startHeight = 0;
+                if (getResources().getConfiguration().orientation
+                        == Configuration.ORIENTATION_LANDSCAPE) {
+                    centerX = mLyricView.getRight();
+                    centerY = mLyricView.getBottom();
+                    startWidth = 0;
+                    startHeight = 0;
+                } else {
+                    Rect rect = new Rect(mLyricIcon.getLeft(),
+                            mLyricIcon.getTop(),
+                            mLyricIcon.getRight(),
+                            mLyricIcon.getBottom());
+                    centerX = rect.centerX();
+                    centerY = rect.centerY();
+                    startWidth = rect.width();
+                    startHeight = rect.height();
+                }
+                AnimatorSet animatorSet = new AnimatorSet();
+                ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(mLyricView,
+                        "alpha", 0.0F, 1.0F);
+                Animator animator = ViewAnimationUtils.createCircularReveal(
+                        mLyricView,
+                        centerX,
+                        centerY,
+                        (float) Math.hypot(startWidth, startHeight),
+                        (float) Math.hypot(mLyricView.getWidth(), mLyricView.getHeight()));
+                animatorSet.setDuration(ENTER_LYRIC_ANIMAL_INTERVAL);
+                animatorSet.setInterpolator(new AccelerateInterpolator());
+                animatorSet.playTogether(animator,alphaAnimator);
+                animatorSet.addListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        mLyricView.setVisibility(View.VISIBLE);
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        mLyricIcon.setImageResource(R.drawable.ic_lyric_selected);
+                        mIsLyricDisplay = true;
+                        mIsExeLyricAnimal = false;
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+                        mIsExeLyricAnimal = false;
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+                    }
+                });
+                animatorSet.start();
+            }
+        } catch (IllegalStateException ex) {
+        }
+    }
+
+    private void hideLyric() {
+        if (mHasLrc) {
+            if (mIsExeLyricAnimal) {
+                return;
+            }
+            mIsExeLyricAnimal = true;
+            stopQueueNextRefreshForLyric();
+            exitLyricAnimal();
+        }
+    }
+
+    private void exitLyricAnimal() {
+        try {
+            if (mLyricView != null) {
+                int centerX = 0;
+                int centerY = 0;
+                int endWidth = 0;
+                int endHeight = 0;
+                if (getResources().getConfiguration().orientation
+                        == Configuration.ORIENTATION_LANDSCAPE) {
+                    centerX = mLyricView.getRight();
+                    centerY = mLyricView.getBottom();
+                    endWidth = 0;
+                    endHeight = 0;
+                } else {
+                    Rect rect = new Rect(mLyricIcon.getLeft(),
+                            mLyricIcon.getTop(),
+                            mLyricIcon.getRight(),
+                            mLyricIcon.getBottom());
+                    centerX = rect.centerX();
+                    centerY = rect.centerY();
+                    endWidth = rect.width();
+                    endHeight = rect.height();
+                }
+                AnimatorSet animatorSet = new AnimatorSet();
+                ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(mLyricView,
+                        "alpha", 1.0F, 0.0F);
+                Animator animator = ViewAnimationUtils.createCircularReveal(
+                        mLyricView,
+                        centerX,
+                        centerY,
+                        (float) Math.hypot(mLyricView.getWidth(), mLyricView.getHeight()),
+                        (float) Math.hypot(endWidth, endHeight));
+                animatorSet.setDuration(ENTER_LYRIC_ANIMAL_INTERVAL);
+                animatorSet.setInterpolator(new AccelerateInterpolator());
+                animatorSet.playTogether(animator, alphaAnimator);
+                animatorSet.addListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        mLyricView.setVisibility(View.GONE);
+                        mLyricIcon.setImageResource(R.drawable.ic_lyric_unselected);
+                        mIsLyricDisplay = false;
+                        mIsExeLyricAnimal = false;
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+                        mIsExeLyricAnimal = false;
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+                    }
+                });
+                animatorSet.start();
+            }
+        } catch (IllegalStateException ex) {
+        }
+    }
+
+    public void setLyric(String path,String trackName) {
+        if (trackName != null) {
+            File lrcfile = null;
+            mStrTrackName = trackName;
+            if (Environment.getExternalStorageState().equals(
+                    Environment.MEDIA_MOUNTED)) {
+                String sdCardDir = Environment.getExternalStorageDirectory()
+                        + SRC_PATH;
+                lrcfile = new File(sdCardDir + trackName + ".lrc");
+                if (lrcfile.exists()) {
+                    setLrcFile(trackName, lrcfile);
+                } else if ((lrcfile = setLocalLrc()) != null) {
+                    setLrcFile(trackName, lrcfile);
+                } else {
+                    setLyricNolrc();
+                }
+            }
+        }
+    }
+
+    private void setLrcFile(String trackName, File lrcFile) {
+        mCurPlayListItem = new PlayListItem(trackName, 0L, true);
+        long totalTime = 0;
+        try {
+            if (mService != null) {
+                totalTime = mService.duration();
+            }
+        } catch (RemoteException e) {
+        }
+        mLyric = new Lyric(lrcFile, mCurPlayListItem, totalTime);
+        setLyricView();
+    }
+
+    public void setLyricView() {
+        if (mLyricView != null) {
+            mLyricAdapter.setLyric(mLyric);
+            if (mMetaChanged) {
+                mMetaChanged = false;
+                mLyricView.setSelection(0);
+            }
+            mHasLrc = true;
+        }
+    }
+
+    private File setLocalLrc() {
+        if (mService == null) {
+            return null;
+        }
+        String trackPath = null;
+        try {
+            trackPath = mService.getData();
+        } catch (RemoteException e) {
+        }
+        if (trackPath == null) {
+            return null;
+        }
+        int index = trackPath.lastIndexOf(".");
+        if (index == -1)
+            return null;
+        String LrcPath = trackPath.substring(0, index);
+        LrcPath = LrcPath + ".lrc";
+        File lrcfile = new File(LrcPath);
+        if (lrcfile.exists()) {
+            return lrcfile;
+        } else {
+            return null;
+        }
+    }
+
+    private void setLyricNolrc() {
+        mLyric = null;
+        if (mLyricView != null) {
+            mLyricView.setVisibility(View.GONE);
+            mLyricIcon.setImageResource(R.drawable.ic_lyric_unselected);
+            mHasLrc = false;
+            if (mIsLyricDisplay) {
+                hideLyric();
+            }
+        }
+    }
+
+    public Handler mLyricHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case REFRESH_LYRIC:
+                    try {
+                        if (mService != null && mLyric != null) {
+                            updateDuration(mService.position());
+                        }
+                    } catch (RemoteException e) {
+                        // TODO Auto-generated catch block
+                    }
+                    if (mHasLrc) {
+                        queueNextRefreshForLyric(REFRESH_MILLIONS);
+                    }
+                    break;
+            }
+        }
+    };
+
+    public void updateDuration(long duration) {
+        if (mHasLrc && mLyricView != null) {
+            mLyricAdapter.setTime(duration);
+            int intentSelection = mLyricAdapter.getSelection();
+            boolean shouldInvalidate = mLyricAdapter.shouldInvalidate();
+            if (shouldInvalidate && mLyricSrollState == SCROLL_STATE_IDLE) {
+                if (intentSelection < 0) {
+                    intentSelection = 0;
+                    mLyricView.setSelection(0);
+                }
+                mLyricView.smoothScrollToPositionFromTop(intentSelection,
+                            mLyricView.getLyricMidPos(), LYRIC_SCROLL_INTERVAL);
+                postUpdate();
+                mLyricAdapter.invalidateComplete();
+            }
+        }
+    }
+
+    public void postUpdate() {
+        mLyricHandler.post(mUpdateResults);
+    }
+
+    private void queueNextRefreshForLyric(long delay) {
+        if (!paused && mHasLrc
+                && (!mLyricHandler.hasMessages(REFRESH_LYRIC))) {
+            Message msg = mLyricHandler.obtainMessage(REFRESH_LYRIC);
+            mLyricHandler.sendMessageDelayed(msg, delay);
+        }
+    }
+
+    private void stopQueueNextRefreshForLyric() {
+        if (mLyricHandler != null) {
+            mLyricHandler.removeMessages(REFRESH_LYRIC);
+        }
+    }
+
+    Runnable mUpdateResults = new Runnable() {
+        public void run() {
+            if (mLyricView != null) {
+                mLyricView.invalidate();
+            }
+        }
+    };
+
+    public IMediaPlaybackService getService() {
+        return mService;
+    }
+
+    @Override
+    public void onScrollStateChanged(AbsListView view, int scrollState) {
+        if (scrollState  == SCROLL_STATE_TOUCH_SCROLL) {
+            mIsTouchTrigger = true;
+        }
+        if (mIsTouchTrigger) {
+            if (mResumeScrollTask != null) {
+                mResumeScrollTask.cancel();
+            }
+            if (scrollState == SCROLL_STATE_IDLE) {
+                mIsTouchTrigger = false;
+                mResumeScrollTask = new ResumeScrollTask();
+                mResumeTimer.schedule(mResumeScrollTask, 2000);
+            } else {
+                mLyricSrollState = scrollState;
+            }
+        }
+    }
+
+    @Override
+    public void onScroll(AbsListView view,
+            int firstVisibleItem,
+            int visibleItemCount,
+            int totalItemCount) {
+        mFirstVisibleItem = firstVisibleItem;
+    }
+
+    private class ResumeScrollTask extends TimerTask {
+        @Override
+        public void run() {
+            mLyricSrollState = SCROLL_STATE_IDLE;
         }
     }
 }
