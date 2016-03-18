@@ -32,12 +32,12 @@
     <string name="play_all" msgid="6309622568869321842">"全部播放"</string>
     <string name="open_in_music">"使用音乐播放器播放"</string>
     <string name="share">分享</string>
-    <string name="delete_artist_desc" msgid="8665759524898379194">"要从 SD 卡中永久删除<xliff:g id="ARTIST">%s</xliff:g>的所有歌曲吗？"</string>
-    <string name="delete_artist_desc_nosdcard" msgid="5729059309796497914">"要从 USB 存储设备中永久删除<xliff:g id="ARTIST">%s</xliff:g>的所有歌曲吗？"</string>
-    <string name="delete_album_desc" msgid="8172412873562794429">"要从 SD 卡中永久删除整张“<xliff:g id="ALBUM">%s</xliff:g>”专辑吗？"</string>
-    <string name="delete_album_desc_nosdcard" msgid="8612559166069885285">"要从 USB 存储设备中永久删除整张“<xliff:g id="ALBUM">%s</xliff:g>”专辑吗？"</string>
-    <string name="delete_song_desc" msgid="1842681623848282205">"要从 SD 卡中永久删除“<xliff:g id="SONG">%s</xliff:g>”吗？"</string>
-    <string name="delete_song_desc_nosdcard" msgid="5064973032624148730">"要从 USB 存储设备中永久删除“<xliff:g id="SONG">%s</xliff:g>”吗？"</string>
+    <string name="delete_artist_desc" msgid="8665759524898379194">
+        "要永久删除<xliff:g id="ARTIST">%s</xliff:g>的所有歌曲吗？"</string>
+    <string name="delete_album_desc" msgid="8172412873562794429">
+        "要永久删除整张“<xliff:g id="ALBUM">%s</xliff:g>”专辑吗？"</string>
+    <string name="delete_song_desc" msgid="1842681623848282205">
+        "要永久删除“<xliff:g id="SONG">%s</xliff:g>”吗？"</string>
     <string name="delete_confirm_button_text" msgid="7008121194944357274">"确定"</string>
     <!-- no translation found for NNNtracksdeleted (2499334199042190643) -->
     <string name="scanning" msgid="3529383847223198502">"正在扫描 SD 卡..."</string>
