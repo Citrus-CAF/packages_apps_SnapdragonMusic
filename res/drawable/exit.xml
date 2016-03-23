@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Copyright (c) 2015, The Linux Foundation. All rights reserved.
+  Copyright (c) 2016, The Linux Foundation. All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are
@@ -27,29 +27,13 @@
   OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-<resources>
-
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowTranslucentStatus">true</item>
-        <item name="android:windowTranslucentNavigation">false</item>
-    </style>
-
-    <style name="ActionBarTitle" parent="@android:style/TextAppearance.Holo.Large">
-        <item name="android:textSize">20sp</item>
-    </style>
-
-    <style name="QueryActionBar" parent="@android:style/Widget.DeviceDefault.ActionBar">
-        <item name="android:titleTextStyle">@style/ActionBarTitle</item>
-    </style>
-
-    <style name="QueryTheme" parent="android:Theme.Material">
-        <item name="android:actionBarStyle">@style/QueryActionBar</item>
-        <item name="android:actionBarSize">56dp</item>
-        <item name="android:statusBarColor">#ab5810</item>
-    </style>
-
-    <style name="ToolbarTheme" parent="android:Theme.Material" />
-
-</resources>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+        android:width="24dp"
+        android:height="24dp"
+        android:viewportHeight="72.0"
+        android:viewportWidth="72.0">
+    <path
+        android:fillColor="#FF000000"
+        android:fillAlpha="0.54"
+        android:pathData="M9,40h23.83l-5.29,5.29a1.63,1.63 0,0 0,0.26 2.26l3.14,3.14a1.64,1.64 0,0 0,2.27 0.25l14.19,-13.77a1.68,1.68 0,0 0,0.26 -2.31l-14.53,-14.53a1.67,1.67 0,0 0,-2.31 0.26l-3.2,3.21a1.66,1.66 0,0 0,-0.26 2.31L33.25,32L9,32a2,2 0,0 0,-2 2v4A2,2 0,0 0,9 40ZM59,6h-46a6,6 0,0 0,-6 6L7,27h8L15,14h42v44h-42L15,45h-8v15a6,6 0,0 0,6 6h46a6,6 0,0 0,6 -6L65,12A6,6 0,0 0,59 6Z"/>
+</vector>

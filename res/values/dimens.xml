@@ -24,7 +24,7 @@
     <dimen name="statusbar_control_button_width">48dip</dimen>
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
-    <dimen name="icontile">72dp</dimen>
+    <dimen name="icontile">80dp</dimen>
     <dimen name="iconlayoutwidth">162dp</dimen>
     <!-- width of albumartist name in status bar-->
     <dimen name="text_height">80dip</dimen>
@@ -48,5 +48,5 @@
     <dimen name="imagesize">335dp</dimen>
     <dimen name="layoutsize">365dp</dimen>
     <dimen name="list_item_size">65dp</dimen>
-
+    <dimen name="lyric_line_height">30dp</dimen>
 </resources>

@@ -36,6 +36,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.AbstractCursor;
 import android.database.CharArrayBuffer;
@@ -152,6 +153,7 @@ public class TrackBrowserActivityFragment extends Fragment
     private BitmapDrawable mDefaultAlbumIcon;
     private static WaveView mAnimView;
     private static boolean mPause = false;
+    private static int mOrientation = Configuration.ORIENTATION_UNDEFINED;
 
     public TrackBrowserActivityFragment()
     {
@@ -2196,5 +2198,19 @@ public class TrackBrowserActivityFragment extends Fragment
             // play the track
          MusicUtils.playAll(mParentActivity, mTrackCursor, position);
          mAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Fragment fragment = null;
+        fragment = new TrackBrowserActivityFragment();
+        Bundle args = new Bundle();
+        args.putString("artist", mArtistId);
+        args.putString("album", mAlbumId);
+        fragment.setArguments(args);
+        getFragmentManager().beginTransaction()
+                .replace(R.id.fragment_page, fragment, "track_fragment")
+                .commitAllowingStateLoss();
     }
 }

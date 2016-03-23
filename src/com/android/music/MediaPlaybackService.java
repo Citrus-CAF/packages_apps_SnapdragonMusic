@@ -140,7 +140,9 @@ public class MediaPlaybackService extends Service {
     private static final int FADEDOWN = 5;
     private static final int FADEUP = 6;
     private static final int TRACK_WENT_TO_NEXT = 7;
-    private static final int ERROR = 8 ;
+    private static final int GOTO_NEXT = 8;
+    private static final int GOTO_PREV = 9;
+    private static final int ERROR = 10 ;
     private static final int MAX_HISTORY_SIZE = 100;
     private static final int DEFAULT_REPEAT_VAL = 0;
     private static final int DEFAULT_SHUFFLE_VAL = 0;
@@ -405,6 +407,12 @@ public class MediaPlaybackService extends Service {
                             Log.e(LOGTAG, "Unknown audio focus change code");
                     }
                     break;
+                case GOTO_NEXT:
+                    gotoNext(true);
+                    break;
+                case GOTO_PREV:
+                    prev();
+                    break;
                 case ERROR:
                     Toast.makeText(MediaPlaybackService.this, R.string.open_failed,
                             Toast.LENGTH_SHORT).show();
@@ -444,9 +452,9 @@ public class MediaPlaybackService extends Service {
             String cmd = intent.getStringExtra("command");
             MusicUtils.debugLog("mIntentReceiver.onReceive " + action + " / " + cmd);
             if (CMDNEXT.equals(cmd) || NEXT_ACTION.equals(action)) {
-                gotoNext(true);
+                sendEmptyMessageIfNo(GOTO_NEXT);
             } else if (CMDPREVIOUS.equals(cmd) || PREVIOUS_ACTION.equals(action)) {
-                prev();
+                sendEmptyMessageIfNo(GOTO_PREV);
             } else if (CMDTOGGLEPAUSE.equals(cmd) || TOGGLEPAUSE_ACTION.equals(action)) {
                 if (isPlaying()) {
                     pause(false);
@@ -481,6 +489,12 @@ public class MediaPlaybackService extends Service {
             }
         }
     };
+
+    private void sendEmptyMessageIfNo(int msgId) {
+        if (!mMediaplayerHandler.hasMessages(msgId)) {
+            mMediaplayerHandler.sendEmptyMessage(msgId);
+        }
+    }
 
     private boolean isAppOnForeground(Context context) {
         ActivityManager activityManager = (ActivityManager) context

@@ -141,6 +141,7 @@
     <string name="widget_initial_text" msgid="3166878738860903586">"輕觸即可選擇音樂。"</string>
     <string name="effectspanel" msgid="8804547581593509614">"音效"</string>
     <string name="equalizer_button_text">"音效"</string>
+    <string name="exit_button_text">"退出"</string>
     <string name="navigation_drawer_title">"音樂"</string>
     <string-array name="title_array_folder">
         <item>歌手/創作人</item>

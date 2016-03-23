@@ -393,6 +393,7 @@
     <string name="navigation_drawer_title">"Music"</string>
     <string name="action_settings">Settings</string>
     <string name="equalizer_button_text">Snapdragon Audio+</string>
+    <string name="exit_button_text">Exit</string>
     <string name="action_settings1">Settings1</string>
     <string name="action_settings2">Settings2</string>
     <string name="action_one">One</string>

@@ -66,6 +66,8 @@ import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Audio.Playlists;
 import android.provider.MediaStore.Video.VideoColumns;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -2018,15 +2020,29 @@ public class TrackBrowserFragment extends Fragment implements
                     if (TelephonyManager.getDefault().isMultiSimEnabled()) {
                         int[] ringtones = { USE_AS_RINGTONE, USE_AS_RINGTONE_2 };
                         int[] menuStrings = { R.string.ringtone_menu_1,
-                                R.string.ringtone_menu_2 };
-                        for (int i = 0; i < TelephonyManager.getDefault()
-                                .getPhoneCount(); i++) {
-                            popup.getMenu().add(0, ringtones[i], 0,
-                                    menuStrings[i]);
+                                              R.string.ringtone_menu_2 };
+                        int[] menuSimNameStrings = { R.string.ringtone_menu_sim_name_1,
+                                                     R.string.ringtone_menu_sim_name_2 };
+                        for (int i = 0; i < TelephonyManager.getDefault().getPhoneCount();
+                             i++) {
+                            if (TelephonyManager.getDefault().getSimState(i) ==
+                                TelephonyManager.SIM_STATE_READY && getActivity() != null) {
+                                String menuItem;
+                                SubscriptionInfo info =
+                                          SubscriptionManager.from(getActivity()).
+                                              getActiveSubscriptionInfoForSimSlotIndex(i);
+                                if (info != null) {
+                                    menuItem = getString(menuSimNameStrings[i],
+                                                       info.getDisplayName());
+                                } else {
+                                    menuItem = getString(menuStrings[i]);
+                                }
+                                popup.getMenu().add(0, ringtones[i], 0, menuItem);
+                            }
                         }
-                    } else {
-                        popup.getMenu().add(0, USE_AS_RINGTONE, 0,
-                                R.string.ringtone_menu);
+                    } else if (TelephonyManager.getDefault().getSimState() ==
+                               TelephonyManager.SIM_STATE_READY) {
+                        popup.getMenu().add(0, USE_AS_RINGTONE, 0, R.string.ringtone_menu);
                     }
                     popup.getMenu().add(0, SHARE, 0, R.string.share);
                     popup.getMenu().add(0, DETAILS, 0, R.string.details);
