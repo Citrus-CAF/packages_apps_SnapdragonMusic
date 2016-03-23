@@ -1181,8 +1181,10 @@ public class PlaylistBrowserFragment extends Fragment implements
 
                         @Override
                         public boolean onMenuItemClick(MenuItem item) {
-                            mFragment.onContextItemSelected(item,
-                                    Integer.parseInt(menu.getTag().toString()));
+                            if (!PlaylistBrowserFragment.this.isDetached()) {
+                                mFragment.onContextItemSelected(item,
+                                        Integer.parseInt(menu.getTag().toString()));
+                            }
                             return true;
                         }
                     });
