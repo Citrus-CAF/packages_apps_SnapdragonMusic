@@ -27,4 +27,6 @@
 
     <color name="wave_color">#f4511e</color>
     <color name="wave_color_inactive">#000000</color>
+    <color name="lyric_selected_text">#fff4511e</color>
+    <color name="black_translucence_text">#5a000000</color>
 </resources>
