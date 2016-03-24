@@ -99,7 +99,7 @@
         android:layout_above="@id/album_card"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="2dp"
+        android:layout_margin="3dp"
         android:scaleType="fitXY"/>
     <!-- <ImageView android:id="@+id/play_indicator"
         android:layout_alignParentEnd="true"

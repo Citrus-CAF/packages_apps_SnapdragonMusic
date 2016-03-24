@@ -102,7 +102,7 @@
                                 android:layout_width="66dp"
                                 android:layout_height="66dp"
                                 android:layout_margin="19dp"
-                                android:src="@drawable/albumart_mp_unknown" />
+                                android:src="@drawable/album_cover_background" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -143,7 +143,7 @@
                                 android:layout_gravity="end|center_vertical"
                                 android:layout_marginEnd="10dp"
                                 android:layout_marginStart="10dp"
-                                android:src="@drawable/ic_menu_moreoverflow_albumbig" />
+                                android:src="@drawable/ic_menu_moreoverflow_normal_holo_light" />
                         </LinearLayout>
 
                         <View

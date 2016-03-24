@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+  Copyright (c) 2016, The Linux Foundation. All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are
@@ -27,14 +27,12 @@
   OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-
-<Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
-   android:layout_width="match_parent"
-    android:layout_height="80dp"
-    android:background="#f57f17"
-    android:elevation="4dp"
-    android:paddingTop="25dp"
-    android:theme="@style/ToolbarTheme"
-    android:navigationIcon="@drawable/ic_material_light_navigation_drawer" >
-
-</Toolbar>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+        android:width="24dp"
+        android:height="24dp"
+        android:viewportHeight="72.0"
+        android:viewportWidth="72.0">
+    <path
+        android:fillColor="#FFF4511E"
+        android:pathData="M16.87,19.48h31.45v9.11L61.88,15.11l-13.56,-13.48v11.1h-38.05L10.27,32.45h6.6L16.87,19.48ZM52.76,52.52h-29.05v-9.11l-13.56,13.48 13.56,13.48L23.71,59.38h36.08L59.79,39.66h-7.03v12.86Z"/>
+</vector>
