@@ -465,6 +465,8 @@ public class QueryBrowserActivity extends ListActivity implements
                 } else {
                     vh.icon.setImageBitmap(mDefaultAlbumIcon.getBitmap());
                 }
+            } else {
+                vh.icon.setImageBitmap(mDefaultAlbumIcon.getBitmap());
             }
             if (mimetype.equals("artist")) {
 
