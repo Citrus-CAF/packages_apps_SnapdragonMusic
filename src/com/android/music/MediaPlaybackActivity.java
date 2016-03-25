@@ -906,7 +906,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         if (mLyricAdapter != null) {
             mLyricAdapter.release();
         }
-        mLyric.release();
+        if (mLyric != null) {
+            mLyric.release();
+        }
         mLyricView = null;
         super.onDestroy();
     }
