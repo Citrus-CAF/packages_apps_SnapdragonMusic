@@ -2890,7 +2890,10 @@ public class MediaPlaybackService extends Service {
     private class MultiPlayer {
         private CompatMediaPlayer mCurrentMediaPlayer = new CompatMediaPlayer();
         private CompatMediaPlayer mNextMediaPlayer;
+        private CompatMediaPlayer mLastMediaPlayer;
         private Handler mHandler;
+        private Handler mSetNextMediaPlayerHandler = null;
+        private Runnable mSetNextMediaPlayerRunnable = null;
         private boolean mIsInitialized = false;
         private boolean mIsComplete = false;
         private boolean mIsNextPrepared = false;
@@ -2963,9 +2966,20 @@ public class MediaPlaybackService extends Service {
             mp.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
             mp.setAudioSessionId(getAudioSessionId());
             if (setDataSourceImpl(mp, path)) {
-                new Handler().postDelayed(new Runnable() {
+                if (mSetNextMediaPlayerHandler == null) {
+                    mSetNextMediaPlayerHandler = new Handler();
+                }
+                if (mSetNextMediaPlayerRunnable != null) {
+                    mSetNextMediaPlayerHandler.removeCallbacks(mSetNextMediaPlayerRunnable);
+                }
+                if (mLastMediaPlayer != null) {
+                    mLastMediaPlayer.release();
+                }
+                mLastMediaPlayer = mp;
+                mSetNextMediaPlayerRunnable = new Runnable() {
                     @Override
                     public void run() {
+                        mLastMediaPlayer = null;
                         if (mIsSupposedToBePlaying
                             && mCurrentMediaPlayer != null
                             && mIsInitialized && mIsNextPrepared
@@ -2980,7 +2994,8 @@ public class MediaPlaybackService extends Service {
                         }
                         mIsNextPrepared = false;
                     }
-                }, 300);
+                };
+                mSetNextMediaPlayerHandler.postDelayed(mSetNextMediaPlayerRunnable, 300);
             } else {
                 // failed to open next, we'll transition the old fashioned way,
                 // which will skip over the faulty file
