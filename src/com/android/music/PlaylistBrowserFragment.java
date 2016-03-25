@@ -203,6 +203,12 @@ public class PlaylistBrowserFragment extends Fragment implements
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         arrangeGridColums(newConfig);
+        Fragment fragment = new PlaylistBrowserFragment();
+        Bundle args = getArguments();
+        fragment.setArguments(args);
+        getFragmentManager().beginTransaction()
+                .replace(R.id.fragment_page, fragment, "playlist_fragment")
+                .commitAllowingStateLoss();
     }
 
     public void arrangeGridColums(Configuration newConfig) {
