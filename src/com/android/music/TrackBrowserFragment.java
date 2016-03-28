@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  * Not a Contribution.
  *
  * Copyright (C) 2007 The Android Open Source Project
@@ -242,7 +242,7 @@ public class TrackBrowserFragment extends Fragment implements
         if (MusicUtils.isGroupByFolder() && mParent != -1 && mParentActivity.mToolbar != null) {
             mParentActivity.mToolbar.setNavigationContentDescription("back");
             mParentActivity.mToolbar
-                    .setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
+                    .setNavigationIcon(R.drawable.ic_material_home_as_up_arrow);
         }
     }
 

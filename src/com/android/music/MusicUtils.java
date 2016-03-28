@@ -1316,7 +1316,8 @@ public class MusicUtils {
         BitmapFactory.Options opts = new BitmapFactory.Options();
         opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
         return BitmapFactory.decodeStream(
-                context.getResources().openRawResource(R.drawable.albumart_mp_unknown), null, opts);
+                context.getResources().openRawResource(R.drawable.album_cover_background),
+                null, opts);
     }
 
     static int getIntPref(Context context, String name, int def) {
