@@ -98,8 +98,8 @@ public class EncodingDetect {
         mEncodingDetectArray.add(new UTF8EncodingDetect());
         mEncodingDetectArray.add(new UTF_16BEEncodingDetect());
         mEncodingDetectArray.add(new UTF_16LEEncodingDetect());
-        mEncodingDetectArray.add(new UTF_32BEEEncodingDetect());
-        mEncodingDetectArray.add(new UTF_32LEEEEncodingDetect());
+        mEncodingDetectArray.add(new UTF_32BEEncodingDetect());
+        mEncodingDetectArray.add(new UTF_32LEEncodingDetect());
         mEncodingDetectArray.add(new UnicodeEncodingDetect());
     }
 
@@ -164,7 +164,7 @@ public class EncodingDetect {
         }
     }
 
-    private class UTF_32BEEEncodingDetect implements EncodingDetectInterface {
+    private class UTF_32BEEncodingDetect implements EncodingDetectInterface {
         @Override
         public boolean guestEncoding(byte[] bytes) {
             if ((bytes[0] == (byte) 0x00) && (bytes[1] == (byte) 0x00)
@@ -180,7 +180,7 @@ public class EncodingDetect {
         }
     }
 
-    private class UTF_32LEEEEncodingDetect implements EncodingDetectInterface {
+    private class UTF_32LEEncodingDetect implements EncodingDetectInterface {
         @Override
         public boolean guestEncoding(byte[] bytes) {
             if ((bytes[0] == (byte) 0xFF) && (bytes[1] == (byte) 0xFE)
