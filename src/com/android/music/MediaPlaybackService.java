@@ -155,6 +155,7 @@ public class MediaPlaybackService extends Service {
     private static final int INVALID_SONG_UID = 0xffffffff;
 
     private RemoteViews views;
+    private RemoteViews viewsLarge;
     private Notification status = new Notification();
 
     private boolean mControlInStatusBar = false;
@@ -468,14 +469,8 @@ public class MediaPlaybackService extends Service {
                 pause();
                 mPausedByTransientLossOfFocus = false;
             } else if (EXIT_ACTION.equals(action)) {
-                if (isPlaying()) {
-                    // Let it Play dont stop
-                } else {
-                    if (!isAppOnForeground(getApplicationContext())) {
-                        stop();
-                        SysApplication.getInstance().exit();
-                    }
-                }
+                stop();
+                SysApplication.getInstance().exit();
 
             } else if (CMDPLAY.equals(cmd)) {
                 play();
@@ -1802,37 +1797,53 @@ public class MediaPlaybackService extends Service {
     }
 
     private void updateNotification() {
-        views = new RemoteViews(getPackageName(), R.layout.statusbar);
+        views = new RemoteViews(getPackageName(), R.layout.statusbar_appwidget_s);
+        viewsLarge = new RemoteViews(getPackageName(), R.layout.statusbar_appwidget_l);
+        if (!getApplicationContext().getResources().getBoolean(R.bool.exit_in_notification)) {
+            views.setViewVisibility(R.id.exit, View.GONE);
+            viewsLarge.setViewVisibility(R.id.exit, View.GONE);
+        }
         Bitmap icon = MusicUtils.getArtwork(this, getAudioId(), getAlbumId(),
                 true);
         views.setImageViewBitmap(R.id.icon, icon);
+        viewsLarge.setImageViewBitmap(R.id.icon, icon);
         Intent prevIntent = new Intent(PREVIOUS_ACTION);
         PendingIntent prevPendingIntent = PendingIntent.getBroadcast(this,
                 0 /* no requestCode */, prevIntent, 0 /* no flags */);
         views.setOnClickPendingIntent(R.id.prev, prevPendingIntent);
+        viewsLarge.setOnClickPendingIntent(R.id.prev, prevPendingIntent);
 
         Intent toggleIntent = new Intent(MediaPlaybackService.TOGGLEPAUSE_ACTION);
         PendingIntent togglePendingIntent = PendingIntent.getBroadcast(this,
                 0 /* no requestCode */, toggleIntent, 0 /* no flags */);
         views.setOnClickPendingIntent(R.id.pause, togglePendingIntent);
+        viewsLarge.setOnClickPendingIntent(R.id.pause, togglePendingIntent);
 
         Intent nextIntent = new Intent(NEXT_ACTION);
         PendingIntent nextPendingIntent = PendingIntent.getBroadcast(this,
                 0 /* no requestCode */, nextIntent, 0 /* no flags */);
         views.setOnClickPendingIntent(R.id.next, nextPendingIntent);
+        viewsLarge.setOnClickPendingIntent(R.id.next, nextPendingIntent);
 
         Intent exitIntent = new Intent(EXIT_ACTION);
         PendingIntent exitPendingIntent = PendingIntent.getBroadcast(this,
                 0 /* no requestCode */, exitIntent, 0 /* no flags */);
+        views.setOnClickPendingIntent(R.id.exit, exitPendingIntent);
+        viewsLarge.setOnClickPendingIntent(R.id.exit, exitPendingIntent);
 
         if (getAudioId() < 0) {
             // streaming
             views.setTextViewText(R.id.trackname, getPath());
             views.setTextViewText(R.id.artist, null);
             views.setTextViewText(R.id.album, null);
+
+            viewsLarge.setTextViewText(R.id.trackname, getPath());
+            viewsLarge.setTextViewText(R.id.artist, null);
+            viewsLarge.setTextViewText(R.id.album, null);
         } else {
             String artist = getArtistName();
             views.setTextViewText(R.id.trackname, getTrackName());
+            viewsLarge.setTextViewText(R.id.trackname, getTrackName());
             if (artist == null || artist.equals(MediaStore.UNKNOWN_STRING)) {
                 artist = getString(R.string.unknown_artist_name);
             }
@@ -1842,9 +1853,15 @@ public class MediaPlaybackService extends Service {
             }
             views.setTextViewText(R.id.artist, artist);
             views.setTextViewText(R.id.album, album);
+            viewsLarge.setTextViewText(R.id.artist, artist);
+            viewsLarge.setTextViewText(R.id.album, album);
         }
 
         views.setImageViewResource(R.id.pause,
+                (isPlaying() ? R.drawable.notification_pause
+                        : R.drawable.notification_play));
+
+        viewsLarge.setImageViewResource(R.id.pause,
                 (isPlaying() ? R.drawable.notification_pause
                         : R.drawable.notification_play));
 
@@ -1858,6 +1875,7 @@ public class MediaPlaybackService extends Service {
         status1.setSmallIcon(R.drawable.stat_notify_musicplayer);
         status1.setDeleteIntent(exitPendingIntent);
         status = status1.build();
+        status.bigContentView = viewsLarge;
         if (isPlaying()) {
             status.flags |= Notification.FLAG_ONGOING_EVENT;
         } else {
