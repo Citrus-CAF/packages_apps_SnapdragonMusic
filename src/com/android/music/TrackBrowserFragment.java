@@ -775,6 +775,7 @@ public class TrackBrowserFragment extends Fragment implements
         }
         v.setVisibility(View.VISIBLE);
         mTrackList.invalidateViews();
+        mParentActivity.updateNowPlaying(getActivity());
     }
 
     private BroadcastReceiver mTrackListListener = new BroadcastReceiver() {
