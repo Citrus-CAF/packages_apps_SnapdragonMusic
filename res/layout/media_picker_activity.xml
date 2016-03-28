@@ -73,7 +73,7 @@
                              android:layout_width="match_parent"
                              android:layout_height="@dimen/imagesize"
                              android:scaleType="fitXY"
-                             android:src="@drawable/albumart_mp_unknown" />
+                             android:src="@drawable/album_cover_background" />
 
                          <ImageView
                              android:id="@+id/imageView4"
@@ -153,7 +153,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="end|center_horizontal|center"
                             android:layout_marginEnd="10dp"
-                            android:src="@drawable/ic_menu_moreoverflow_albumbig" />
+                            android:src="@drawable/ic_menu_moreoverflow_normal_holo_light" />
                       </LinearLayout>
                  </LinearLayout>
             </android.support.v4.widget.NestedScrollView>
