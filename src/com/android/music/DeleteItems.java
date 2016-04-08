@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -37,6 +38,7 @@ public class DeleteItems extends Activity
     private TextView mPrompt;
     private Button mButton;
     private long [] mItemList;
+    private int mItemListHashCode;
     private Uri mPlaylistUri;
     private Uri mVideoUri;
     private static String DELETE_VIDEO_ITEM = "delete.video.file";
@@ -119,10 +121,29 @@ public class DeleteItems extends Activity
                                R.string.playlist_deleted_message,
                                Toast.LENGTH_SHORT).show();
             } else {
+                if (mItemListHashCode == mItemList.hashCode()) {
+                    return;
+                }
+                mItemListHashCode = mItemList.hashCode();
                 // delete the selected item(s)
-                MusicUtils.deleteTracks(DeleteItems.this, mItemList);
+                new AsyncTask<Void, Void, Void>() {
+                    int length;
+
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        length = mItemList.length;
+                        MusicUtils.deleteTracks(DeleteItems.this, mItemList);
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Void result) {
+                        super.onPostExecute(result);
+                        MusicUtils.deleteTracksSuccess(DeleteItems.this, length);
+                        DeleteItems.this.finish();
+                    }
+                }.execute();
             }
-            finish();
         }
     };
 

@@ -667,9 +667,11 @@ public class MusicUtils {
             }
             c.close();
         }
+    }
 
+    public static void deleteTracksSuccess(Context context, int length) {
         String message = context.getResources().getQuantityString(
-                R.plurals.NNNtracksdeleted, list.length, Integer.valueOf(list.length));
+                R.plurals.NNNtracksdeleted, length, Integer.valueOf(length));
         
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
         // We deleted a number of tracks, which could affect any number of things
