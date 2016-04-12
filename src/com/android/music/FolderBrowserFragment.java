@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -648,5 +649,16 @@ public class FolderBrowserFragment extends Fragment
 
     public void onServiceDisconnected(ComponentName name) {
         mActivity.finish();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration config) {
+        super.onConfigurationChanged(config);
+        Fragment fragment = new FolderBrowserFragment();
+        Bundle args = getArguments();
+        fragment.setArguments(args);
+        getFragmentManager().beginTransaction()
+                .replace(R.id.fragment_page, fragment, "folder_fragment")
+                .commitAllowingStateLoss();
     }
 }

@@ -395,8 +395,12 @@ public class MusicPanelLayout extends ViewGroup {
             int h = lHeight;
             int w = lWidth;
             if (mInitialView == childView) {
-                if (!mOverlayData && mSlipState != BoardState.HIDDEN) {
-                    h = h - mBoardHeight;
+                if (!mOverlayData) {
+                    if (mSlipState != BoardState.HIDDEN) {
+                        h = h - mBoardHeight;
+                    } else {
+                        lp.height = MusicScreenParams.MATCH_PARENT;
+                    }
                 }
 
                 w -= lp.leftMargin + lp.rightMargin;

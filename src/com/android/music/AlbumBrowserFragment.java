@@ -169,6 +169,12 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         arrangeGridColums(newConfig);
+        Fragment fragment = new AlbumBrowserFragment();
+        Bundle args = getArguments();
+        fragment.setArguments(args);
+        getFragmentManager().beginTransaction()
+                .replace(R.id.fragment_page, fragment, "album_fragment")
+                .commitAllowingStateLoss();
     }
 
     public void arrangeGridColums(Configuration newConfig) {

@@ -23,6 +23,7 @@ import com.android.music.MusicUtils.Defs;
 import com.android.music.MusicUtils.ServiceToken;
 import com.android.music.TrackBrowserFragment.TrackListAdapter.ViewHolder;
 
+import android.R.integer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -41,6 +42,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.AbstractCursor;
 import android.database.CharArrayBuffer;
@@ -2284,5 +2286,22 @@ public class TrackBrowserFragment extends Fragment implements
 
             if (mAnimate) invalidate();
         }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration config) {
+        super.onConfigurationChanged(config);
+        int contentResId;
+        if (mParentActivity.mFragment == null || !mParentActivity.mFragment.isVisible()) {
+           contentResId = R.id.fragment_page;
+        } else {
+           contentResId = R.id.current_queue_view;
+        }
+        Fragment fragment = new TrackBrowserFragment();
+        Bundle args = getArguments();
+        fragment.setArguments(args);
+        getFragmentManager().beginTransaction()
+             .replace(contentResId, fragment, "track_fragment")
+             .commitAllowingStateLoss();
     }
 }
