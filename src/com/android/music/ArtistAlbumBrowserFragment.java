@@ -124,6 +124,7 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
     private boolean isPaused;
     private int lastVisiblePos = 0;
     private boolean isScrolling = true;
+    public PopupMenu mPopupMenu;
 
     OnGroupClickListener onGroupClickListener = new OnGroupClickListener() {
         @SuppressLint("ResourceAsColor")
@@ -831,6 +832,7 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
                             return true;
                         }
                     });
+                    mFragment.mPopupMenu = popup;
                 }
             });
         }
@@ -1092,6 +1094,9 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
     @Override
     public void onConfigurationChanged(Configuration config) {
         super.onConfigurationChanged(config);
+        if (mPopupMenu != null) {
+            mPopupMenu.dismiss();
+        }
         Fragment fragment = new ArtistAlbumBrowserFragment();
         Bundle args = getArguments();
         fragment.setArguments(args);

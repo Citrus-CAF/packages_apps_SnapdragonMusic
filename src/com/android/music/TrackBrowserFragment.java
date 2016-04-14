@@ -168,6 +168,7 @@ public class TrackBrowserFragment extends Fragment implements
     private boolean mCreateShortcut = false;
     public static volatile boolean isScrolling = false;
     private int lastVisiblePos = 0;
+    public PopupMenu mPopupMenu;
 
     public TrackBrowserFragment() {
     }
@@ -2060,6 +2061,7 @@ public class TrackBrowserFragment extends Fragment implements
                             return true;
                         }
                     });
+                    mFragment.mPopupMenu = popup;
                 }
             });
             long id = -1;
@@ -2291,6 +2293,9 @@ public class TrackBrowserFragment extends Fragment implements
     @Override
     public void onConfigurationChanged(Configuration config) {
         super.onConfigurationChanged(config);
+        if (mPopupMenu != null) {
+            mPopupMenu.dismiss();
+        }
         int contentResId;
         if (mParentActivity.mFragment == null || !mParentActivity.mFragment.isVisible()) {
            contentResId = R.id.fragment_page;

@@ -87,6 +87,7 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
     private View mSdErrorMessageIcon;
     private static int mLastSelectedPosition = -1;
     private MediaPlaybackActivity mParentActivity;
+    public PopupMenu mPopupMenu;
 
     public AlbumBrowserFragment() {
     }
@@ -168,6 +169,9 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        if (mPopupMenu != null ) {
+            mPopupMenu.dismiss();
+        }
         arrangeGridColums(newConfig);
         Fragment fragment = new AlbumBrowserFragment();
         Bundle args = getArguments();
@@ -692,6 +696,7 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
                             return true;
                         }
                     });
+                    mFragment.mPopupMenu = popup;
                     mFragment.mCurrentAlbumId = vh.albumID;
                     mFragment.mCurrentAlbumName = vh.albumName;
                     mFragment.mCurrentArtistNameForAlbum = vh.artistNameForAlbum;
