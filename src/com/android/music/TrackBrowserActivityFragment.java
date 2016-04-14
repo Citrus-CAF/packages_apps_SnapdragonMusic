@@ -154,6 +154,7 @@ public class TrackBrowserActivityFragment extends Fragment
     private static WaveView mAnimView;
     private static boolean mPause = false;
     private static int mOrientation = Configuration.ORIENTATION_UNDEFINED;
+    public PopupMenu mPopupMenu;
 
     public TrackBrowserActivityFragment()
     {
@@ -348,6 +349,7 @@ public class TrackBrowserActivityFragment extends Fragment
                 });
 
                 popup.show();
+                mPopupMenu = popup;
             }
         });
         mTrackList = getListView();
@@ -2034,6 +2036,7 @@ public class TrackBrowserActivityFragment extends Fragment
                             return true;
                         }
                     });
+                    mActivity.mPopupMenu = popup;
                 }
             });
             int secs = cursor.getInt(mDurationIdx) / 1000;
@@ -2203,6 +2206,9 @@ public class TrackBrowserActivityFragment extends Fragment
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        if (mPopupMenu != null) {
+            mPopupMenu.dismiss();
+        }
         Fragment fragment = null;
         fragment = new TrackBrowserActivityFragment();
         Bundle args = new Bundle();

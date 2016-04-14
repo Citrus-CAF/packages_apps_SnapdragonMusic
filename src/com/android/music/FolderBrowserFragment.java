@@ -85,6 +85,7 @@ public class FolderBrowserFragment extends Fragment
     private View mSdErrorMessageIcon;
     private ListView mFolderList;
     private MediaPlaybackActivity mActivity;
+    public PopupMenu mPopupMenu;
 
     public Activity getParentActivity() {
         return mActivity;
@@ -586,6 +587,7 @@ public class FolderBrowserFragment extends Fragment
                             return true;
                         }
                     });
+                    mFragment.mPopupMenu = popup;
 
                     mFilesCursor.moveToPosition(p);
                     mCurretParent = mFilesCursor.getString(mFilesCursor
@@ -654,6 +656,9 @@ public class FolderBrowserFragment extends Fragment
     @Override
     public void onConfigurationChanged(Configuration config) {
         super.onConfigurationChanged(config);
+        if (mPopupMenu != null) {
+            mPopupMenu.dismiss();
+        }
         Fragment fragment = new FolderBrowserFragment();
         Bundle args = getArguments();
         fragment.setArguments(args);
