@@ -670,6 +670,22 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 
         mFavoriteIcon.setImageResource(R.drawable.favorite_selected);
 
+        Fragment fragment = getFragmentManager().findFragmentByTag("track_fragment");
+        if (fragment != null) {
+            View view = mActivity.findViewById(R.id.sd_message);
+            if (view != null) {
+                view.setVisibility(View.GONE);
+            }
+            view = mActivity.findViewById(R.id.sd_icon);
+            if (view != null) {
+                view.setVisibility(View.GONE);
+            }
+            view = mActivity.findViewById(R.id.list);
+            if (view != null) {
+                view.setVisibility(View.VISIBLE);
+            }
+        }
+
         MusicUtils.addToPlaylist(this, list,playlistId);
 
     }
