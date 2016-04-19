@@ -16,6 +16,7 @@
 
 package com.android.music;
 
+import android.Manifest.permission;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.AlertDialog;
@@ -35,6 +36,7 @@ import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 //import android.drm.DrmManagerClientWrapper;
@@ -75,7 +77,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 import java.util.HashMap;
-import com.android.music.SysApplication;
 
 /**
  * Provides "background" audio playback capabilities, allowing the
@@ -265,6 +266,7 @@ public class MediaPlaybackService extends Service {
     private static final String EXTRA_ATTRIBUTE_STRING_ARRAY = "AttributeStrings";
     private static final String EXTRA_VALUE_ID_ARRAY = "Values";
     private static final String EXTRA_ATTIBUTE_ID_ARRAY = "Attributes";
+    private boolean mIsReadGranted = false;
 
 
     private SharedPreferences mPreferences;
@@ -543,6 +545,13 @@ public class MediaPlaybackService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        if (checkSelfPermission(permission.READ_EXTERNAL_STORAGE) !=
+                PackageManager.PERMISSION_GRANTED) {
+            stopSelf();
+            return;
+        } else {
+            mIsReadGranted = true;
+        }
         // add for clear the notification when the service restart
         stopForeground(true);
 
@@ -646,6 +655,8 @@ public class MediaPlaybackService extends Service {
 
     @Override
     public void onDestroy() {
+        if (!mIsReadGranted)
+            return;
         // Check that we're not being destroyed while something is still playing.
         if (isPlaying()) {
             Log.e(LOGTAG, "Service being destroyed while still playing.");
@@ -706,7 +717,7 @@ public class MediaPlaybackService extends Service {
     };
 
     private void saveQueue(boolean full) {
-        if (!mQueueIsSaveable) {
+        if (!mQueueIsSaveable || mPreferences == null) {
             return;
         }
 

@@ -16,6 +16,7 @@
 
 package com.android.music;
 
+import android.Manifest;
 import android.app.ListActivity;
 import android.app.SearchManager;
 import android.content.ContentResolver;
@@ -45,10 +46,16 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
+
+import com.codeaurora.music.custom.PermissionActivity;
+
 import java.lang.Integer;
 
 public class VideoBrowserActivity extends ListActivity implements MusicUtils.Defs
 {
+    private static final String[] REQUIRED_PERMISSIONS = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE};
     private int mSelectedPosition; // Position of selected view
     private static final int SHARE = 0; // Menu to share video
     private static final int DELETE = 1; // Menu to delete video
@@ -72,6 +79,9 @@ public class VideoBrowserActivity extends ListActivity implements MusicUtils.Def
     @Override
     public void onCreate(Bundle icicle)
     {
+        if (PermissionActivity.checkAndRequestPermission(this, REQUIRED_PERMISSIONS)) {
+            SysApplication.getInstance().exit();
+        }
         super.onCreate(icicle);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         Intent intent = getIntent();

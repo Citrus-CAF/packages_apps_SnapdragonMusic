@@ -23,8 +23,9 @@ import com.codeaurora.music.custom.FragmentsFactory;
 import com.codeaurora.music.custom.MusicPanelLayout;
 import com.codeaurora.music.custom.MusicPanelLayout.ViewHookSlipListener;
 import com.codeaurora.music.custom.MusicPanelLayout.BoardState;
+import com.codeaurora.music.custom.PermissionActivity;
 
-import android.app.Activity;
+import android.Manifest.permission;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.BroadcastReceiver;
@@ -36,6 +37,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -73,6 +75,10 @@ import android.widget.Toolbar.OnMenuItemClickListener;
 public class MusicBrowserActivity extends MediaPlaybackActivity implements
         MusicUtils.Defs {
     private static final String TAG = "MusicBrowserActivity";
+    private static final String[] REQUIRED_PERMISSIONS = {
+            permission.READ_PHONE_STATE,
+            permission.READ_EXTERNAL_STORAGE,
+            permission.WRITE_EXTERNAL_STORAGE};
 
     private ServiceToken mToken;
     private ListView mDrawerListView;
@@ -103,6 +109,9 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
      */
     @Override
     public void onCreate(Bundle icicle) {
+        if (PermissionActivity.checkAndRequestPermission(this, REQUIRED_PERMISSIONS)) {
+            SysApplication.getInstance().exit();
+        }
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(icicle);
@@ -131,6 +140,8 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
     private Thread mFavoritePlaylistThread = new Thread() {
         @Override
         public void run() {
+            if (checkSelfPermission(permission.READ_EXTERNAL_STORAGE) ==
+                    PackageManager.PERMISSION_GRANTED)
             createFavoritePlaylist();
         }
     };

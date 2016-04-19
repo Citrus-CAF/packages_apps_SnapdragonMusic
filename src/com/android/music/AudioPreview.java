@@ -16,6 +16,7 @@
 
 package com.android.music;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
@@ -55,6 +56,8 @@ import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 
+import com.codeaurora.music.custom.PermissionActivity;
+
 import java.io.IOException;
 
 /**
@@ -64,6 +67,10 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
 {
     private final static String TAG = "AudioPreview";
     private final static String HOST_DOWNLOADS = "downloads";
+    private static final String COLUMN_MEDIAPROVIDER_URI = "mediaprovider_uri";
+    private static final String[] REQUIRED_PERMISSIONS = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE};
     private PreviewPlayer mPlayer;
     private TextView mTextLine1;
     private TextView mTextLine2;
@@ -87,6 +94,9 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
 
     @Override
     public void onCreate(Bundle icicle) {
+        if (PermissionActivity.checkAndRequestPermission(this, REQUIRED_PERMISSIONS)) {
+            SysApplication.getInstance().exit();
+        }
         super.onCreate(icicle);
 
         mAudioPreview = this;
