@@ -18,7 +18,7 @@
         package="com.android.music">
 
     <original-package android:name="com.android.music" />
-    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="21"/>
+    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="23"/>
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -104,6 +104,8 @@
                 >
 
         </activity>
+
+        <activity android:name="com.codeaurora.music.custom.PermissionActivity"></activity>
 
         <activity android:name="AudioPreview" android:theme="@android:style/Theme.Material.Dialog"
                 android:taskAffinity=""

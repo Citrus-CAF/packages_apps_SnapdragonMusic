@@ -428,5 +428,10 @@
     <string name="add_by_filemanager">Add by filemanager</string>
     <string name="add_file_failed">Unable to add this file as the format is not supported or not in media library</string>
 
+    <!-- permission request -->
+    <string name="dialog_title_help">Help</string>
+    <string name="dialog_content">This application can\'t work without required permissions. Please grant the permissions in Settings.</string>
+    <string name="dialog_button_quit">Quit</string>
+    <string name="dialog_button_settings">Settings</string>
 </resources>
 
