@@ -444,7 +444,7 @@ public class MediaPlaybackService extends Service {
     private BroadcastReceiver mLocaleReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (views != null && status != null){
+            if (views != null && viewsLarge != null && status != null) {
                updateNotification();
             }
         }
@@ -1783,15 +1783,19 @@ public class MediaPlaybackService extends Service {
             setShuffleMode(SHUFFLE_AUTO);
         }
 
-        if (views != null && status != null) {
+        if (views != null && viewsLarge != null && status != null) {
             // Reset notification play function to pause function
             views.setImageViewResource(R.id.pause,
+                    isPlaying() ? R.drawable.notification_pause
+                            : R.drawable.notification_play);
+            viewsLarge.setImageViewResource(R.id.pause,
                     isPlaying() ? R.drawable.notification_pause
                             : R.drawable.notification_play);
             Intent pauseIntent = new Intent(PAUSE_ACTION);
             PendingIntent pausePendingIntent = PendingIntent.getBroadcast(this,
                     0 /* no requestCode */, pauseIntent, 0 /* no flags */);
             views.setOnClickPendingIntent(R.id.pause, pausePendingIntent);
+            viewsLarge.setOnClickPendingIntent(R.id.pause, pausePendingIntent);
             status.flags = Notification.FLAG_ONGOING_EVENT;
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             nm.notify(PLAYBACKSERVICE_STATUS, status);
@@ -1948,11 +1952,14 @@ public class MediaPlaybackService extends Service {
                 // Reset notification pause function to play function
                 views.setImageViewResource(R.id.pause,
                         R.drawable.notification_play);
+                viewsLarge.setImageViewResource(R.id.pause,
+                        R.drawable.notification_play);
                 Intent playIntent = new Intent(TOGGLEPAUSE_ACTION);
                 PendingIntent playPendingIntent = PendingIntent
                         .getBroadcast(this, 0 /* no requestCode */, playIntent,
                                 0 /* no flags */);
                 views.setOnClickPendingIntent(R.id.pause, playPendingIntent);
+                viewsLarge.setOnClickPendingIntent(R.id.pause, playPendingIntent);
                 status.flags = 0;
                 NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 nm.notify(PLAYBACKSERVICE_STATUS, status);
@@ -2139,12 +2146,14 @@ public class MediaPlaybackService extends Service {
                 }
 
                 // no more clip, then reset playback state icon in status bar
-                if (views != null){
+                if (views != null && viewsLarge != null){
                     views.setImageViewResource(R.id.pause, R.drawable.notification_play);
+                    viewsLarge.setImageViewResource(R.id.pause, R.drawable.notification_play);
                     Intent playIntent = new Intent(TOGGLEPAUSE_ACTION);
                     PendingIntent playPendingIntent = PendingIntent.getBroadcast(this,
                             0 /* no requestCode */, playIntent, 0 /* no flags */);
                     views.setOnClickPendingIntent(R.id.pause, playPendingIntent);
+                    viewsLarge.setOnClickPendingIntent(R.id.pause, playPendingIntent);
                    // startForeground(PLAYBACKSERVICE_STATUS, status);
                     status.flags = Notification.FLAG_ONGOING_EVENT;
                     NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
