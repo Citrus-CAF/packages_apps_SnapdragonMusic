@@ -76,7 +76,9 @@ public class PermissionActivity extends Activity{
         if (savedInstanceState == null && mRequestedPermissons != null) {
             String[] neededPermissions =
                     checkRequestedPermission(PermissionActivity.this, mRequestedPermissons);
-            requestPermissions(neededPermissions, REQUEST_CODE);
+            if (neededPermissions != null && neededPermissions.length != 0) {
+                requestPermissions(neededPermissions, REQUEST_CODE);
+            }
         }
     }
 
