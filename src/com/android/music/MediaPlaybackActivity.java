@@ -153,6 +153,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private String mStrTrackName = null;
     private ResumeScrollTask mResumeScrollTask;
     private final Timer mResumeTimer = new Timer("resumeTimer");
+    private static final int SWITCH_MUSIC_MAX_TIME = 2000;
 
     public MediaPlaybackActivity() {
     }
@@ -738,23 +739,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         public void onClick(View v) {
             if (mService == null)
                 return;
-            try {
-                int shuffle = mService.getShuffleMode();
-                int histSize = mService.getHistSize();
-                if (mService.position() < 2000) {
-                    if ((shuffle == MediaPlaybackService.SHUFFLE_NORMAL)
-                            && (histSize == 0 || histSize == 1)) {
-                        mService.seek(0);
-                        mService.play();
-                    } else {
-                        mService.prev();
-                    }
-                } else {
-                    mService.seek(0);
-                    mService.play();
-                }
-            } catch (RemoteException ex) {
-            }
+            sendIsRespondMessage(GO_PRE);
         }
     };
 
@@ -762,12 +747,15 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         public void onClick(View v) {
             if (mService == null)
                 return;
-            try {
-                mService.next();
-            } catch (RemoteException ex) {
-            }
+            sendIsRespondMessage(GO_NEXT);
         }
     };
+
+    private void sendIsRespondMessage(int msgId) {
+        if (!mHandler.hasMessages(msgId)) {
+            mHandler.sendEmptyMessage(msgId);
+        }
+    }
 
     private View.OnClickListener mPopUpMenuListener = new View.OnClickListener() {
         public void onClick(View v) {
@@ -1770,6 +1758,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private static final int QUIT = 2;
     private static final int GET_ALBUM_ART = 3;
     private static final int ALBUM_ART_DECODED = 4;
+    private static final int GO_PRE = 5;
+    private static final int GO_NEXT = 6;
     private static final int REFRESH_LYRIC = 1;
 
     private void queueNextRefresh(long delay) {
@@ -1861,12 +1851,48 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                                     }
                                 }).setCancelable(false).show();
                 break;
-
+            case GO_PRE:
+                try {
+                    int shuffle = mService.getShuffleMode();
+                    int histSize = mService.getHistSize();
+                    if (isGoStart(shuffle, histSize)) {
+                        mService.seek(0);
+                        mService.play();
+                    } else {
+                        mService.prev();
+                    }
+                } catch (RemoteException ex) {
+                    ex.printStackTrace();
+                }
+                break;
+            case GO_NEXT:
+                try {
+                    mService.next();
+                } catch (RemoteException ex) {
+                    ex.printStackTrace();
+                }
+                break;
             default:
                 break;
             }
         }
     };
+
+    private boolean isGoStart(int shuffle, int histSize) {
+        try {
+            Boolean isOverTime = mService.position() < SWITCH_MUSIC_MAX_TIME ? true : false;
+            Boolean isShuffleMode = shuffle == MediaPlaybackService.SHUFFLE_NORMAL ? true : false;
+            Boolean isHistLess = histSize == 0 || histSize == 1 ? true : false;
+            if ((isOverTime && isShuffleMode && isHistLess) || !isOverTime) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
     private BroadcastReceiver mStatusListener = new BroadcastReceiver() {
         @Override
