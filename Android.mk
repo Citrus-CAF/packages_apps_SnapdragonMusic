@@ -1,6 +1,7 @@
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
+ifeq (0,1) # compilation error
 LOCAL_MODULE_TAGS := optional
 
 LOCAL_SRC_FILES := $(call all-java-files-under, src) \
@@ -30,3 +31,4 @@ include $(BUILD_PACKAGE)
 
 # Use the folloing include to make our test apk.
 #include $(call all-makefiles-under,$(LOCAL_PATH))
+endif
