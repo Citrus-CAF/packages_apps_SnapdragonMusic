@@ -27,41 +27,12 @@
   OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_height="wrap_content"
-    android:layout_width="match_parent"
-    android:orientation="vertical">
-
-    <Button
-        android:id="@id/btn_lyric_sentence"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:background="@android:color/transparent"
-        android:textSize="14sp"
-        android:textStyle="normal"
-        android:textColor="@color/selector_lyric"
-        android:textAllCaps="false"
-        android:minHeight="10dp"
-        android:includeFontPadding="false"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
-        android:layout_margin="0dp" />
-
-    <Button
-        android:id="@id/btn_focused_lyric_sentence"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:background="@android:color/transparent"
-        android:textSize="16sp"
-        android:textStyle="normal"
-        android:textColor="@color/lyric_selected_text"
-        android:textAllCaps="false"
-        android:minHeight="10dp"
-        android:includeFontPadding="false"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
-        android:layout_margin="0dp" />
-</LinearLayout>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+        android:width="24dp"
+        android:height="24dp"
+        android:viewportHeight="72.0"
+        android:viewportWidth="72.0">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M51.19,5.07a20.22,20.22 0,0 0,-15.19 7.05,20.22 20.22,0 0,0 -15.19,-7.05 18.38,18.38 0,0 0,-18.56 18.55c0,12.75 11.47,23.13 28.86,38.92l4.89,4.42 4.89,-4.45c17.38,-15.75 28.86,-26.13 28.86,-38.88A18.38,18.38 0,0 0,51.19 5.07ZM36.34,57.51 L36,57.85 35.66,57.51c-16.06,-14.53 -26.66,-24.15 -26.66,-33.89a11.53,11.53 0,0 1,11.81 -11.8,13.2 13.2,0 0,1 12.05,7.96h6.31a13.12,13.12 0,0 1,12.02 -7.96,11.53 11.53,0 0,1 11.81,11.8C63,33.36 52.4,42.97 36.34,57.51Z"/>
+</vector>

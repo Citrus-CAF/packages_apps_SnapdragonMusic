@@ -824,12 +824,10 @@ public class PlaylistBrowserFragment extends Fragment implements
             recent.add(getResources().getString(R.string.recentlyadded));
             autoplaylistscursor.addRow(recent);
         }
-        if (parentActivity.getApplicationContext().getResources().getBoolean(R.bool.enable_myfavorites)) {
-            ArrayList<Object> favorite = new ArrayList<Object>(2);
-            favorite.add(FAVORITE_PLAYLIST);
-            favorite.add(getResources().getString(R.string.favorite_playlist));
-            autoplaylistscursor.addRow(favorite);
-        }
+        ArrayList<Object> favorite = new ArrayList<Object>(2);
+        favorite.add(FAVORITE_PLAYLIST);
+        favorite.add(getResources().getString(R.string.favorite_playlist));
+        autoplaylistscursor.addRow(favorite);
 
         // check if there are any podcasts
         Cursor counter = MusicUtils.query(parentActivity,
@@ -940,7 +938,7 @@ public class PlaylistBrowserFragment extends Fragment implements
             vh.tv = (TextView) v.findViewById(R.id.line1);
             Resources r = context.getResources();
             mDefaultAlbumIcon = (BitmapDrawable) r
-                    .getDrawable(R.drawable.unknown_albums);
+                    .getDrawable(R.drawable.album_cover);
             v.setTag(vh);
             return v;
         }

@@ -705,7 +705,7 @@ public class TrackBrowserFragment extends Fragment implements
 
         if (fancyName != null) {
             if ("My recordings".equals(fancyName)) {
-                mParentActivity.setTitle(R.string.audio_db_playlist_name);
+                mParentActivity.mToolbar.setTitle(R.string.audio_db_playlist_name);
             } else if (mCreateShortcut) {
                mParentActivity.mToolbar.setTitle(fancyName);
             }
@@ -1447,14 +1447,15 @@ public class TrackBrowserFragment extends Fragment implements
                         where.toString(), null, mSortOrder, async);
             }
         } else if (MusicUtils.isGroupByFolder() && mParent >= 0) {
-            String uriString = "content://media/external/file";
+            Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
             String[] projection = {MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media._ID,
-                    MediaStore.Audio.Media.IS_MUSIC,"parent", MediaStore.Audio.Media.TITLE,
+                    MediaStore.Audio.Media.IS_MUSIC, MediaStore.Audio.Media.TITLE,
                     MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.DURATION,
                     MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.DATA,
                     MediaStore.Audio.Media.SIZE};
-            String selection = "is_music=1 AND parent = '" + mParent + "'";
-            ret = queryhandler.doQuery(Uri.parse(uriString), projection, selection, null,
+            String selection = "is_music=1 AND _data like '" + mRootPath +
+                    "/%' AND _data not like '" + mRootPath + "/%/%'";
+            ret = queryhandler.doQuery(uri, projection, selection, null,
                     mSortOrder, async);
             return ret;
         } else {
@@ -2016,9 +2017,9 @@ public class TrackBrowserFragment extends Fragment implements
                         popup.getMenu().add(0, REMOVE, 0,
                                 R.string.remove_from_playlist);
                     }
-                    SubMenu sub = popup.getMenu().addSubMenu(0,
+                    mSubMenu = popup.getMenu().addSubMenu(0,
                             ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
-                    MusicUtils.makePlaylistMenu(mFragment.getActivity(), sub);
+                    MusicUtils.makePlaylistMenu(mFragment.getActivity(), mSubMenu);
                     popup.getMenu()
                             .add(0, DELETE_ITEM, 0, R.string.delete_item);
                     if (TelephonyManager.getDefault().isMultiSimEnabled()) {
@@ -2297,17 +2298,15 @@ public class TrackBrowserFragment extends Fragment implements
         if (mPopupMenu != null) {
             mPopupMenu.dismiss();
         }
-        int contentResId;
-        if (mParentActivity.mFragment == null || !mParentActivity.mFragment.isVisible()) {
-           contentResId = R.id.fragment_page;
-        } else {
-           contentResId = R.id.current_queue_view;
+        if (mSubMenu != null) {
+            mSubMenu.close();
         }
-        Fragment fragment = new TrackBrowserFragment();
-        Bundle args = getArguments();
-        fragment.setArguments(args);
-        getFragmentManager().beginTransaction()
-             .replace(contentResId, fragment, "track_fragment")
-             .commitAllowingStateLoss();
+        if (mParentActivity.mFragment == null || !mParentActivity.mFragment.isVisible()) {
+            Fragment fragment = new TrackBrowserFragment();
+            fragment.setArguments(getArguments());
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_page, fragment, "track_fragment")
+                    .commitAllowingStateLoss();
+        }
     }
 }

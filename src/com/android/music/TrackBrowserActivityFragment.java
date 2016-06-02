@@ -152,6 +152,7 @@ public class TrackBrowserActivityFragment extends Fragment
     private boolean mIsparentActivityFInishing;
     private BitmapDrawable mDefaultAlbumIcon;
     private static WaveView mAnimView;
+    private FrameLayout mContainer = null;
     private static boolean mPause = false;
     private static int mOrientation = Configuration.ORIENTATION_UNDEFINED;
     public PopupMenu mPopupMenu;
@@ -217,8 +218,6 @@ public class TrackBrowserActivityFragment extends Fragment
             // If we have an album, show everything on the album, not just stuff
             // by a particular artist.
             mArtistId = intent.getStringExtra("artist");
-            mPlaylist = intent.getStringExtra("playlist");
-            mGenre = intent.getStringExtra("genre");
             if (MusicUtils.isGroupByFolder()) {
                 mParent = intent.getIntExtra("parent", -1);
                 mRootPath = intent.getStringExtra("rootPath");
@@ -268,8 +267,8 @@ public class TrackBrowserActivityFragment extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         // TODO Auto-generated method stub
+        mContainer = new FrameLayout(getContext());
         View rootView = inflater.inflate(R.layout.media_picker_activity, container, false);
-        //parentActivity.findViewById(R.id.trackbrowser_content).setVisibility(View.VISIBLE);
         if(getArguments()!=null){
             mAlbumId = getArguments().getString("album");
             mArtistId = getArguments().getString("artist");
@@ -280,6 +279,12 @@ public class TrackBrowserActivityFragment extends Fragment
             }
 
         }
+        initViews(mContainer ,rootView);
+        mToken = MusicUtils.bindToService(mParentActivity, this);
+        return mContainer;
+    }
+
+    private void initViews(FrameLayout container ,View rootView) {
         mListView = (ListView)rootView. findViewById(R.id.media_list);
         mTextView1 = (TextView) rootView.findViewById(R.id.textView1);
         mTextView2 = (TextView)rootView.findViewById(R.id.textView2);
@@ -368,7 +373,6 @@ public class TrackBrowserActivityFragment extends Fragment
             mAdapter.setActivity(this);
             setListAdapter(mAdapter);
         }
-        mToken = MusicUtils.bindToService(mParentActivity, this);
         //attaching listview listener
         mTrackList.setOnItemClickListener(this);
         // don't set the album art until after the view has been layed out
@@ -378,8 +382,8 @@ public class TrackBrowserActivityFragment extends Fragment
         }
         mGetArtworkAsyncTask = new GetArtworkAsyncTask();
         mGetArtworkAsyncTask.execute();
-
-        return rootView;
+        container.removeAllViews();
+        container.addView(rootView);
     }
 
     private AsyncTask<Void, Void, Bitmap> mGetArtworkAsyncTask = null;
@@ -912,8 +916,8 @@ public class TrackBrowserActivityFragment extends Fragment
 
     private void onCreatePopupMenu(PopupMenu menu) {
         menu.getMenu().add(0, PLAY_SELECTION, 0, R.string.play_selection);
-        SubMenu sub = menu.getMenu().addSubMenu(0, ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
-        MusicUtils.makePlaylistMenu(mParentActivity, sub);
+        mSub = menu.getMenu().addSubMenu(0, ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
+        MusicUtils.makePlaylistMenu(mParentActivity, mSub);
         menu.getMenu().add(0, DELETE_ITEM, 0, R.string.delete_item);
         if (TelephonyManager.getDefault().isMultiSimEnabled()) {
             int[] ringtones = { USE_AS_RINGTONE, USE_AS_RINGTONE_2 };
@@ -1031,7 +1035,7 @@ public class TrackBrowserActivityFragment extends Fragment
                 long id;
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
                 shareIntent.setType("audio/*");
-                mTrackCursor.moveToPosition(mSelectedPosition);
+                mTrackCursor.moveToPosition(position);
                 if (mEditMode && !mPlaylist.equals("nowplaying")) {
                     id = mTrackCursor.getLong(
                                         mTrackCursor.getColumnIndexOrThrow(
@@ -2148,7 +2152,7 @@ public class TrackBrowserActivityFragment extends Fragment
                 cursor.close();
                 cursor = null;
             }
-            if (cursor != mActivity.mTrackCursor) {
+            if (cursor != null && !cursor.isClosed() && cursor != mActivity.mTrackCursor) {
                 if (mActivity.mTrackCursor != null) {
                     mActivity.mTrackCursor.close();
                     mActivity.mTrackCursor = null;
@@ -2156,6 +2160,8 @@ public class TrackBrowserActivityFragment extends Fragment
                 mActivity.mTrackCursor = cursor;
                 super.changeCursor(cursor);
                 getColumnIndices(cursor);
+            } else {
+                cursor = null;
             }
         }
 
@@ -2209,14 +2215,11 @@ public class TrackBrowserActivityFragment extends Fragment
         if (mPopupMenu != null) {
             mPopupMenu.dismiss();
         }
-        Fragment fragment = null;
-        fragment = new TrackBrowserActivityFragment();
-        Bundle args = new Bundle();
-        args.putString("artist", mArtistId);
-        args.putString("album", mAlbumId);
-        fragment.setArguments(args);
-        getFragmentManager().beginTransaction()
-                .replace(R.id.fragment_page, fragment, "track_fragment")
-                .commitAllowingStateLoss();
+        if (mSub != null) {
+            mSub.close();
+        }
+        LayoutInflater inflater = LayoutInflater.from(getContext());
+        View view = inflater.inflate(R.layout.media_picker_activity, null);
+        initViews(mContainer ,view);
     }
 }

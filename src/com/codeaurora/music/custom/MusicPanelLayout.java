@@ -31,6 +31,7 @@ package com.codeaurora.music.custom;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -89,7 +90,8 @@ public class MusicPanelLayout extends ViewGroup {
 
     public BoardState mSlipState = BoardState.COLLAPSED;
     public boolean mIsQueueEnabled = false;
-    private BoardState mPreviuosStoppedDraggingSlipState = null;
+    private boolean mIsLandscape = false;
+    private BoardState mPreviuosStoppedDraggingSlipState = BoardState.COLLAPSED;
     private float mSlipOffset;
     private int mSlipRange;
     private boolean mIsCanNotDrag;
@@ -148,6 +150,7 @@ public class MusicPanelLayout extends ViewGroup {
         mHookHelper.setPanelMinVelocity(mMinimumVelocityOfFling * density);
 
         mCheckTouchEnabled = true;
+        configurationChanged();
     }
 
     @Override
@@ -558,7 +561,7 @@ public class MusicPanelLayout extends ViewGroup {
         mSeekBarView.getLocationOnScreen(mSeekBarCoordinate);
         mSongsQueueView.getLocationOnScreen(mSongsQueueCoordinate);
         if(mIsQueueEnabled && (y > mSongsQueueCoordinate[1])
-                           && (y < mSeekBarCoordinate[1])) {
+                           && (y < mSeekBarCoordinate[1] || mIsLandscape)) {
            return false;
         }
         switch (action) {
@@ -1027,5 +1030,20 @@ public class MusicPanelLayout extends ViewGroup {
             out.writeString(mSlipState.toString());
         }
 
+    }
+
+    @Override
+    protected void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        configurationChanged();
+    }
+
+    private void configurationChanged() {
+        if (getResources().getConfiguration().orientation
+                == Configuration.ORIENTATION_LANDSCAPE) {
+            mIsLandscape = true;
+        } else {
+            mIsLandscape = false;
+        }
     }
 }

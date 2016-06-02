@@ -73,21 +73,22 @@ public class LyricView extends ListView {
         if (changed) {
             int height = getMeasuredHeight();
             int displayLines = height / mLyricLineHeight;
-            if (displayLines >= 4) {
-                if (displayLines % 2 == 0) {
-                    displayLines -= 1;
-                } else {
-                    displayLines -= 2;
-                }
-            }
 
-            int paddingValue = (height - displayLines * mLyricLineHeight) / 3;
-            setPadding(getPaddingLeft(), paddingValue, getPaddingRight(), paddingValue * 2 + 1);
-            mLyricMidPos = (displayLines / 2 - 1) * mLyricLineHeight + 1;
+            int paddingValue = (height - displayLines * mLyricLineHeight) / 2;
+            setPadding(getPaddingLeft(), paddingValue, getPaddingRight(), paddingValue);
             int offset = 0;
-            offset = (displayLines / 2) * mLyricLineHeight;
-            mHeaderView.getLayoutParams().height = offset;
-            mFooterView.getLayoutParams().height = offset;
+            //Calculate the rows of lyrics. Set mFooterView and mHeaderView's height of layout. Calculate the lyrics highlight position.
+            if (displayLines % 2 == 0) {
+                mLyricMidPos = (displayLines / 2 - 2) * mLyricLineHeight + 1;
+                offset = (displayLines / 2 - 1) * mLyricLineHeight;
+                mHeaderView.getLayoutParams().height = offset;
+                mFooterView.getLayoutParams().height = offset + mLyricLineHeight;
+            } else {
+                mLyricMidPos = (displayLines / 2 - 1) * mLyricLineHeight + 1;
+                offset = (displayLines / 2) * mLyricLineHeight;
+                mHeaderView.getLayoutParams().height = offset;
+                mFooterView.getLayoutParams().height = offset;
+            }
         }
         super.onLayout(changed, l, t, r, b);
     }

@@ -53,6 +53,8 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.provider.MediaStore;
+import android.telephony.SubscriptionInfo;
+import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.text.Layout;
 import android.text.TextUtils;
@@ -134,11 +136,11 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private boolean isBackPressed = false;
     private boolean mCheckIfSeekRequired = false;
     private ImageView mFavoriteIcon;
-    private boolean mEnableMyFavorites = false;
     private ImageView mLyricIcon;
     private LinearLayout mLandControlPanel;
     private LinearLayout mAudioPlayerBody;
     private LyricView mLyricView;
+    private View mLyricPanel;
     private LyricAdapter mLyricAdapter;
     private PlayListItem mCurPlayListItem;
     private Lyric mLyric;
@@ -153,6 +155,14 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private String mStrTrackName = null;
     private ResumeScrollTask mResumeScrollTask;
     private final Timer mResumeTimer = new Timer("resumeTimer");
+
+    private static final int STATUS_DISABLE = 0;
+    private static final int STATUS_PORT_UNSELECTED = 1;
+    private static final int STATUS_LAND_UNSELECTED = 2;
+    private static final int STATUS_SELECTED = 3;
+
+    private static final int SWITCH_MUSIC_MAX_TIME = 2000;
+    private int mLyricIconStatus;
 
     public MediaPlaybackActivity() {
     }
@@ -184,8 +194,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         metaChangeFilter.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
         registerReceiver(mTrackListListener, metaChangeFilter);
         new MusicUtils.BitmapDownloadThread(this, null, 0, 20).start();
-        mEnableMyFavorites
-                = getApplicationContext().getResources().getBoolean(R.bool.enable_myfavorites);
     }
 
     public void init() {
@@ -222,14 +230,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mProgress = (ProgressBar) findViewById(R.id.progress);
         mQueueLayout = (FrameLayout) findViewById(R.id.current_queue_view);
         mFavoriteIcon = (ImageView) findViewById(R.id.favorite);
-        if (mEnableMyFavorites) {
-            mFavoriteIcon.setVisibility(View.VISIBLE);
-            mFavoriteIcon.setImageResource(getFavoriteStatus() ? R.drawable.favorite_selected
-                    : R.drawable.favorite_unselected);
-            mFavoriteIcon.setOnClickListener(mFavoriteListener);
-        } else {
-            mFavoriteIcon.setVisibility(View.GONE);
-        }
+        mFavoriteIcon.setVisibility(View.VISIBLE);
+        setFavoriteIconImage(getFavoriteStatus());
+        mFavoriteIcon.setOnClickListener(mFavoriteListener);
         mAlbumIcon = (ImageView) findViewById(R.id.album_icon_view);
         boolean isRtl = TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) ==
                             View.LAYOUT_DIRECTION_RTL;
@@ -255,6 +258,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             seeker.setOnSeekBarChangeListener(mSeekListener);
         }
         mProgress.setMax(1000);
+        mLyricPanel = findViewById(R.id.lyric_panel);
         mLyricView = (LyricView) findViewById(R.id.lv_lyric);
         mLyricView.setAdapter(mLyricAdapter);
         mLyricView.setSelection(mFirstVisibleItem);
@@ -271,6 +275,37 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             }
         });
         mLandControlPanel = (LinearLayout)findViewById(R.id.land_control_panel);
+        if (!MusicUtils.isFragmentRemoved) {
+            handleDisplay();
+            changeFragment();
+        }
+    }
+
+    private void handleDisplay() {
+        mSlidingPanelLayout.mIsQueueEnabled = true;
+        mAlbumIcon.setVisibility(View.GONE);
+        mLyricIcon.setVisibility(View.GONE);
+        mFavoriteIcon.setVisibility(View.GONE);
+        mCurrentPlaylist.setImageResource(R.drawable.list_active);
+        mMenuOverFlow.setOnClickListener(mPopUpMenuListener);
+        if (mHasLrc) {
+            mLyricPanel.setVisibility(View.GONE);
+            stopQueueNextRefreshForLyric();
+        }
+        if (mLandControlPanel != null) {
+            mLandControlPanel.setVisibility(View.GONE);
+        }
+    }
+
+    private void changeFragment() {
+        mFragment = new TrackBrowserFragment();
+        Bundle args = new Bundle();
+        args.putString("playlist", "nowplaying");
+        args.putBoolean("editValue", true);
+        mFragment.setArguments(args);
+        getFragmentManager().beginTransaction()
+                .replace(R.id.current_queue_view, mFragment, "track_fragment")
+                .commitAllowingStateLoss();
     }
 
     int mInitialX = -1;
@@ -530,13 +565,11 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             mLandControlPanel.setVisibility(View.VISIBLE);
         }
         if (mHasLrc && mIsLyricDisplay) {
-            mLyricView.setVisibility(View.VISIBLE);
+            mLyricPanel.setVisibility(View.VISIBLE);
             queueNextRefreshForLyric(REFRESH_MILLIONS);
-            mLyricIcon.setImageResource(R.drawable.ic_lyric_selected);
+            setLyricIconImage();
         }
-        if (mEnableMyFavorites) {
-            mFavoriteIcon.setVisibility(View.VISIBLE);
-        }
+        mFavoriteIcon.setVisibility(View.VISIBLE);
         mMenuOverFlow.setOnClickListener(mActiveButtonPopUpMenuListener);
         mCurrentPlaylist.setImageResource(R.drawable.list);
         if (mFragment != null) {
@@ -552,9 +585,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 mSlidingPanelLayout.mIsQueueEnabled = false;
                 mAlbumIcon.setVisibility(View.VISIBLE);
                 mLyricIcon.setVisibility(View.VISIBLE);
-                if (mEnableMyFavorites) {
-                    mFavoriteIcon.setVisibility(View.VISIBLE);
-                }
+                mFavoriteIcon.setVisibility(View.VISIBLE);
                 mMenuOverFlow.setOnClickListener(mActiveButtonPopUpMenuListener);
                 mCurrentPlaylist.setImageResource(R.drawable.list);
                 if (mFragment != null) {
@@ -563,9 +594,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                             .commit();
                 }
                 if (mHasLrc && mIsLyricDisplay) {
-                    mLyricView.setVisibility(View.VISIBLE);
+                    mLyricPanel.setVisibility(View.VISIBLE);
                     queueNextRefreshForLyric(REFRESH_MILLIONS);
-                    mLyricIcon.setImageResource(R.drawable.ic_lyric_selected);
+                    setLyricIconImage();
                 }
                 if (mLandControlPanel != null) {
                     mLandControlPanel.setVisibility(View.VISIBLE);
@@ -575,9 +606,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 mSlidingPanelLayout.mIsQueueEnabled = true;
                 mAlbumIcon.setVisibility(View.GONE);
                 mLyricIcon.setVisibility(View.GONE);
-                if (mEnableMyFavorites) {
-                    mFavoriteIcon.setVisibility(View.GONE);
-                }
+                mFavoriteIcon.setVisibility(View.GONE);
                 mCurrentPlaylist.setImageResource(R.drawable.list_active);
                 mMenuOverFlow.setOnClickListener(mPopUpMenuListener);
                 mFragment = new TrackBrowserFragment();
@@ -590,7 +619,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                         .add(R.id.current_queue_view, mFragment,
                                 "track_fragment").commit();
                 if (mHasLrc) {
-                    mLyricView.setVisibility(View.GONE);
+                    mLyricPanel.setVisibility(View.GONE);
                     stopQueueNextRefreshForLyric();
                 }
                 if (mLandControlPanel != null) {
@@ -658,7 +687,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 
         getContentResolver().delete(
                 ContentUris.withAppendedId(uri, memberId), null, null);
-        mFavoriteIcon.setImageResource(R.drawable.favorite_unselected);
+        setFavoriteIconImage(false);
 
     }
 
@@ -668,7 +697,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 audioId
         };
 
-        mFavoriteIcon.setImageResource(R.drawable.favorite_selected);
+        setFavoriteIconImage(true);
 
         Fragment fragment = getFragmentManager().findFragmentByTag("track_fragment");
         if (fragment != null) {
@@ -738,23 +767,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         public void onClick(View v) {
             if (mService == null)
                 return;
-            try {
-                int shuffle = mService.getShuffleMode();
-                int histSize = mService.getHistSize();
-                if (mService.position() < 2000) {
-                    if ((shuffle == MediaPlaybackService.SHUFFLE_NORMAL)
-                            && (histSize == 0 || histSize == 1)) {
-                        mService.seek(0);
-                        mService.play();
-                    } else {
-                        mService.prev();
-                    }
-                } else {
-                    mService.seek(0);
-                    mService.play();
-                }
-            } catch (RemoteException ex) {
-            }
+            sendIsRespondMessage(GO_PRE);
         }
     };
 
@@ -762,12 +775,15 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         public void onClick(View v) {
             if (mService == null)
                 return;
-            try {
-                mService.next();
-            } catch (RemoteException ex) {
-            }
+            sendIsRespondMessage(GO_NEXT);
         }
     };
+
+    private void sendIsRespondMessage(int msgId) {
+        if (!mHandler.hasMessages(msgId)) {
+            mHandler.sendEmptyMessage(msgId);
+        }
+    }
 
     private View.OnClickListener mPopUpMenuListener = new View.OnClickListener() {
         public void onClick(View v) {
@@ -800,13 +816,26 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             if (TelephonyManager.getDefault().isMultiSimEnabled()) {
                 int[] ringtones = { USE_AS_RINGTONE, USE_AS_RINGTONE_2 };
                 int[] menuStrings = { R.string.ringtone_menu_1,
-                        R.string.ringtone_menu_2 };
-                for (int i = 0; i < TelephonyManager.getDefault()
-                        .getPhoneCount(); i++) {
-                    popup.getMenu().add(0, ringtones[i], 0,
-                            menuStrings[i]);
+                                      R.string.ringtone_menu_2 };
+                int[] menuSimNameStrings = { R.string.ringtone_menu_sim_name_1,
+                                             R.string.ringtone_menu_sim_name_2 };
+                for (int i = 0; i < TelephonyManager.getDefault().getPhoneCount(); i++) {
+                    if (TelephonyManager.getDefault().getSimState(i) ==
+                          TelephonyManager.SIM_STATE_READY) {
+                        String menuItem;
+                        SubscriptionInfo info =
+                                  SubscriptionManager.from(mActivity).
+                                      getActiveSubscriptionInfoForSimSlotIndex(i);
+                        if (info != null) {
+                            menuItem = getString(menuSimNameStrings[i], info.getDisplayName());
+                        } else {
+                            menuItem = getString(menuStrings[i]);
+                        }
+                        popup.getMenu().add(0, ringtones[i], 0, menuItem);
+                    }
                 }
-            } else {
+            } else if (TelephonyManager.getDefault().getSimState() ==
+                             TelephonyManager.SIM_STATE_READY) {
                 popup.getMenu().add(0, USE_AS_RINGTONE, 0,
                         R.string.ringtone_menu);
             }
@@ -925,7 +954,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         if (mLyric != null) {
             mLyric.release();
         }
-        mLyricView = null;
+        mLyricPanel = null;
         super.onDestroy();
     }
 
@@ -1134,8 +1163,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 
     public void updateNowPlaying(Activity a) {
         MusicUtils.updateNowPlaying(a, MusicBrowserActivity.isPanelExpanded);
-        mFavoriteIcon.setImageResource(getFavoriteStatus() ? R.drawable.favorite_selected
-                : R.drawable.favorite_unselected);
+        setFavoriteIconImage(getFavoriteStatus());
     }
 
     public static int getStatusBarHeight() {
@@ -1652,10 +1680,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 setRepeatButtonImage();
                 setShuffleButtonImage();
                 setPauseButtonImage();
-                if (mEnableMyFavorites) {
-                    mFavoriteIcon.setImageResource(getFavoriteStatus() ?
-                            R.drawable.favorite_selected : R.drawable.favorite_unselected);
-                }
+                setFavoriteIconImage(getFavoriteStatus());
                 return;
             } else {
                 mSlidingPanelLayout.setHookState(BoardState.HIDDEN);
@@ -1701,7 +1726,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 break;
             case MediaPlaybackService.SHUFFLE_AUTO:
                 mShuffleButton
-                        .setImageResource(R.drawable.ic_mp_partyshuffle_on_btn);
+                        .setImageResource(R.drawable.ic_mp_shuffle_on_btn);
                 break;
             default:
                 mShuffleButton
@@ -1740,14 +1765,16 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                     if (mHasLrc) {
                         queueNextRefreshForLyric(REFRESH_MILLIONS);
                     }
+                } else {
+                    mHasLrc = hasLyric(mService.getTrackName());
                 }
             } else {
                 stopQueueNextRefreshForLyric();
             }
-            if (mHasLrc && mIsLyricDisplay && mLyricView.getVisibility() != View.VISIBLE &&
+            setLyricIconStatusAndImage(mHasLrc, mIsLyricDisplay);
+            if (mHasLrc && mIsLyricDisplay && mLyricPanel.getVisibility() != View.VISIBLE &&
                     MusicUtils.isFragmentRemoved) {
-                mLyricView.setVisibility(View.VISIBLE);
-                mLyricIcon.setImageResource(R.drawable.ic_lyric_selected);
+                mLyricPanel.setVisibility(View.VISIBLE);
             }
         } catch (RemoteException ex) {
         }
@@ -1770,6 +1797,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private static final int QUIT = 2;
     private static final int GET_ALBUM_ART = 3;
     private static final int ALBUM_ART_DECODED = 4;
+    private static final int GO_PRE = 5;
+    private static final int GO_NEXT = 6;
     private static final int REFRESH_LYRIC = 1;
 
     private void queueNextRefresh(long delay) {
@@ -1861,12 +1890,49 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                                     }
                                 }).setCancelable(false).show();
                 break;
+            case GO_PRE:
+                try {
+                    int shuffle = mService.getShuffleMode();
+                    int histSize = mService.getHistSize();
+                    if (isGoStart(shuffle, histSize)) {
+                        mService.seek(0);
+                        mService.play();
+                    } else {
+                        mService.prev();
+                    }
+                } catch (RemoteException ex) {
+                    ex.printStackTrace();
+                }
+                break;
+            case GO_NEXT:
+                try {
+                    mService.next();
+                } catch (RemoteException ex) {
+                    ex.printStackTrace();
+                }
+                break;
 
             default:
                 break;
             }
         }
     };
+
+    private boolean isGoStart(int shuffle, int histSize) {
+        try {
+            Boolean isOverTime = mService.position() < SWITCH_MUSIC_MAX_TIME ? true : false;
+            Boolean isShuffleMode = shuffle == MediaPlaybackService.SHUFFLE_NORMAL ? true : false;
+            Boolean isHistLess = histSize == 0 || histSize == 1 ? true : false;
+            if ((isOverTime && isShuffleMode && isHistLess) || !isOverTime) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
     private BroadcastReceiver mStatusListener = new BroadcastReceiver() {
         @Override
@@ -2118,31 +2184,6 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             updateNowPlaying(mActivity);
         }
-        if (!MusicUtils.isFragmentRemoved) {
-            mSlidingPanelLayout.mIsQueueEnabled = true;
-            mAlbumIcon.setVisibility(View.GONE);
-            mLyricIcon.setVisibility(View.GONE);
-            if (mEnableMyFavorites) {
-                mFavoriteIcon.setVisibility(View.GONE);
-            }
-            mCurrentPlaylist.setImageResource(R.drawable.list_active);
-            mMenuOverFlow.setOnClickListener(mPopUpMenuListener);
-            mFragment = new TrackBrowserFragment();
-            Bundle args = new Bundle();
-            args.putString("playlist", "nowplaying");
-            args.putBoolean("editValue", true);
-            mFragment.setArguments(args);
-            getFragmentManager().beginTransaction()
-                    .replace(R.id.current_queue_view, mFragment,
-                            "track_fragment").commitAllowingStateLoss();
-            if (mHasLrc) {
-                mLyricView.setVisibility(View.GONE);
-                stopQueueNextRefreshForLyric();
-            }
-            if (mLandControlPanel != null) {
-                mLandControlPanel.setVisibility(View.GONE);
-            }
-        }
         mLyricAdapter.setInvalidate();
         queueNextRefreshForLyric(REFRESH_MILLIONS);
     }
@@ -2175,15 +2216,15 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 
     private void enterLyricAnimal() {
         try {
-            if (mLyricView != null) {
+            if (mLyricPanel != null) {
                 int centerX = 0;
                 int centerY = 0;
                 int startWidth = 0;
                 int startHeight = 0;
                 if (getResources().getConfiguration().orientation
                         == Configuration.ORIENTATION_LANDSCAPE) {
-                    centerX = mLyricView.getRight();
-                    centerY = mLyricView.getBottom();
+                    centerX = mLyricPanel.getRight();
+                    centerY = mLyricPanel.getBottom();
                     startWidth = 0;
                     startHeight = 0;
                 } else {
@@ -2197,27 +2238,28 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                     startHeight = rect.height();
                 }
                 AnimatorSet animatorSet = new AnimatorSet();
-                ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(mLyricView,
+                ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(mLyricPanel,
                         "alpha", 0.0F, 1.0F);
                 Animator animator = ViewAnimationUtils.createCircularReveal(
-                        mLyricView,
+                        mLyricPanel,
                         centerX,
                         centerY,
                         (float) Math.hypot(startWidth, startHeight),
-                        (float) Math.hypot(mLyricView.getWidth(), mLyricView.getHeight()));
+                        (float) Math.hypot(mLyricPanel.getWidth(), mLyricPanel.getHeight()));
                 animatorSet.setDuration(ENTER_LYRIC_ANIMAL_INTERVAL);
                 animatorSet.setInterpolator(new AccelerateInterpolator());
                 animatorSet.playTogether(animator,alphaAnimator);
                 animatorSet.addListener(new Animator.AnimatorListener() {
                     @Override
                     public void onAnimationStart(Animator animation) {
-                        mLyricView.setVisibility(View.VISIBLE);
+                        mLyricPanel.setVisibility(View.VISIBLE);
                     }
 
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        mLyricIcon.setImageResource(R.drawable.ic_lyric_selected);
                         mIsLyricDisplay = true;
+                        setLyricIconStatusAndImage(mHasLrc, mIsLyricDisplay);
+                        setFavoriteIconImage(getFavoriteStatus());
                         mIsExeLyricAnimal = false;
                     }
 
@@ -2249,15 +2291,15 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 
     private void exitLyricAnimal() {
         try {
-            if (mLyricView != null) {
+            if (mLyricPanel != null) {
                 int centerX = 0;
                 int centerY = 0;
                 int endWidth = 0;
                 int endHeight = 0;
                 if (getResources().getConfiguration().orientation
                         == Configuration.ORIENTATION_LANDSCAPE) {
-                    centerX = mLyricView.getRight();
-                    centerY = mLyricView.getBottom();
+                    centerX = mLyricPanel.getRight();
+                    centerY = mLyricPanel.getBottom();
                     endWidth = 0;
                     endHeight = 0;
                 } else {
@@ -2271,13 +2313,13 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                     endHeight = rect.height();
                 }
                 AnimatorSet animatorSet = new AnimatorSet();
-                ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(mLyricView,
+                ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(mLyricPanel,
                         "alpha", 1.0F, 0.0F);
                 Animator animator = ViewAnimationUtils.createCircularReveal(
-                        mLyricView,
+                        mLyricPanel,
                         centerX,
                         centerY,
-                        (float) Math.hypot(mLyricView.getWidth(), mLyricView.getHeight()),
+                        (float) Math.hypot(mLyricPanel.getWidth(), mLyricPanel.getHeight()),
                         (float) Math.hypot(endWidth, endHeight));
                 animatorSet.setDuration(ENTER_LYRIC_ANIMAL_INTERVAL);
                 animatorSet.setInterpolator(new AccelerateInterpolator());
@@ -2289,9 +2331,10 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        mLyricView.setVisibility(View.GONE);
-                        mLyricIcon.setImageResource(R.drawable.ic_lyric_unselected);
+                        mLyricPanel.setVisibility(View.GONE);
                         mIsLyricDisplay = false;
+                        setLyricIconStatusAndImage(mHasLrc, mIsLyricDisplay);
+                        setFavoriteIconImage(getFavoriteStatus());
                         mIsExeLyricAnimal = false;
                     }
 
@@ -2344,9 +2387,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     }
 
     public void setLyricView() {
-        if (mLyricView != null) {
-            mLyricAdapter.setLyric(mLyric);
+        if (mLyricPanel != null) {
             if (mMetaChanged) {
+                mLyricAdapter.setLyric(mLyric);
                 mMetaChanged = false;
                 mLyricView.setSelection(0);
             }
@@ -2381,9 +2424,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 
     private void setLyricNolrc() {
         mLyric = null;
-        if (mLyricView != null) {
-            mLyricView.setVisibility(View.GONE);
-            mLyricIcon.setImageResource(R.drawable.ic_lyric_unselected);
+        if (mLyricPanel != null) {
+            mLyricPanel.setVisibility(View.GONE);
             mHasLrc = false;
             if (mIsLyricDisplay) {
                 hideLyric();
@@ -2411,7 +2453,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     };
 
     public void updateDuration(long duration) {
-        if (mHasLrc && mLyricView != null) {
+        if (mHasLrc && mLyricPanel != null) {
             mLyricAdapter.setTime(duration);
             int intentSelection = mLyricAdapter.getSelection();
             boolean shouldInvalidate = mLyricAdapter.shouldInvalidate();
@@ -2490,5 +2532,78 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         public void run() {
             mLyricSrollState = SCROLL_STATE_IDLE;
         }
+    }
+
+    private void setFavoriteIconImage(boolean status) {
+        if (status) {
+            mFavoriteIcon.setImageResource(R.drawable.favorite_selected);
+        } else {
+            if (getResources().getConfiguration().orientation
+                    == Configuration.ORIENTATION_PORTRAIT
+                    && mLyricIconStatus != STATUS_SELECTED) {
+                mFavoriteIcon.setImageResource(R.drawable.favorite_unselected_port);
+            } else {
+                mFavoriteIcon.setImageResource(R.drawable.favorite_unselected);
+            }
+        }
+    }
+
+    private void setLyricIconStatusAndImage(boolean hasLyric, boolean display) {
+        setLyricIconStatus(hasLyric, display);
+        setLyricIconImage();
+    }
+
+    private void setLyricIconStatus(boolean hasLyric, boolean display) {
+        if (!hasLyric) {
+            mLyricIconStatus = STATUS_DISABLE;
+        } else if (display) {
+            mLyricIconStatus = STATUS_SELECTED;
+        } else {
+            if (getResources().getConfiguration().orientation
+                    == Configuration.ORIENTATION_PORTRAIT) {
+                mLyricIconStatus = STATUS_PORT_UNSELECTED;
+            } else {
+                mLyricIconStatus = STATUS_LAND_UNSELECTED;
+            }
+        }
+    }
+
+    private void setLyricIconImage() {
+        switch (mLyricIconStatus) {
+            case STATUS_SELECTED:
+                mLyricIcon.setImageResource(R.drawable.ic_lyric_selected);
+                break;
+            case STATUS_PORT_UNSELECTED:
+                mLyricIcon.setImageResource(R.drawable.ic_lyric_unselected_port);
+                break;
+            case STATUS_LAND_UNSELECTED:
+                mLyricIcon.setImageResource(R.drawable.ic_lyric_unselected);
+                break;
+            case STATUS_DISABLE:
+                mLyricIcon.setImageResource(R.drawable.ic_lyric_disable);
+                break;
+            default:
+                mLyricIcon.setImageResource(R.drawable.ic_lyric_disable);
+                break;
+        }
+    }
+
+    private boolean hasLyric(String trackName) {
+        if (trackName != null) {
+            File lrcFile;
+            if (Environment.getExternalStorageState().equals(
+                    Environment.MEDIA_MOUNTED)) {
+                String sdCardDir = Environment.getExternalStorageDirectory()
+                        + SRC_PATH;
+                lrcFile = new File(sdCardDir + trackName + ".lrc");
+                if (lrcFile.exists()) {
+                    return true;
+                }
+                if (setLocalLrc() != null) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

@@ -102,7 +102,7 @@
         <item>Artists</item>
         <item>Albums</item>
         <item>Songs</item>
-        <item>Folder</item>
+        <item>Folders</item>
         <item>Playlists</item>
     </string-array>
     <string-array name="title_array_songs">
@@ -126,9 +126,9 @@
     <!-- Songs screen title -->
     <string name="tracks_title">Songs</string>
     <!-- Category label on Library screen -->
-    <string name="folder_menu">Folder</string>
+    <string name="folder_menu">Folders</string>
     <!-- Folder screen title -->
-    <string name="folders_title">Folder</string>
+    <string name="folders_title">Folders</string>
     <!-- Category label on Library screen -->
     <string name="playlists_menu">Playlists</string>
     <!-- Playlists screen title -->

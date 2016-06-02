@@ -35,7 +35,7 @@
         android:id="@+id/album_art_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1">
+        android:layout_weight="5">
 
         <FrameLayout
             android:id="@+id/current_queue_view"
@@ -49,18 +49,15 @@
                 android:scaleType="centerCrop"
                 android:src="@drawable/albumart_mp_unknown" />
 
-            <com.codeaurora.music.lyric.LyricView
-                android:id="@+id/lv_lyric"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:background="#fafafa"
-                android:clickable="false"
-                android:divider="@null"
-                android:fadingEdge="none"
-                android:listSelector="@android:color/transparent"
-                android:paddingLeft="10dp"
-                android:scrollbars="none"
-                android:visibility="invisible" />
+            <LinearLayout
+                android:id="@+id/lyric_panel"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="invisible">
+
+                <include layout="@layout/lyric" />
+            </LinearLayout>
 
         </FrameLayout>
 
@@ -70,7 +67,7 @@
         android:id="@+id/land_control_panel"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1"
+        android:layout_weight="4"
         android:orientation="vertical">
 
         <RelativeLayout
@@ -88,9 +85,9 @@
                 android:background="@android:color/transparent"
                 android:paddingLeft="12dp"
                 android:src="@drawable/pre"
-                android:layout_alignTop="@+id/nexticon"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="41dp" />
+                android:layout_centerVertical="true"
+                android:layout_toLeftOf="@+id/play_pause"
+                android:layout_marginRight="48dp"/>
 
             <ImageButton
                 android:id="@+id/play_pause"
@@ -109,8 +106,8 @@
                 android:paddingRight="12dp"
                 android:src="@drawable/nex"
                 android:layout_centerVertical="true"
-                android:layout_alignParentEnd="true"
-                android:layout_marginEnd="37dp" />
+                android:layout_toEndOf="@+id/play_pause"
+                android:layout_marginLeft="48dp"/>
         </RelativeLayout>
 
         <RelativeLayout
@@ -118,8 +115,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/album_art_view"
-            android:layout_weight="0.3"
-            android:paddingTop="2dip">
+            android:layout_weight="0.2">
 
             <TextView
                 android:id="@+id/currenttimer"
@@ -127,7 +123,7 @@
                 android:layout_height="wrap_content"
                 android:alpha="0.54"
                 android:fontFamily="sans-serif"
-                android:paddingStart="8dp"
+                android:paddingStart="18dp"
                 android:textColor="#000000" />
 
             <TextView
@@ -137,7 +133,7 @@
                 android:layout_alignParentEnd="true"
                 android:alpha="0.54"
                 android:fontFamily="sans-serif"
-                android:paddingEnd="8dp"
+                android:paddingEnd="18dp"
                 android:textColor="#000000" />
         </RelativeLayout>
 
@@ -145,19 +141,19 @@
             android:id="@+id/progress"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="-10dp"
-            android:layout_marginStart="-10dp"
+            android:layout_marginEnd="2dp"
+            android:layout_marginStart="2dp"
             android:indeterminateTint="@color/seekbarcolor"
-            android:progressBackgroundTint="@color/greycheck"
+            android:progressBackgroundTint="@android:color/black"
             android:progressTint="@color/seekbarcolor"
             android:thumbTint="@color/seekbarcolor" />
 
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_gravity="bottom"
             android:layout_weight="2"
+            android:layout_marginLeft="-16dp"
+            android:layout_marginRight="-16dp"
             android:orientation="horizontal">
 
             <ImageView

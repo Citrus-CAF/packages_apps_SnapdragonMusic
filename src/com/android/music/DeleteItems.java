@@ -21,9 +21,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.media.AudioManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -126,26 +128,52 @@ public class DeleteItems extends Activity
                 }
                 mItemListHashCode = mItemList.hashCode();
                 // delete the selected item(s)
+                final String where = getItemListString(mItemList);
                 new AsyncTask<Void, Void, Void>() {
-                    int length;
+                    private int mLength;
+                    private Cursor mCursor = null;
+
+                    @Override
+                    protected void onPreExecute() {
+                        super.onPreExecute();
+                        mCursor = MusicUtils.deleteTracksPre(DeleteItems.this, where);
+                        mLength = mItemList.length;
+                    }
 
                     @Override
                     protected Void doInBackground(Void... params) {
-                        length = mItemList.length;
-                        MusicUtils.deleteTracks(DeleteItems.this, mItemList);
+                        MusicUtils.deleteTracks(DeleteItems.this, mCursor, where);
+                        if (mCursor != null) {
+                            mCursor.close();
+                        }
                         return null;
                     }
 
                     @Override
                     protected void onPostExecute(Void result) {
                         super.onPostExecute(result);
-                        MusicUtils.deleteTracksSuccess(DeleteItems.this, length);
+                        MusicUtils.deleteTracksPost(DeleteItems.this, mLength);
                         DeleteItems.this.finish();
                     }
                 }.execute();
+                return;
             }
+            finish();
         }
     };
+
+    private String getItemListString(long [] list) {
+        StringBuilder sbWhere = new StringBuilder();
+        sbWhere.append(MediaStore.Audio.Media._ID + " IN (");
+        for (int i = 0; i < list.length; i++) {
+            sbWhere.append(list[i]);
+            if (i < list.length - 1) {
+                sbWhere.append(",");
+            }
+        }
+        sbWhere.append(")");
+        return sbWhere.toString();
+    }
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {

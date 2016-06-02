@@ -28,40 +28,30 @@
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_height="wrap_content"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-    <Button
-        android:id="@id/btn_lyric_sentence"
+    <com.codeaurora.music.lyric.LyricView
+        android:id="@id/lv_lyric"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="#fafafa"
+        android:clickable="false"
+        android:divider="@null"
+        android:fadingEdge="none"
+        android:listSelector="@android:color/transparent"
+        android:paddingLeft="10dp"
+        android:scrollbars="none" />
+    <ImageView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:background="@android:color/transparent"
-        android:textSize="14sp"
-        android:textStyle="normal"
-        android:textColor="@color/selector_lyric"
-        android:textAllCaps="false"
-        android:minHeight="10dp"
-        android:includeFontPadding="false"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
-        android:layout_margin="0dp" />
-
-    <Button
-        android:id="@id/btn_focused_lyric_sentence"
+        android:layout_height="40dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/lyric_cover_top" />
+    <ImageView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:background="@android:color/transparent"
-        android:textSize="16sp"
-        android:textStyle="normal"
-        android:textColor="@color/lyric_selected_text"
-        android:textAllCaps="false"
-        android:minHeight="10dp"
-        android:includeFontPadding="false"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
-        android:layout_margin="0dp" />
-</LinearLayout>
+        android:layout_height="40dp"
+        android:scaleType="fitXY"
+        android:layout_gravity="bottom"
+        android:src="@drawable/lyric_cover_bottom"/>
+</FrameLayout>

@@ -130,6 +130,8 @@ public class MusicUtils {
                                          new LruCache<String, Bitmap[]>(20);
     public static LruCache<String, Bitmap> mFolderCache = new LruCache<String, Bitmap>(
             20);
+    public static LruCache<String, Bitmap[]> mAlbumArtCache =
+            new LruCache<String, Bitmap[]>(20);
 
     public static HashMap<Integer, Cursor> cur = new HashMap<Integer, Cursor>();
     static Bitmap mAlbumArtsArray[];
@@ -611,20 +613,12 @@ public class MusicUtils {
         }
     }
 
-    public static void deleteTracks(Context context, long [] list) {
-        String [] cols = new String [] { MediaStore.Audio.Media._ID, 
+    public static Cursor deleteTracksPre(Context context, String where) {
+        final String [] cols = new String [] { MediaStore.Audio.Media._ID,
                 MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID };
-        StringBuilder where = new StringBuilder();
-        where.append(MediaStore.Audio.Media._ID + " IN (");
-        for (int i = 0; i < list.length; i++) {
-            where.append(list[i]);
-            if (i < list.length - 1) {
-                where.append(",");
-            }
-        }
-        where.append(")");
+
         Cursor c = query(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cols,
-                where.toString(), null, null);
+                where, null, null);
 
         if (c != null) {
 
@@ -635,6 +629,7 @@ public class MusicUtils {
                 while (! c.isAfterLast()) {
                     // remove from current playlist
                     long id = c.getLong(0);
+                    // perform in the main thread
                     sService.removeTrack(id);
                     // remove from album art cache
                     long artIndex = c.getLong(2);
@@ -645,9 +640,16 @@ public class MusicUtils {
                 }
             } catch (RemoteException ex) {
             }
+        }
+        return c;
+    }
 
+    public static void deleteTracks(Context context, Cursor c, String where) {
+        if (c != null) {
+            //Time-consuming, can not be executed in the main thread.
             // step 2: remove selected tracks from the database
-            context.getContentResolver().delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, where.toString(), null);
+            context.getContentResolver().delete(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    where, null);
 
             // step 3: remove files from card
             c.moveToFirst();
@@ -665,14 +667,13 @@ public class MusicUtils {
                     c.moveToNext();
                 }
             }
-            c.close();
         }
     }
 
-    public static void deleteTracksSuccess(Context context, int length) {
+    public static void deleteTracksPost(Context context, int length) {
         String message = context.getResources().getQuantityString(
                 R.plurals.NNNtracksdeleted, length, Integer.valueOf(length));
-        
+        // perform in the main thread
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
         // We deleted a number of tracks, which could affect any number of things
         // in the media content domain, so update everything.

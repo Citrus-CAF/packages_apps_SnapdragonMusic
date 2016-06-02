@@ -173,6 +173,11 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
         mDrawerListView.getLayoutParams().height = height;
         RelativeLayout equalizerLayout = (RelativeLayout) findViewById(R.id.equalizer_btn_view);
         RelativeLayout exitLayout = (RelativeLayout) findViewById(R.id.exit_btn_view);
+        if (getApplicationContext().getResources().getBoolean(R.bool.exit_in_drawer)) {
+            exitLayout.setVisibility(View.VISIBLE);
+        } else {
+            exitLayout.setVisibility(View.GONE);
+        }
         mNavigationAdapter = new NavigationDrawerListAdapter(this);
         mDrawerListView.setAdapter(mNavigationAdapter);
         activeTab = MusicUtils.getIntPref(this, "activetab", 0);
@@ -188,10 +193,24 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
                         }
                         activeTab = MusicUtils.getIntPref(
                                 MusicBrowserActivity.this, "activetab", 0);
-                        showScreen(position);
                         mNavigationAdapter.setClickPosition(position);
-                        mDrawerListView.invalidateViews();
                         mDrawerLayout.closeDrawer(Gravity.START);
+                        final int toShowPosition = position;
+                        mDrawerLayout.setDrawerListener(new DrawerLayout.DrawerListener() {
+                            @Override
+                            public void onDrawerSlide(View drawerView, float slideOffset) {
+                            }
+                            @Override
+                            public void onDrawerOpened(View drawerView) {
+                            }
+                            @Override
+                            public void onDrawerClosed(View drawerView) {
+                                showScreen(toShowPosition);
+                            }
+                            @Override
+                            public void onDrawerStateChanged(int newState) {
+                            }
+                        });
                     }
                 });
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);

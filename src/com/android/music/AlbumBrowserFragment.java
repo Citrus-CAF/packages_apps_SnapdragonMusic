@@ -56,6 +56,7 @@ import android.view.SubMenu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AlphabetIndexer;
@@ -88,6 +89,7 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
     private static int mLastSelectedPosition = -1;
     private MediaPlaybackActivity mParentActivity;
     public PopupMenu mPopupMenu;
+    private static SubMenu mSub = null;
 
     public AlbumBrowserFragment() {
     }
@@ -152,6 +154,22 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
                 R.layout.track_list_item_album, mAlbumCursor, new String[] {},
                 new int[] {});
         mAlbumList.setAdapter(mAdapter);
+        mAlbumList.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                if (scrollState == SCROLL_STATE_FLING) {
+                    mAdapter.mFastscroll = true;
+                } else {
+                    mAdapter.mFastscroll = false;
+                    mAdapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem,
+                             int visibleItemCount, int totalItemCount) {
+            }
+        });
         getAlbumCursor(mAdapter.getQueryHandler(), null);
         return rootView;
     }
@@ -171,6 +189,9 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
         super.onConfigurationChanged(newConfig);
         if (mPopupMenu != null ) {
             mPopupMenu.dismiss();
+        }
+        if (mSub != null) {
+            mSub.close();
         }
         arrangeGridColums(newConfig);
         Fragment fragment = new AlbumBrowserFragment();
@@ -516,6 +537,7 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
         private AsyncQueryHandler mQueryHandler;
         private String mConstraint = null;
         private boolean mConstraintIsValid = false;
+        private boolean mFastscroll = false;
 
         static class ViewHolder {
             TextView line1;
@@ -622,15 +644,16 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
             protected Object doInBackground(Object... params) {
                 Bitmap albumArt[] = new Bitmap[1];
                 albumArt[0] = BitmapFactory.decodeFile(art);
-                MusicUtils.mArtCache.put(name, albumArt);
+                MusicUtils.mAlbumArtCache.put(art, albumArt);
                 return albumArt[0];
             }
 
             @Override
             protected void onPostExecute(Object result) {
                 super.onPostExecute(result);
-                img.setImageBitmap((Bitmap) result);
-
+                if (img != null && art.equals(img.getTag())) {
+                    img.setImageBitmap((Bitmap) result);
+                }
             }
         }
 
@@ -660,11 +683,18 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
             // We don't actually need the path to the thumbnail file,
             // we just use it to see if there is album art or not
             String art = cursor.getString(mAlbumArtIndex);
-            Bitmap albumArt[] = MusicUtils.mArtCache.get(name);
-            if (unknown || art == null || art.length() == 0) {
+            Bitmap albumArt[];
+            if (art != null) {
+                albumArt = MusicUtils.mAlbumArtCache.get(art);
+            } else {
+                albumArt = null;
+            }
+            if (mFastscroll || unknown || art == null || art.length() == 0) {
                 iv.setImageDrawable(null);
+                iv.setTag(null);
             } else {
                 if (albumArt == null || albumArt[0] == null) {
+                    iv.setTag(art);
                     new BitmapDownload(iv, art, name).execute();
                 } else {
                     iv.setImageBitmap(albumArt[0]);
@@ -680,10 +710,10 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
                             .getParentActivity(), vh.popup_menu_button);
                     popup.getMenu().add(0, PLAY_SELECTION, 0,
                             R.string.play_selection);
-                    SubMenu sub = popup.getMenu().addSubMenu(0,
+                    mSub = popup.getMenu().addSubMenu(0,
                             ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
                     MusicUtils.makePlaylistMenu(mFragment.getParentActivity(),
-                            sub);
+                            mSub);
                     popup.getMenu()
                             .add(0, DELETE_ITEM, 0, R.string.delete_item);
                     popup.show();

@@ -86,6 +86,7 @@ public class FolderBrowserFragment extends Fragment
     private ListView mFolderList;
     private MediaPlaybackActivity mActivity;
     public PopupMenu mPopupMenu;
+    private static SubMenu mSub = null;
 
     public Activity getParentActivity() {
         return mActivity;
@@ -309,8 +310,8 @@ public class FolderBrowserFragment extends Fragment
     @Override
     public void onCreateContextMenu(ContextMenu menu, View view, ContextMenuInfo menuInfoIn) {
         menu.add(0, PLAY_SELECTION, 0, R.string.play_selection);
-        SubMenu sub = menu.addSubMenu(0, ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
-        MusicUtils.makePlaylistMenu(mActivity, sub);
+        mSub = menu.addSubMenu(0, ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
+        MusicUtils.makePlaylistMenu(mActivity, mSub);
         AdapterContextMenuInfo mi = (AdapterContextMenuInfo) menuInfoIn;
         mFilesCursor.moveToPosition(mi.position);
         mCurretParent = mFilesCursor.getString(mFilesCursor
@@ -573,10 +574,10 @@ public class FolderBrowserFragment extends Fragment
                             .getParentActivity(), vh.play_indicator);
                     popup.getMenu().add(0, PLAY_SELECTION, 0,
                             R.string.play_selection);
-                    SubMenu sub = popup.getMenu().addSubMenu(0,
+                    mSub = popup.getMenu().addSubMenu(0,
                             ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
                     MusicUtils.makePlaylistMenu(mFragment.getParentActivity(),
-                            sub);
+                            mSub);
 
                     popup.show();
                     popup.setOnMenuItemClickListener(new OnMenuItemClickListener() {
@@ -658,6 +659,9 @@ public class FolderBrowserFragment extends Fragment
         super.onConfigurationChanged(config);
         if (mPopupMenu != null) {
             mPopupMenu.dismiss();
+        }
+        if (mSub != null) {
+            mSub.close();
         }
         Fragment fragment = new FolderBrowserFragment();
         Bundle args = getArguments();
