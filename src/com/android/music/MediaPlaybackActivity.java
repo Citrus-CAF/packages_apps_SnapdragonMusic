@@ -813,32 +813,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             SubMenu sub = popup.getMenu().addSubMenu(0,
                     ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
             MusicUtils.makePlaylistMenu(MediaPlaybackActivity.this, sub);
-            if (TelephonyManager.getDefault().isMultiSimEnabled()) {
-                int[] ringtones = { USE_AS_RINGTONE, USE_AS_RINGTONE_2 };
-                int[] menuStrings = { R.string.ringtone_menu_1,
-                                      R.string.ringtone_menu_2 };
-                int[] menuSimNameStrings = { R.string.ringtone_menu_sim_name_1,
-                                             R.string.ringtone_menu_sim_name_2 };
-                for (int i = 0; i < TelephonyManager.getDefault().getPhoneCount(); i++) {
-                    if (TelephonyManager.getDefault().getSimState(i) ==
-                          TelephonyManager.SIM_STATE_READY) {
-                        String menuItem;
-                        SubscriptionInfo info =
-                                  SubscriptionManager.from(mActivity).
-                                      getActiveSubscriptionInfoForSimSlotIndex(i);
-                        if (info != null) {
-                            menuItem = getString(menuSimNameStrings[i], info.getDisplayName());
-                        } else {
-                            menuItem = getString(menuStrings[i]);
-                        }
-                        popup.getMenu().add(0, ringtones[i], 0, menuItem);
-                    }
-                }
-            } else if (TelephonyManager.getDefault().getSimState() ==
-                             TelephonyManager.SIM_STATE_READY) {
-                popup.getMenu().add(0, USE_AS_RINGTONE, 0,
-                        R.string.ringtone_menu);
-            }
+            MusicUtils.addSetRingtonMenu(popup.getMenu(), mActivity);
             Intent i = new Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL);
             if (getPackageManager().resolveActivity(i, 0) != null) {
                 popup.getMenu().add(0, EFFECTS_PANEL, 0, R.string.effectspanel);

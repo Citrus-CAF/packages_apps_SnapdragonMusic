@@ -33,7 +33,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.provider.Downloads;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.text.TextUtils;
@@ -163,7 +162,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
                     int artistIdx = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
                     int idIdx = cursor.getColumnIndex(MediaStore.Audio.Media._ID);
                     int displaynameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                    int uriIdx = cursor.getColumnIndex(Downloads.Impl.COLUMN_MEDIAPROVIDER_URI);
+                    int uriIdx = cursor.getColumnIndex(COLUMN_MEDIAPROVIDER_URI);
                     if (uriIdx >=0 && cursor.getString(uriIdx) != null) {
                         mMediaUri = Uri.parse(cursor.getString(uriIdx));
                     }

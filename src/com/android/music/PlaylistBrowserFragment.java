@@ -78,7 +78,7 @@ import com.android.music.MusicUtils.ServiceToken;
 
 public class PlaylistBrowserFragment extends Fragment implements
         View.OnCreateContextMenuListener, MusicUtils.Defs {
-    private final String TAG = "PlaylistBrowserActivity";
+    private final String TAG = "PlaylistBrowserFragment";
     private final int DELETE_PLAYLIST = CHILD_MENU_BASE + 1;
     private final int EDIT_PLAYLIST = CHILD_MENU_BASE + 2;
     private final int RENAME_PLAYLIST = CHILD_MENU_BASE + 3;

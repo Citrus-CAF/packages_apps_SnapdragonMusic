@@ -41,6 +41,9 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 public class TouchInterceptor extends ListView {
     
     private ImageView mDragView;
@@ -137,7 +140,18 @@ public class TouchInterceptor extends ListView {
                     mDragPointY = y - item.getTop();
                     mXOffset = ((int)ev.getRawX()) - x;
                     mYOffset = ((int)ev.getRawY()) - y;
-                    if (isLayoutRtl()){
+                    boolean layoutRtl = false;
+                    try {
+                        Method isLayoutRtl = ListView.class.getMethod("isLayoutRtl");
+                        layoutRtl = (boolean) isLayoutRtl.invoke(this);
+                    } catch (NoSuchMethodException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                    if (layoutRtl){
                         // The right side of the item is the grabber for dragging the item
                         if (x > item.getRight() - 64){
                             item.setDrawingCacheEnabled(true);

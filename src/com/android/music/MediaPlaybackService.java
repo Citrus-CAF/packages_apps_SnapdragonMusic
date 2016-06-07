@@ -61,7 +61,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.SystemClock;
-import android.os.SystemProperties;
 import android.os.PowerManager.WakeLock;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -70,10 +69,13 @@ import android.view.WindowManager;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 import android.support.v4.app.NotificationCompat;
+
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.ref.SoftReference;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Random;
 import java.util.Vector;
@@ -155,6 +157,7 @@ public class MediaPlaybackService extends Service {
     private static final int SCOPE_FILE_SYSTEM = 0x01;
     private static final int SCOPE_NOW_PLAYING = 0x03;
     private static final int INVALID_SONG_UID = 0xffffffff;
+    private static final float PLAYBACK_SPEED_1X = 1.0f;
 
     private RemoteViews views;
     private RemoteViews viewsLarge;
@@ -570,7 +573,7 @@ public class MediaPlaybackService extends Service {
         stopForeground(true);
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        int vol = SystemProperties.getInt("persist.power.music.volume", -1);
+        int vol = MusicUtils.getSystemPropertyInt("persist.power.music.volume");
         if (vol >= 0 && vol <= 15)
             mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, vol, 0);
         ComponentName rec = new ComponentName(getPackageName(),
@@ -607,13 +610,22 @@ public class MediaPlaybackService extends Service {
         mPlayer.setHandler(mMediaplayerHandler);
 
         mSetBrowsedPlayerMonitor = new SetBrowsedPlayerMonitor();
-        mRemoteControlClient.setBrowsedPlayerUpdateListener(mSetBrowsedPlayerMonitor);
-
         mSetPlayItemMonitor = new SetPlayItemMonitor();
-        mRemoteControlClient.setPlayItemListener(mSetPlayItemMonitor);
-
         mGetNowPlayingEntriesMonitor = new GetNowPlayingEntriesMonitor();
-        mRemoteControlClient.setNowPlayingEntriesUpdateListener(mGetNowPlayingEntriesMonitor);
+        try {
+            Method setBrowsedPlayerUpdateListener = RemoteControlClient.class.getMethod("setBrowsedPlayerUpdateListener");
+            Method setPlayItemListener = RemoteControlClient.class.getMethod("setPlayItemListener");
+            Method setNowPlayingEntriesUpdateListener = RemoteControlClient.class.getMethod("setNowPlayingEntriesUpdateListener");
+            setBrowsedPlayerUpdateListener.invoke(mRemoteControlClient,mSetBrowsedPlayerMonitor);
+            setPlayItemListener.invoke(mRemoteControlClient,mSetPlayItemMonitor);
+            setNowPlayingEntriesUpdateListener.invoke(mRemoteControlClient,mGetNowPlayingEntriesMonitor);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
 
         reloadQueue();
         notifyChange(QUEUE_CHANGED);
@@ -1051,7 +1063,16 @@ public class MediaPlaybackService extends Service {
             for (int count = 0; count < mPlayListLen; count++) {
                 nowPlayingList[count] = mPlayList[count];
             }
-            mRemoteControlClient.updateNowPlayingEntries(nowPlayingList);
+            try {
+                Method updateNowPlayingEntries = RemoteControlClient.class.getMethod("updateNowPlayingEntries",long.class);
+                updateNowPlayingEntries.invoke(mRemoteControlClient,nowPlayingList);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -1059,14 +1080,25 @@ public class MediaPlaybackService extends Service {
         Log.i(LOGTAG,  "setBrowsedPlayer");
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         Log.i(LOGTAG, "URI: " + uri);
-        mRemoteControlClient.updateFolderInfoBrowsedPlayer(uri.toString());
+        try {
+            Method updateFolderInfoBrowsedPlayer = RemoteControlClient.class.getMethod("updateFolderInfoBrowsedPlayer",String.class);
+            updateFolderInfoBrowsedPlayer.invoke(mRemoteControlClient,uri.toString());
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
     private void playItem(int scope, long playItemUid) {
         boolean success = false;
         Log.i(LOGTAG,  "playItem uid: " + playItemUid + " scope: " + scope);
+        try {
+            Method playItemResponse = RemoteControlClient.class.getMethod("playItemResponse",boolean.class);
         if (playItemUid < 0) {
-            mRemoteControlClient.playItemResponse(success);
+            playItemResponse.invoke(mRemoteControlClient,success);
             return;
         } else if (scope == SCOPE_FILE_SYSTEM) {
             success = openItem(playItemUid);
@@ -1082,7 +1114,14 @@ public class MediaPlaybackService extends Service {
                 success = openItem(playItemUid);
             }
         }
-        mRemoteControlClient.playItemResponse(success);
+            playItemResponse.invoke(mRemoteControlClient,success);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
     private boolean openItem (long playItemUid) {
@@ -1304,7 +1343,7 @@ public class MediaPlaybackService extends Service {
             if (pos < 0) pos = 0;
             mRemoteControlClient.setPlaybackState((isPlaying() ?
                     RemoteControlClient.PLAYSTATE_PLAYING : RemoteControlClient.PLAYSTATE_PAUSED),
-                    pos, RemoteControlClient.PLAYBACK_SPEED_1X);
+                    pos, PLAYBACK_SPEED_1X);
         } else if (what.equals(META_CHANGED)) {
             RemoteControlClient.MetadataEditor ed = mRemoteControlClient.editMetadata(true);
             ed.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, getTrackName());
@@ -1330,7 +1369,16 @@ public class MediaPlaybackService extends Service {
             }
             ed.apply();
         } else if (what.equals(QUEUE_CHANGED)) {
-            mRemoteControlClient.updateNowPlayingContentChange();
+            try {
+                Method updateNowPlayingContentChange = RemoteControlClient.class.getMethod("updateNowPlayingContentChange");
+                updateNowPlayingContentChange.invoke(mRemoteControlClient);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
         }
 
         if (what.equals(QUEUE_CHANGED)) {
@@ -1633,7 +1681,7 @@ public class MediaPlaybackService extends Service {
     }
 
     private void setNextTrack() {
-        if(!SystemProperties.getBoolean("audio.gapless.playback.disable", false)) {
+        if(!MusicUtils.getSystemPropertyBoolean("audio.gapless.playback.disable")) {
             mNextPlayPos = getNextPosition(false);
 
             // remove the tail which is the next track
@@ -1756,7 +1804,7 @@ public class MediaPlaybackService extends Service {
      */
     public void play() {
 
-        if (MusicUtils.isTelephonyCallInProgress()) {
+        if (MusicUtils.isTelephonyCallInProgress(this)) {
             Log.d(LOGTAG, "CS/CSVT Call is in progress, can't play music");
             return;
         }
@@ -2289,7 +2337,7 @@ public class MediaPlaybackService extends Service {
     }
 
     private class SetBrowsedPlayerMonitor implements
-                        RemoteControlClient.OnSetBrowsedPlayerListener{
+                        OnSetBrowsedPlayerListener{
         @Override
         public void onSetBrowsedPlayer() {
             Log.d(LOGTAG, "onSetBrowsedPlayer");
@@ -2298,7 +2346,7 @@ public class MediaPlaybackService extends Service {
     };
 
     private class SetPlayItemMonitor implements
-                        RemoteControlClient.OnSetPlayItemListener{
+                        OnSetPlayItemListener{
         @Override
         public void onSetPlayItem(int scope, long uid) {
             Log.d(LOGTAG, "onSetPlayItem");
@@ -2307,7 +2355,7 @@ public class MediaPlaybackService extends Service {
     };
 
     private class GetNowPlayingEntriesMonitor implements
-                        RemoteControlClient.OnGetNowPlayingEntriesListener{
+                        OnGetNowPlayingEntriesListener{
         @Override
         public void onGetNowPlayingEntries() {
             Log.d(LOGTAG, "onGetNowPlayingEntries");
@@ -2674,7 +2722,7 @@ public class MediaPlaybackService extends Service {
 
             mRemoteControlClient.setPlaybackState((isPlaying() ?
                     RemoteControlClient.PLAYSTATE_PLAYING : RemoteControlClient.PLAYSTATE_PAUSED),
-                    pos, RemoteControlClient.PLAYBACK_SPEED_1X);
+                    pos, PLAYBACK_SPEED_1X);
             return mPlayer.seek(pos);
         }
         return -1;
@@ -3375,4 +3423,16 @@ public class MediaPlaybackService extends Service {
     }
 
     private final IBinder mBinder = new ServiceStub(this);
+
+    public interface OnGetNowPlayingEntriesListener {
+        public abstract void onGetNowPlayingEntries();
+    }
+
+    public interface OnSetBrowsedPlayerListener {
+        public abstract void onSetBrowsedPlayer();
+    }
+
+    public interface OnSetPlayItemListener {
+        public abstract void onSetPlayItem(int scope, long uid);
+    }
 }

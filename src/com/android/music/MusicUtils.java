@@ -49,13 +49,14 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
-import android.os.storage.StorageManager;
-import android.os.storage.StorageVolume;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
+import android.telecom.PhoneAccountHandle;
+import android.telecom.TelecomManager;
+import android.telephony.SubscriptionInfo;
 import android.telephony.TelephonyManager;
 import android.telephony.SubscriptionManager;
 import android.text.TextUtils;
@@ -95,6 +96,7 @@ import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Locale;
 
+
 //import android.drm.DrmHelper;
 import android.annotation.SuppressLint;
 import android.drm.DrmManagerClient;
@@ -104,6 +106,9 @@ import android.drm.DrmStore.Action;
 import android.drm.DrmStore.RightsStatus;
 
 import com.codeaurora.music.custom.MusicPanelLayout.BoardState;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class MusicUtils {
 
@@ -1783,30 +1788,6 @@ public class MusicUtils {
         return mGroupByFolder;
     }
 
-    static String getSDPath(Context context) {
-        String sd = null;
-        StorageManager mStorageManager = (StorageManager) context
-                .getSystemService(Context.STORAGE_SERVICE);
-        StorageVolume[] volumes = mStorageManager.getVolumeList();
-        for (int i = 0; i < volumes.length; i++) {
-            if (volumes[i].isRemovable() && volumes[i].allowMassStorage()
-                    && volumes[i].getDescription(context).contains("SD")) {
-                sd = volumes[i].getPath();
-            }
-        }
-        return sd;
-    }
-
-    public static String getSDState(Context context) {
-        StorageManager mStorageManager = (StorageManager) context
-                .getSystemService(Context.STORAGE_SERVICE);
-        return mStorageManager.getVolumeState(getSDPath(context));
-    }
-
-    public static String getInternalSdCardPath() {
-        return android.os.Environment.getExternalStorageDirectory().getPath();
-    }
-
     public static void startSoundEffectActivity(Activity activity) {
         Intent i = new Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL);
         try {
@@ -2198,23 +2179,75 @@ public class MusicUtils {
 
     }
 
-    public static boolean isTelephonyCallInProgress() {
-        TelephonyManager telephonyManager = TelephonyManager.getDefault();
-        Log.d(TAG, "Phone Count - " + telephonyManager.getPhoneCount());
+    public static boolean isTelephonyCallInProgress(Context context) {
+        if (context == null)
+            return false;
+        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        int state = telephonyManager.getCallState();
+        return (state == TelephonyManager.CALL_STATE_OFFHOOK
+                || state == TelephonyManager.CALL_STATE_RINGING);
+    }
 
-        for (int i = 0; i < telephonyManager.getPhoneCount(); i++) {
-            int[] subId = SubscriptionManager.getSubId(i);
-            if (subId != null && subId.length > 0) {
-                int telephony_state = telephonyManager.getCallState(subId[0]);
-
-                if (telephony_state == TelephonyManager.CALL_STATE_OFFHOOK
-                        || telephony_state == TelephonyManager.CALL_STATE_RINGING) {
-                    return true;
+    public static void addSetRingtonMenu(Menu menu, Context context) {
+        if (context == null) return;
+        TelephonyManager telephonyManager =
+                (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        int phoneCount = telephonyManager.getPhoneCount();
+        if (phoneCount > 1) {
+            int[] ringtones = { Defs.USE_AS_RINGTONE, Defs.USE_AS_RINGTONE_2 };
+            int[] menuStrings = { R.string.ringtone_menu_1,
+                    R.string.ringtone_menu_2 };
+            int[] menuSimNameStrings = { R.string.ringtone_menu_sim_name_1,
+                    R.string.ringtone_menu_sim_name_2 };
+            for (int i = 0; i < phoneCount; i++) {
+                String menuItem;
+                SubscriptionInfo info =
+                        SubscriptionManager.from(context).
+                                getActiveSubscriptionInfoForSimSlotIndex(i);
+                if (info != null) {
+                    menuItem = context.getString(menuSimNameStrings[i], info.getDisplayName());
+                    menu.add(0, ringtones[i], 0, menuItem);
                 }
             }
+        } else if (telephonyManager.getSimState() == TelephonyManager.SIM_STATE_READY) {
+            menu.add(0, Defs.USE_AS_RINGTONE, 0, R.string.ringtone_menu);
         }
+    }
 
-        return false;
+    public static int getSystemPropertyInt(String key) {
+        int ret = -1;
+        try {
+            Class<?> systemProperties = Class.forName("android.os.SystemProperties");
+            Method getInt = systemProperties.getMethod("getInt", String.class, int.class);
+            ret = (int) getInt.invoke(null, "persist.power.music.volume", -1);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
+
+    public static boolean getSystemPropertyBoolean(String key) {
+        boolean ret = false;
+        try{
+            Class<?> systemProperties = Class.forName("android.os.SystemProperties");
+            Method getBoolean = systemProperties.getMethod("getBoolean",String.class,boolean.class);
+            ret = (boolean)getBoolean.invoke(null, key, false);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return ret;
     }
 
 }

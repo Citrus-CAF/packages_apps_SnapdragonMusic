@@ -2022,33 +2022,7 @@ public class TrackBrowserFragment extends Fragment implements
                     MusicUtils.makePlaylistMenu(mFragment.getActivity(), mSubMenu);
                     popup.getMenu()
                             .add(0, DELETE_ITEM, 0, R.string.delete_item);
-                    if (TelephonyManager.getDefault().isMultiSimEnabled()) {
-                        int[] ringtones = { USE_AS_RINGTONE, USE_AS_RINGTONE_2 };
-                        int[] menuStrings = { R.string.ringtone_menu_1,
-                                              R.string.ringtone_menu_2 };
-                        int[] menuSimNameStrings = { R.string.ringtone_menu_sim_name_1,
-                                                     R.string.ringtone_menu_sim_name_2 };
-                        for (int i = 0; i < TelephonyManager.getDefault().getPhoneCount();
-                             i++) {
-                            if (TelephonyManager.getDefault().getSimState(i) ==
-                                TelephonyManager.SIM_STATE_READY && getActivity() != null) {
-                                String menuItem;
-                                SubscriptionInfo info =
-                                          SubscriptionManager.from(getActivity()).
-                                              getActiveSubscriptionInfoForSimSlotIndex(i);
-                                if (info != null) {
-                                    menuItem = getString(menuSimNameStrings[i],
-                                                       info.getDisplayName());
-                                } else {
-                                    menuItem = getString(menuStrings[i]);
-                                }
-                                popup.getMenu().add(0, ringtones[i], 0, menuItem);
-                            }
-                        }
-                    } else if (TelephonyManager.getDefault().getSimState() ==
-                               TelephonyManager.SIM_STATE_READY) {
-                        popup.getMenu().add(0, USE_AS_RINGTONE, 0, R.string.ringtone_menu);
-                    }
+                    MusicUtils.addSetRingtonMenu(popup.getMenu(), mParentActivity);
                     popup.getMenu().add(0, SHARE, 0, R.string.share);
                     popup.getMenu().add(0, DETAILS, 0, R.string.details);
 
