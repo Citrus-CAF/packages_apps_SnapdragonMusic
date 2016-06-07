@@ -527,6 +527,17 @@ public class PlaylistBrowserFragment extends Fragment implements
                 playRecentlyAdded();
             } else if (id == PODCASTS_PLAYLIST) {
                 playPodcasts();
+            } else if (id == ALL_SONGS_PLAYLIST) {
+                long[] list = MusicUtils
+                        .getAllSongs(parentActivity);
+                if (list != null) {
+                    MusicUtils.playAll(parentActivity,
+                            list, 0);
+                } else {
+                    Toast.makeText(parentActivity,
+                            R.string.list_empty,
+                            Toast.LENGTH_SHORT).show();
+                }
             } else {
                 if(id==FAVORITE_PLAYLIST){
                     id = MusicUtils.idForplaylist(getActivity(), "My Favorite");
