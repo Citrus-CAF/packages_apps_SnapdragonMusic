@@ -33,6 +33,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
@@ -101,6 +102,7 @@ public class EncodingDetect {
         mEncodingDetectArray.add(new UTF_32BEEncodingDetect());
         mEncodingDetectArray.add(new UTF_32LEEncodingDetect());
         mEncodingDetectArray.add(new UnicodeEncodingDetect());
+        mEncodingDetectArray.add(new GBKEncodingDetect());
     }
 
     private class UTF8EncodingDetect implements EncodingDetectInterface {
@@ -193,6 +195,27 @@ public class EncodingDetect {
         @Override
         public String getEncoding() {
             return UTF_32LE;
+        }
+    }
+
+    private class GBKEncodingDetect implements EncodingDetectInterface {
+        @Override
+        public boolean guestEncoding(byte[] bytes) {
+            String orgin = new String(bytes);
+            try {
+                String strGBKfromat = new String(bytes,GBK);
+                if (orgin.equals(strGBKfromat)) {
+                    return true;
+                }
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }
+
+        @Override
+        public String getEncoding() {
+            return GBK;
         }
     }
 
