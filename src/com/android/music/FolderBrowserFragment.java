@@ -144,6 +144,12 @@ public class FolderBrowserFragment extends Fragment
 
     @Override
     public void onDestroy() {
+        if (mPopupMenu != null ) {
+            mPopupMenu.dismiss();
+        }
+        if (mSub != null) {
+            mSub.close();
+        }
         if (mFolderList != null) {
             mLastListPosCourse = mFolderList.getFirstVisiblePosition();
             View cv = mFolderList.getChildAt(0);

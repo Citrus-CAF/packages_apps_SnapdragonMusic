@@ -498,6 +498,12 @@ public class TrackBrowserActivityFragment extends Fragment
 
     @Override
     public void onDestroy() {
+        if (mPopupMenu != null ) {
+            mPopupMenu.dismiss();
+        }
+        if (mSub != null) {
+            mSub.close();
+        }
         ListView lv = getListView();
         if (lv != null) {
             if (mUseLastListPos) {

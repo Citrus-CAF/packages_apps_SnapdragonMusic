@@ -212,6 +212,12 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
 
     @Override
     public void onDestroy() {
+        if (mPopupMenu != null ) {
+            mPopupMenu.dismiss();
+        }
+        if (mSub != null) {
+            mSub.close();
+        }
         if (mAlbumList != null) {
             mLastListPosCourse = mAlbumList.getFirstVisiblePosition();
             View cv = mAlbumList.getChildAt(0);

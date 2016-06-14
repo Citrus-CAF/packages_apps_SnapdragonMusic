@@ -333,6 +333,9 @@ public class PlaylistBrowserFragment extends Fragment implements
 
     @Override
     public void onDestroy() {
+        if (mPopupMenu != null ) {
+            mPopupMenu.dismiss();
+        }
         if (mGridView != null) {
             mLastListPosCourse = mGridView.getFirstVisiblePosition();
             View cv = mGridView.getChildAt(0);

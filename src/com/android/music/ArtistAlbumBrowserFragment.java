@@ -221,6 +221,12 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
 
     @Override
     public void onDestroy() {
+        if (mPopupMenu != null ) {
+            mPopupMenu.dismiss();
+        }
+        if (mSub != null) {
+            mSub.close();
+        }
         if (mExpandableListView != null) {
             mLastListPosCourse = mExpandableListView.getFirstVisiblePosition();
             View cv = mExpandableListView.getChildAt(0);

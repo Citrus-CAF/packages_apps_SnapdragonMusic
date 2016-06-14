@@ -391,6 +391,12 @@ public class TrackBrowserFragment extends Fragment implements
 
     @Override
     public void onDestroy() {
+        if (mPopupMenu != null ) {
+            mPopupMenu.dismiss();
+        }
+        if (mSubMenu != null) {
+            mSubMenu.close();
+        }
         // ListView lv = getListView();
         if (mTrackList != null) {
             if (mUseLastListPos) {
