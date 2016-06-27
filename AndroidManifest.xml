@@ -105,7 +105,9 @@
 
         </activity>
 
-        <activity android:name="com.codeaurora.music.custom.PermissionActivity"></activity>
+        <activity android:name="com.codeaurora.music.custom.PermissionActivity"
+                  android:launchMode="singleTask">
+        </activity>
 
         <activity android:name="AudioPreview" android:theme="@android:style/Theme.Material.Dialog"
                 android:taskAffinity=""
