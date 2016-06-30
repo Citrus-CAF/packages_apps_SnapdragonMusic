@@ -90,10 +90,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Locale;
+
 
 //import android.drm.DrmHelper;
 import android.annotation.SuppressLint;
@@ -1062,7 +1064,10 @@ public class MusicUtils {
     }
 
     private static int sArtId = -2;
-    private static Bitmap mCachedBit = null;
+    private static Bitmap sCachedBitAlbum = null;
+    private static Bitmap sCachedBitSong = null;
+    private static long sLastSong = -1;
+    private static long sLastAlbum = -1;
     private static final BitmapFactory.Options sBitmapOptionsCache = new BitmapFactory.Options();
     private static final BitmapFactory.Options sBitmapOptions = new BitmapFactory.Options();
     private static final Uri sArtworkUri = Uri
@@ -1236,6 +1241,10 @@ public class MusicUtils {
         ContentResolver res = context.getContentResolver();
         Uri uri = ContentUris.withAppendedId(sArtworkUri, album_id);
         if (uri != null) {
+            File artFile = new File(uri.getPath());
+            if (!artFile.exists()) {
+               return getDefaultArtwork(context);
+            }
             InputStream in = null;
             try {
                 in = res.openInputStream(uri);
@@ -1284,14 +1293,30 @@ public class MusicUtils {
         ParcelFileDescriptor pfd = null;
         try {
             if (albumid < 0) {
+                if (sLastSong == songid) {
+                    return sCachedBitSong;
+                }
                 Uri uri = Uri.parse("content://media/external/audio/media/" + songid + "/albumart");
+                File artFile = new File(uri.getPath());
+                if (!artFile.exists()) {
+                    bm = null;
+                    return bm;
+                }
                 pfd = context.getContentResolver().openFileDescriptor(uri, "r");
                 if (pfd != null) {
                     FileDescriptor fd = pfd.getFileDescriptor();
                     bm = BitmapFactory.decodeFileDescriptor(fd);
                 }
             } else {
+                if (sLastAlbum == albumid) {
+                    return sCachedBitAlbum;
+                }
                 Uri uri = ContentUris.withAppendedId(sArtworkUri, albumid);
+                File artFile = new File(uri.getPath());
+                if (!artFile.exists()) {
+                    bm = null;
+                    return bm;
+                }
                 pfd = context.getContentResolver().openFileDescriptor(uri, "r");
                 if (pfd != null) {
                     FileDescriptor fd = pfd.getFileDescriptor();
@@ -1309,7 +1334,13 @@ public class MusicUtils {
             }
         }
         if (bm != null) {
-            mCachedBit = bm;
+            if (albumid < 0) {
+                sCachedBitSong = bm;
+                sLastSong = songid;
+            } else {
+                sCachedBitAlbum = bm;
+                sLastAlbum = albumid;
+            }
         }
         return bm;
     }
