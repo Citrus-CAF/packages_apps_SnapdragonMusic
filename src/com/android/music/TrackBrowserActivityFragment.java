@@ -217,8 +217,6 @@ public class TrackBrowserActivityFragment extends Fragment
             // If we have an album, show everything on the album, not just stuff
             // by a particular artist.
             mArtistId = intent.getStringExtra("artist");
-            mPlaylist = intent.getStringExtra("playlist");
-            mGenre = intent.getStringExtra("genre");
             if (MusicUtils.isGroupByFolder()) {
                 mParent = intent.getIntExtra("parent", -1);
                 mRootPath = intent.getStringExtra("rootPath");
