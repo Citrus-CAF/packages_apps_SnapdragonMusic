@@ -308,6 +308,14 @@ public class MusicPicker extends ListActivity
             } else {
                 vh.drm_icon.setVisibility(View.GONE);
             }
+            final int index = mCursor.getPosition();
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mCursor.moveToPosition(index);
+                    setSelected(mCursor);
+                }
+            });
         }
 
         /**
