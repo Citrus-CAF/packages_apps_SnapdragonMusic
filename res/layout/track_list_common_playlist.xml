@@ -29,7 +29,7 @@
 -->
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="@dimen/iconlayoutwidth"
+    android:layout_width="match_parent"
     android:layout_height="220dp"
     android:layout_marginStart="4dp"
     android:layout_marginEnd="4dp"
@@ -38,52 +38,56 @@
     android:orientation="vertical"
     android:scaleType="fitXY" >
 
-    <GridLayout
+    <TableLayout
         android:id="@+id/relativeLayout1"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/iconlayoutwidth"
-        android:layout_marginStart="1dp"
         android:layout_marginTop="1dp"
-        android:layout_marginBottom="1dp"
-        android:columnCount="2"
-        android:horizontalSpacing="@dimen/album_list_space"
-        android:rowCount="2"
-        android:verticalSpacing="@dimen/album_list_space" >
+        android:layout_marginRight="1dp"
+        android:layout_marginLeft="1dp"
+        android:layout_height="@dimen/iconlayoutwidth">
+        <TableRow>
+            <ImageView
+                android:id="@+id/icon"
+                android:layout_width="@dimen/icontile"
+                android:layout_height="@dimen/icontile"
+                android:layout_weight="1"
+                android:layout_margin="2dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/album_cover" />
 
-        <ImageView
-            android:id="@+id/icon"
-            android:layout_width="@dimen/icontile"
-            android:layout_height="@dimen/icontile"
-            android:layout_margin="2dp"
-            android:scaleType="fitXY"
-            android:src="@drawable/album_cover" />
+            <ImageView
+                android:id="@+id/icon1"
+                android:layout_width="@dimen/icontile"
+                android:layout_height="@dimen/icontile"
+                android:layout_weight="1"
+                android:layout_margin="2dp"
+                android:layout_toEndOf="@+id/icon"
+                android:scaleType="fitXY"
+                android:src="@drawable/album_cover" />
+        </TableRow>
 
-        <ImageView
-            android:id="@+id/icon1"
-            android:layout_width="@dimen/icontile"
-            android:layout_height="@dimen/icontile"
-            android:layout_margin="2dp"
-            android:layout_toEndOf="@+id/icon"
-            android:scaleType="fitXY"
-            android:src="@drawable/album_cover" />
+        <TableRow>
+            <ImageView
+                android:id="@+id/icon2"
+                android:layout_width="@dimen/icontile"
+                android:layout_height="@dimen/icontile"
+                android:layout_weight="1"
+                android:layout_below="@+id/icon"
+                android:layout_margin="2dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/album_cover" />
 
-        <ImageView
-            android:id="@+id/icon2"
-            android:layout_width="@dimen/icontile"
-            android:layout_height="@dimen/icontile"
-            android:layout_below="@+id/icon"
-            android:layout_margin="2dp"
-            android:scaleType="fitXY"
-            android:src="@drawable/album_cover" />
+            <ImageView
+                android:id="@+id/icon3"
+                android:layout_width="@dimen/icontile"
+                android:layout_height="@dimen/icontile"
+                android:layout_weight="1"
+                android:layout_margin="2dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/album_cover" />
+        </TableRow>
+    </TableLayout>
 
-        <ImageView
-            android:id="@+id/icon3"
-            android:layout_width="@dimen/icontile"
-            android:layout_height="@dimen/icontile"
-            android:layout_margin="2dp"
-            android:scaleType="fitXY"
-            android:src="@drawable/album_cover" />
-    </GridLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
