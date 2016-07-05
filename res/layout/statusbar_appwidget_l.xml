@@ -39,7 +39,7 @@
         android:layout_gravity="center_vertical"
         android:layout_margin="6dp"
         android:scaleType="fitCenter"
-        android:src="@drawable/albumart_mp_unknown">
+        android:src="@drawable/album_cover_background">
     </ImageView>
 
     <ImageButton
@@ -86,6 +86,7 @@
             android:maxLines="2"
             android:scrollHorizontally="true"
             android:singleLine="true"
+            android:text="@string/emptyplaylist"
             android:textColor="#000000"/>
 
         <TextView
