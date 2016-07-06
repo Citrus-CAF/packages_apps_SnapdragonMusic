@@ -95,7 +95,6 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
     private static final int LIST_HEIGHT_NON_CMCC_MODE = 45 * 4;
     //number of menu items in CMCC mode are 5 (includes "Folder")
     private static final int LIST_HEIGHT_CMCC_MODE = 45 * 5;
-    static MediaPlaybackActivity mActivityInstance;
     NavigationDrawerListAdapter mNavigationAdapter;
     String mArtistID, mAlbumID;
     String mIntentAction;
@@ -117,7 +116,6 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
         super.onCreate(icicle);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         setContentView(R.layout.music_browser);
-        mActivityInstance = this;
         mIntentAction = getIntent().getAction();
         Bundle bundle = getIntent().getExtras();
         try {
@@ -186,7 +184,7 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view,
                             int position, long id) {
-                        if (isPanelExpanded) {
+                        if (mIsPanelExpanded) {
                             getSlidingPanelLayout().setHookState(
                                     BoardState.COLLAPSED);
 
@@ -283,9 +281,9 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
                 if (bundle != null) {
                     mPlaylistId = Long.parseLong(bundle.getString("playlist"));
                     if (mPlaylistId != DEFAULT_PLAYLIST) {
-                        if (MusicBrowserActivity.isPanelExpanded) {
+                        if (mIsPanelExpanded) {
                             getSlidingPanelLayout().setHookState(BoardState.COLLAPSED);
-                            MusicBrowserActivity.isPanelExpanded = false;
+                            mIsPanelExpanded = false;
                             try {
                                 Thread.sleep(200);  //This is to let the sliding panel collapse and
                                                     //not to see graphic corruption.
@@ -306,6 +304,7 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
     @Override
     public void onResume() {
         // TODO Auto-generated method stub
+        updateNowPlaying(this);
         super.onResume();
     }
 
@@ -439,8 +438,6 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
         }
     };
 
-    static boolean isPanelExpanded = false;
-
     /**
      * No-op stubs for {@link PanelSlideListener}. If you only want to implement
      * a subset of the listener methods you can extend this instead of implement
@@ -456,15 +453,15 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
 
         @Override
         public void onViewClosed(View view) {
-            isPanelExpanded = false;
-            MusicUtils.updateNowPlaying(mActivityInstance, isPanelExpanded);
-            mActivityInstance.closeQueuePanel();
+            getInstance().mIsPanelExpanded = false;
+            MusicUtils.updateNowPlaying(getInstance(), false);
+            getInstance().closeQueuePanel();
         }
 
         @Override
         public void onViewOpened(View view) {
-            isPanelExpanded = true;
-            MusicUtils.updateNowPlaying(mActivityInstance, isPanelExpanded);
+            getInstance().mIsPanelExpanded = true;
+            MusicUtils.updateNowPlaying(getInstance(), true);
         }
 
         @Override
