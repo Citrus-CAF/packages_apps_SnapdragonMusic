@@ -1174,6 +1174,9 @@ public class PlaylistBrowserFragment extends Fragment implements
             menu.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if (mFragment.mPopupMenu != null ) {
+                        mFragment.mPopupMenu.dismiss();
+                    }
                     mFragment.mTitle = vh.mTitle;
                     PopupMenu popup = new PopupMenu(mFragment
                             .getParentActivity(), menu);

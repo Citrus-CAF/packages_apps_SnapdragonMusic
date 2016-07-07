@@ -155,6 +155,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private String mStrTrackName = null;
     private ResumeScrollTask mResumeScrollTask;
     private final Timer mResumeTimer = new Timer("resumeTimer");
+    private PopupMenu mPopupMenu;
 
     private static final int STATUS_DISABLE = 0;
     private static final int STATUS_PORT_UNSELECTED = 1;
@@ -787,6 +788,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 
     private View.OnClickListener mPopUpMenuListener = new View.OnClickListener() {
         public void onClick(View v) {
+            if (mPopupMenu != null) {
+                mPopupMenu.dismiss();
+            }
             PopupMenu popup = new PopupMenu(mActivity, mMenuOverFlow);
             // icon will be set in onPrepareOptionsMenu()
             popup.getMenu()
@@ -803,11 +807,15 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                     return true;
                 }
             });
+            mPopupMenu = popup;
         }
     };
 
     private View.OnClickListener mActiveButtonPopUpMenuListener = new View.OnClickListener() {
         public void onClick(View v) {
+            if (mPopupMenu != null) {
+                mPopupMenu.dismiss();
+            }
             PopupMenu popup = new PopupMenu(mActivity, mMenuOverFlow);
             // icon will be set in onPrepareOptionsMenu()
             SubMenu sub = popup.getMenu().addSubMenu(0,
@@ -829,6 +837,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                     return true;
                 }
             });
+            mPopupMenu = popup;
         }
     };
 

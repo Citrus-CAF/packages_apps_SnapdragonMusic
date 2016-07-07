@@ -711,6 +711,9 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
 
                 @Override
                 public void onClick(View v) {
+                    if (mFragment.mPopupMenu != null ) {
+                        mFragment.mPopupMenu.dismiss();
+                    }
                     mFragment.mCurrentAlbumName = vh.mCurrentAlbumName;
                     PopupMenu popup = new PopupMenu(mFragment
                             .getParentActivity(), vh.popup_menu_button);

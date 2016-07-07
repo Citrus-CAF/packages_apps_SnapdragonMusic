@@ -330,6 +330,9 @@ public class TrackBrowserActivityFragment extends Fragment
             @Override
             public void onClick(View v) {
                 // TODO Auto-generated method stub
+                if (mPopupMenu != null) {
+                    mPopupMenu.dismiss();
+                }
                 if (mAlbumId != null) {
                     mSelectedId = Long.valueOf(mAlbumId);
                 } else {
@@ -856,6 +859,9 @@ public class TrackBrowserActivityFragment extends Fragment
                     ContentUris.withAppendedId(uri, id), null, null);
         }
         v.setVisibility(View.VISIBLE);
+        if (mPopupMenu != null) {
+            mPopupMenu.dismiss();
+        }
         mTrackList.invalidateViews();
     }
 
@@ -2007,6 +2013,9 @@ public class TrackBrowserActivityFragment extends Fragment
 
                 @Override
                 public void onClick(final View v) {
+                    if (mActivity.mPopupMenu != null) {
+                        mActivity.mPopupMenu.dismiss();
+                    }
                     mActivity.mCurrentTrackName = vh.mCurrentTrackName;
                    mActivity.mCurrentArtistNameForAlbum = vh.mCurrentArtistNameForAlbum;
                     mActivity.mCurrentAlbumName = vh.mCurrentAlbumName;

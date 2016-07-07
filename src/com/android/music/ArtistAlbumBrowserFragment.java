@@ -816,6 +816,9 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
                 @SuppressLint("NewApi")
                 @Override
                 public void onClick(View v) {
+                    if (mFragment.mPopupMenu != null ) {
+                        mFragment.mPopupMenu.dismiss();
+                    }
                     // TODO Auto-generated method stub
                     mFragment.mCurrentArtistId = vh.mCurrentArtistID;
                     mFragment.mCurrentArtistName = vh.mCurrentArtistName;
@@ -915,6 +918,9 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
                 @SuppressLint("NewApi")
                 @Override
                 public void onClick(View v) {
+                    if (mFragment.mPopupMenu != null ) {
+                        mFragment.mPopupMenu.dismiss();
+                    }
                     // TODO Auto-generated method stub
                     // mFragment.mCurrentArtistId = vh.mCurrentArtistID;
                     mFragment.mCurrentArtistName = vh.mCurrentArtistName;
@@ -941,6 +947,7 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
                             return true;
                         }
                     });
+                    mFragment.mPopupMenu = popup;
                 }
             });
         }

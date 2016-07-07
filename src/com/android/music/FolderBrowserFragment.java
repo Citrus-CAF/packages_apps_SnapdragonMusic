@@ -576,6 +576,9 @@ public class FolderBrowserFragment extends Fragment
                 @Override
                 public void onClick(View v) {
                    // mFragment.mCurrentAlbumName = vh.mCurrentAlbumName;
+                    if (mFragment.mPopupMenu != null ) {
+                        mFragment.mPopupMenu.dismiss();
+                    }
                     PopupMenu popup = new PopupMenu(mFragment
                             .getParentActivity(), vh.play_indicator);
                     popup.getMenu().add(0, PLAY_SELECTION, 0,
