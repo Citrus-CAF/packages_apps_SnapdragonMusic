@@ -818,10 +818,10 @@ public class TrackBrowserFragment extends Fragment implements
                     Cursor c = new NowPlayingCursor(MusicUtils.sService,
                             mCursorCols);
                     if (c.getCount() == 0) {
-                        if (MusicBrowserActivity.isPanelExpanded) {
+                        if (mParentActivity.mIsPanelExpanded) {
                             mParentActivity.getSlidingPanelLayout()
                                     .setHookState(BoardState.HIDDEN);
-                            MusicBrowserActivity.isPanelExpanded = false;
+                            mParentActivity.mIsPanelExpanded = false;
                             mParentActivity.getNowPlayingView().setVisibility(
                                     View.GONE);
                         }

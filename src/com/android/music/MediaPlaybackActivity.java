@@ -128,7 +128,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private int mTouchSlop;
     private ServiceToken mToken;
     private boolean mReceiverUnregistered = true;
-    private static Activity mActivity;
+    private static MediaPlaybackActivity mActivity;
     private MusicPanelLayout mSlidingPanelLayout;
     private ImageButton mMenuOverFlow;
     private View mNowPlayingView;
@@ -163,11 +163,12 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
 
     private static final int SWITCH_MUSIC_MAX_TIME = 2000;
     private int mLyricIconStatus;
+    public boolean mIsPanelExpanded = false;
 
     public MediaPlaybackActivity() {
     }
 
-    public static Activity getInstance() {
+    public static MediaPlaybackActivity getInstance() {
         return mActivity;
     }
 
@@ -908,6 +909,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     @Override
     public void onResume() {
         super.onResume();
+        mActivity = this;
         updateNowPlaying(this);
         updateTrackInfo();
         queueNextRefreshForLyric(REFRESH_MILLIONS);
@@ -996,9 +998,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             case CLEAR_PLAYLIST:
                 // We only clear the current playlist
                 MusicUtils.clearQueue();
-                if (MusicBrowserActivity.isPanelExpanded) {
+                if (mIsPanelExpanded) {
                     mSlidingPanelLayout.setHookState(BoardState.HIDDEN);
-                    MusicBrowserActivity.isPanelExpanded = false;
+                    mIsPanelExpanded = false;
                     mNowPlayingView.setVisibility(View.GONE);
                 }
                 return true;
@@ -1137,7 +1139,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     }
 
     public void updateNowPlaying(Activity a) {
-        MusicUtils.updateNowPlaying(a, MusicBrowserActivity.isPanelExpanded);
+        MusicUtils.updateNowPlaying(a, mIsPanelExpanded);
         setFavoriteIconImage(getFavoriteStatus());
     }
 
@@ -1173,9 +1175,9 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
                 && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             FragmentManager fragmentManager = getFragmentManager();
             fragmentManager.executePendingTransactions();
-            if (MusicBrowserActivity.isPanelExpanded) {
+            if (mIsPanelExpanded) {
                 mSlidingPanelLayout.setHookState(BoardState.COLLAPSED);
-                MusicBrowserActivity.isPanelExpanded = false;
+                mIsPanelExpanded = false;
                 return true;
             } else if (MusicUtils.canClosePlaylistItemFragment(fragmentManager)) {
                 loadPreviousFragment();
@@ -1979,7 +1981,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         try {
             String path = mService.getPath();
             if (path == null) {
-                MusicBrowserActivity.isPanelExpanded = false;
+                mIsPanelExpanded = false;
                 mSlidingPanelLayout.setHookState(BoardState.HIDDEN);
                 NotificationManager nm = (NotificationManager)
                         getSystemService(Context.NOTIFICATION_SERVICE);
