@@ -34,8 +34,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
+
+import android.util.Log;
 
 public class EncodingDetect {
     private static final String GBK = "GBK";
@@ -45,7 +49,7 @@ public class EncodingDetect {
     private static final String UTF_16LE = "UTF-16LE";
     private static final String UTF_32BE = "UTF-32BE";
     private static final String UTF_32LE = "UTF-32LE";
-    private static final int READ_BYTES_LENGTH = 4;
+    private static final int READ_BYTES_LENGTH = 128;
 
     private ArrayList<EncodingDetectInterface> mEncodingDetectArray
             = new ArrayList<EncodingDetectInterface>();
@@ -65,10 +69,18 @@ public class EncodingDetect {
         try {
             FileInputStream fis = new FileInputStream(file);
             in = new BufferedInputStream(fis);
-            if (mByteArray == null) {
-                mByteArray = new byte[READ_BYTES_LENGTH];
-            }
+            mByteArray = new byte[READ_BYTES_LENGTH];
             in.read(mByteArray, 0, READ_BYTES_LENGTH);
+            int lineSize = 0;
+            for (byte tmp : mByteArray) {
+                lineSize++;
+                if (tmp == 13 || tmp== 10) {
+                   break;
+                }
+            }
+            byte[] line = new byte[lineSize];
+            line = Arrays.copyOf(mByteArray, lineSize);
+            mByteArray = line;
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -201,10 +213,12 @@ public class EncodingDetect {
     private class GBKEncodingDetect implements EncodingDetectInterface {
         @Override
         public boolean guestEncoding(byte[] bytes) {
-            String orgin = new String(bytes);
             try {
-                String strGBKfromat = new String(bytes,GBK);
-                if (orgin.equals(strGBKfromat)) {
+                String strGBK = new String(bytes,GBK);
+                String strUTF = new String(bytes,UTF_8);
+                String strGBKToUTF = new String(strGBK.getBytes(GBK),UTF_8);
+                String strUTFToGBK = new String(strUTF.getBytes(UTF_8),GBK);
+                if (strUTF.equals(strGBKToUTF) && !strGBK.equals(strUTFToGBK)) {
                     return true;
                 }
             } catch (UnsupportedEncodingException e) {
