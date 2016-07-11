@@ -978,10 +978,10 @@ public class MediaPlaybackService extends Service {
             MusicUtils.debugLog("onStartCommand " + action + " / " + cmd);
 
             if (CMDNEXT.equals(cmd) || NEXT_ACTION.equals(action)) {
-                gotoNext(true);
+                sendEmptyMessageIfNo(GOTO_NEXT);
             } else if (CMDPREVIOUS.equals(cmd) || PREVIOUS_ACTION.equals(action)) {
                 if (position() < 2000) {
-                    prev();
+                    sendEmptyMessageIfNo(GOTO_PREV);
                 } else {
                     seek(0);
                     play();
