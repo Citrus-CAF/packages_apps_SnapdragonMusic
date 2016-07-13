@@ -88,6 +88,7 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
     private static int mLastSelectedPosition = -1;
     private MediaPlaybackActivity mParentActivity;
     public PopupMenu mPopupMenu;
+    public static SubMenu sSub = null;
 
     public AlbumBrowserFragment() {
     }
@@ -172,6 +173,9 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
         if (mPopupMenu != null ) {
             mPopupMenu.dismiss();
         }
+        if (sSub != null) {
+            sSub.close();
+        }
         arrangeGridColums(newConfig);
         Fragment fragment = new AlbumBrowserFragment();
         Bundle args = getArguments();
@@ -191,6 +195,12 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
 
     @Override
     public void onDestroy() {
+        if (mPopupMenu != null ) {
+            mPopupMenu.dismiss();
+        }
+        if (sSub != null) {
+            sSub.close();
+        }
         if (mAlbumList != null) {
             mLastListPosCourse = mAlbumList.getFirstVisiblePosition();
             View cv = mAlbumList.getChildAt(0);
@@ -680,10 +690,10 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
                             .getParentActivity(), vh.popup_menu_button);
                     popup.getMenu().add(0, PLAY_SELECTION, 0,
                             R.string.play_selection);
-                    SubMenu sub = popup.getMenu().addSubMenu(0,
+                    sSub = popup.getMenu().addSubMenu(0,
                             ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
                     MusicUtils.makePlaylistMenu(mFragment.getParentActivity(),
-                            sub);
+                            sSub);
                     popup.getMenu()
                             .add(0, DELETE_ITEM, 0, R.string.delete_item);
                     popup.show();
