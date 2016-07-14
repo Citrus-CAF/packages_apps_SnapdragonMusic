@@ -574,7 +574,8 @@ public class TrackBrowserActivityFragment extends Fragment
         if (mAlbumId != null && mTrackCursor != null){
             if (mTrackCursor.getCount() == 0){
                 mParentActivity.setResult(mParentActivity.RESULT_OK);
-
+                mTrackCursor.close();
+                mTrackCursor = null;
                 MusicUtils.canClosePlaylistItemFragment(getFragmentManager());
                 mParentActivity.loadPreviousFragment();
                 }
