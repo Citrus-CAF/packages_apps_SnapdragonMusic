@@ -492,6 +492,12 @@ public class TrackBrowserActivityFragment extends Fragment
 
     @Override
     public void onDestroy() {
+        if (mPopupMenu != null) {
+            mPopupMenu.dismiss();
+        }
+        if (mSub != null) {
+            mSub.close();
+        }
         ListView lv = getListView();
         if (lv != null) {
             if (mUseLastListPos) {
@@ -910,8 +916,8 @@ public class TrackBrowserActivityFragment extends Fragment
 
     private void onCreatePopupMenu(PopupMenu menu) {
         menu.getMenu().add(0, PLAY_SELECTION, 0, R.string.play_selection);
-        SubMenu sub = menu.getMenu().addSubMenu(0, ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
-        MusicUtils.makePlaylistMenu(mParentActivity, sub);
+        mSub = menu.getMenu().addSubMenu(0, ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
+        MusicUtils.makePlaylistMenu(mParentActivity, mSub);
         menu.getMenu().add(0, DELETE_ITEM, 0, R.string.delete_item);
         if (TelephonyManager.getDefault().isMultiSimEnabled()) {
             int[] ringtones = { USE_AS_RINGTONE, USE_AS_RINGTONE_2 };
@@ -2206,6 +2212,9 @@ public class TrackBrowserActivityFragment extends Fragment
         super.onConfigurationChanged(newConfig);
         if (mPopupMenu != null) {
             mPopupMenu.dismiss();
+        }
+        if (mSub != null) {
+            mSub.close();
         }
         Fragment fragment = null;
         fragment = new TrackBrowserActivityFragment();
