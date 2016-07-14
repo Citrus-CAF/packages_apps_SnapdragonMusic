@@ -780,6 +780,9 @@ public class TrackBrowserFragment extends Fragment implements
                     ContentUris.withAppendedId(uri, id), null, null);
         }
         v.setVisibility(View.VISIBLE);
+        if (mPopupMenu != null) {
+            mPopupMenu.dismiss();
+        }
         mTrackList.invalidateViews();
         mParentActivity.updateNowPlaying(getActivity());
     }
@@ -2009,6 +2012,9 @@ public class TrackBrowserFragment extends Fragment implements
                 public void onClick(final View v) {
                     // TODO Auto-generated method stub
                     // mActivity.mSelectedPosition = ;
+                    if (mFragment.mPopupMenu != null) {
+                        mFragment.mPopupMenu.dismiss();
+                    }
                     mFragment.mCurrentTrackName = vh.mCurrentTrackName;
                     mFragment.mCurrentArtistNameForAlbum = vh.mCurrentArtistNameForAlbum;
                     mFragment.mCurrentAlbumName = vh.mCurrentAlbumName;
