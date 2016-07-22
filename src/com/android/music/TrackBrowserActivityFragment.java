@@ -540,6 +540,10 @@ public class TrackBrowserActivityFragment extends Fragment
         if (!mAdapterSent && mAdapter != null) {
             mAdapter.changeCursor(null);
         }
+        if (mTrackCursor != null) {
+            mTrackCursor.close();
+            mTrackCursor = null;
+        }
         // Because we pass the adapter to the next activity, we need to make
         // sure it doesn't keep a reference to this activity. We can do this
         // by clearing its DatasetObservers, which setListAdapter(null) does.
@@ -574,11 +578,9 @@ public class TrackBrowserActivityFragment extends Fragment
         if (mAlbumId != null && mTrackCursor != null){
             if (mTrackCursor.getCount() == 0){
                 mParentActivity.setResult(mParentActivity.RESULT_OK);
-                mTrackCursor.close();
-                mTrackCursor = null;
                 MusicUtils.canClosePlaylistItemFragment(getFragmentManager());
                 mParentActivity.loadPreviousFragment();
-                }
+            }
         }
         IntentFilter stateIntentfilter = new IntentFilter();
         stateIntentfilter.addAction(MediaPlaybackService.PLAYSTATE_CHANGED);
