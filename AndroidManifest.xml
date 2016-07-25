@@ -205,6 +205,7 @@
             android:exported="true" >
         </activity-alias>
 
+<!--
         <activity android:name="com.android.music.VideoBrowserActivity"
             android:taskAffinity="android.task.video"
             android:label="@string/videobrowserlabel"
@@ -225,7 +226,7 @@
             </intent-filter>
             <meta-data android:name="android.app.searchable"
                 android:resource="@xml/searchable_video"/>
-        </activity>
+        </activity> -->
         <activity android:name="com.android.music.MediaPickerActivity"
                 android:label="@string/mediapickerlabel" android:exported="false">
 <!--
@@ -247,7 +248,7 @@
                 <data android:mimeType="application/ogg"/>
                 <data android:mimeType="application/x-ogg"/>
                 <data android:mimeType="video/*"/>
-            </intent-filter>
+            </intent-filter> 
 -->
         </activity>
         <activity android:name="com.android.music.MusicPicker"
