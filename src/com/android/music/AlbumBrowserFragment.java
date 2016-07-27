@@ -134,19 +134,7 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
         mAlbumList.setOnItemClickListener(new OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
                     int position, long id) {
-                mParentActivity.findViewById(R.id.music_tool_bar)
-                        .setVisibility(View.GONE);
-                Fragment fragment = new TrackBrowserActivityFragment();
-                mLastSelectedPosition = position;
-                Bundle args = new Bundle();
-                args.putString("artist", mArtistId);
-                args.putString("album", Long.valueOf(id).toString());
-                fragment.setArguments(args);
-                getFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragment_page, fragment, "track_fragment")
-                        .commit();
-                MusicUtils.navigatingTabPosition = 1;
+               enterAlbum(id);
             }
         });
         mAlbumList.setTextFilterEnabled(true);
@@ -172,6 +160,22 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
         });
         getAlbumCursor(mAdapter.getQueryHandler(), null);
         return rootView;
+    }
+
+    private void enterAlbum(long albumID) {
+        mParentActivity.findViewById(R.id.music_tool_bar)
+           .setVisibility(View.GONE);
+        Fragment fragment = new TrackBrowserActivityFragment();
+        mLastSelectedPosition = mAlbumList.getSelectedItemPosition();
+        Bundle args = new Bundle();
+        args.putString("artist", mArtistId);
+        args.putString("album", Long.valueOf(albumID).toString());
+        fragment.setArguments(args);
+        getFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_page, fragment, "track_fragment")
+                .commit();
+        MusicUtils.navigatingTabPosition = 1;
     }
 
     @Override
@@ -706,6 +710,13 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
                     iv.setImageBitmap(albumArt[0]);
                 }
             }
+
+            view.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View arg0) {
+                    mFragment.enterAlbum(Long.valueOf(vh.albumID));
+                }
+            });
 
             vh.popup_menu_button.setOnClickListener(new OnClickListener() {
 
