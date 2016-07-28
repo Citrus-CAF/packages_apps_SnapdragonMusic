@@ -32,6 +32,7 @@
     android:minWidth="294dip"
     android:minHeight="128dip"
     android:updatePeriodMillis="0"
+    android:previewImage="@drawable/icon_widget_l"
     android:initialLayout="@layout/statusbar_appwidget_l"
     >
 </appwidget-provider>

@@ -1390,9 +1390,16 @@ public class MusicUtils {
                 // Set the system setting to make this the current ringtone
                 cursor.moveToFirst();
                 //TODO: DRM changes here.
-                Settings.System.putString(resolver, Settings.System.RINGTONE, ringUri.toString());
-                String message = context.getString(R.string.ringtone_set, cursor.getString(2));
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+                String message = null;
+                try {
+                    Settings.System.putString(resolver, Settings.System.RINGTONE,
+                            ringUri.toString());
+                    message = context.getString(R.string.ringtone_set, cursor.getString(2));
+                } catch (Exception e) {
+                    message = context.getString(R.string.ringtone_set_fail);
+                } finally {
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+                }
             }
         } finally {
             if (cursor != null) {

@@ -1687,14 +1687,14 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         try {
             switch (mService.getRepeatMode()) {
             case MediaPlaybackService.REPEAT_ALL:
-                mRepeatButton.setImageResource(R.drawable.ic_mp_repeat_all_btn);
+                mRepeatButton.setImageResource(R.drawable.loopall);
                 break;
             case MediaPlaybackService.REPEAT_CURRENT:
                 mRepeatButton
-                        .setImageResource(R.drawable.ic_mp_repeat_once_btn);
+                        .setImageResource(R.drawable.loopone);
                 break;
             default:
-                mRepeatButton.setImageResource(R.drawable.ic_mp_repeat_off_btn);
+                mRepeatButton.setImageResource(R.drawable.normal);
                 break;
             }
         } catch (RemoteException ex) {
@@ -1707,16 +1707,13 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         try {
             switch (mService.getShuffleMode()) {
             case MediaPlaybackService.SHUFFLE_NONE:
-                mShuffleButton
-                        .setImageResource(R.drawable.ic_mp_shuffle_off_btn);
+                mShuffleButton.setImageResource(R.drawable.random);
                 break;
             case MediaPlaybackService.SHUFFLE_AUTO:
-                mShuffleButton
-                        .setImageResource(R.drawable.ic_mp_shuffle_on_btn);
+                mShuffleButton.setImageResource(R.drawable.random_active);
                 break;
             default:
-                mShuffleButton
-                        .setImageResource(R.drawable.ic_mp_shuffle_on_btn);
+                mShuffleButton.setImageResource(R.drawable.random_active);
                 break;
             }
         } catch (RemoteException ex) {

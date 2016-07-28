@@ -71,7 +71,6 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
             final RemoteViews views = new RemoteViews(context.getPackageName(), mWidgetLayoutId);
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, this.getClass()));
-            views.setViewVisibility(R.id.exit, View.GONE);
             views.setImageViewResource(R.id.pause, R.drawable.notification_play);
             /* everytime pushUpdate(updateAppWidget) should do linkButtons, otherwise the buttons will not work */
             linkButtons(context, views, false /* not playing */);
@@ -105,7 +104,6 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
         final Resources res = context.getResources();
         final RemoteViews views = new RemoteViews(context.getPackageName(), mWidgetLayoutId);
 
-        views.setViewVisibility(R.id.exit, View.GONE);
         views.setViewVisibility(R.id.trackname, View.GONE);
         views.setTextViewText(R.id.artist, res.getText(R.string.widget_initial_text));
         views.setViewVisibility(R.id.album, View.GONE);
@@ -161,7 +159,6 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
         }
         final Resources res = service.getResources();
         final RemoteViews views = new RemoteViews(service.getPackageName(), mWidgetLayoutId);
-        views.setViewVisibility(R.id.exit,View.GONE);
         Bitmap icon = MusicUtils.getArtwork(service, service.getAudioId(), service.getAlbumId(),
                 true);
         views.setImageViewBitmap(R.id.icon, icon);

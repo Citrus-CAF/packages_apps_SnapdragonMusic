@@ -30,7 +30,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
                 android:layout_height="72dp"
-                android:background="@color/whitecheck">
+                android:background="@drawable/appwidget_layout_bg">
 
     <ImageView
         android:id="@+id/icon"
@@ -38,7 +38,7 @@
         android:layout_height="60dp"
         android:layout_gravity="center_vertical"
         android:layout_margin="6dp"
-        android:scaleType="fitCenter"
+        android:scaleType="fitXY"
         android:src="@drawable/album_cover_background">
     </ImageView>
 
@@ -48,13 +48,14 @@
         android:layout_height="24dp"
         android:layout_alignParentEnd="true"
         android:background="@color/transparent"
-        android:src="@drawable/close"/>
+        android:src="@drawable/close"
+        android:visibility="gone"/>
 
     <LinearLayout
         android:id="@+id/music_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="38dp"
+        android:layout_marginEnd="6dp"
         android:layout_centerVertical="true"
         android:layout_toRightOf="@id/icon"
         android:layout_toLeftOf="@+id/prev"
@@ -85,7 +86,6 @@
             android:maxLines="2"
             android:scrollHorizontally="true"
             android:singleLine="true"
-            android:text="@string/emptyplaylist"
             android:textColor="#000000"/>
 
         <TextView
@@ -105,14 +105,13 @@
 
     <ImageButton
         android:id="@+id/prev"
-        android:layout_width="15dp"
-        android:layout_height="15dp"
+        style="@style/ClickBackground"
+        android:theme="@android:style/Theme.DeviceDefault.Light"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
         android:layout_centerVertical="true"
-        android:layout_marginRight="24dp"
+        android:layout_marginRight="12dp"
         android:layout_toLeftOf="@+id/pause"
-        android:scaleType="fitXY"
-
-        android:background="@android:color/transparent"
         android:src="@drawable/notification_prev"/>
 
     <ImageButton
@@ -120,21 +119,21 @@
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:layout_centerVertical="true"
-        android:layout_marginRight="24dp"
+        android:layout_marginRight="12dp"
         android:layout_toLeftOf="@+id/next"
-        android:background="@android:color/transparent"
+        android:background="@drawable/icon_play_pause_backgroud"
         android:scaleType="fitXY"
         android:src="@drawable/notification_play"/>
 
     <ImageButton
         android:id="@+id/next"
-        android:layout_width="15dp"
-        android:layout_height="15dp"
+        style="@style/ClickBackground"
+        android:theme="@android:style/Theme.DeviceDefault.Light"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
         android:layout_centerVertical="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginEnd="36dp"
-        android:scaleType="fitXY"
-        android:background="@android:color/transparent"
+        android:layout_marginEnd="24dp"
         android:src="@drawable/notification_next"/>
 
 </RelativeLayout>

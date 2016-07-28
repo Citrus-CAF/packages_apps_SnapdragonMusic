@@ -18,7 +18,7 @@
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="66dip"
+    android:layout_height="64dip"
     android:gravity="bottom"
     android:orientation="horizontal"
     android:baselineAligned="false">
@@ -27,7 +27,7 @@
         android:layout_width="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginStart="8dp"
-        android:background="@drawable/playlist_tile" />
+        android:background="@drawable/sort" />
 
     <RelativeLayout
         android:layout_width="match_parent"

@@ -30,10 +30,11 @@
         android:layout_height="0dp"
         android:layout_marginStart="@dimen/album_left_margin"
         android:layout_marginEnd="@dimen/album_right_margin"
-        android:layout_marginTop="@dimen/album_top_margin"
+        android:clipToPadding="false"
+        android:paddingTop="@dimen/album_top_margin"
         android:layout_weight="1"
         android:fastScrollEnabled="true"
-        android:horizontalSpacing="@dimen/album_list_space"
+        android:horizontalSpacing="@dimen/album_list_space_horizontal"
         android:numColumns="2"
         android:verticalSpacing="@dimen/album_list_space" >
     </GridView>

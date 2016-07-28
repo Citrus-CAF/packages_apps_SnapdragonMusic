@@ -304,7 +304,6 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
     @Override
     public void onResume() {
         // TODO Auto-generated method stub
-        updateNowPlaying(this);
         super.onResume();
     }
 

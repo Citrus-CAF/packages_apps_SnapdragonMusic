@@ -38,7 +38,10 @@
             android:id="@+id/img1"
             android:layout_width="@dimen/icon_tile_size"
             android:layout_height="@dimen/icon_tile_size"
-            android:padding="1dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginTop="3dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginBottom="1dp"
             android:scaleType="centerCrop"
             android:visibility="gone" />
 
@@ -46,7 +49,10 @@
             android:id="@+id/img2"
             android:layout_width="@dimen/icon_tile_size"
             android:layout_height="@dimen/icon_tile_size"
-            android:padding="1dp"
+            android:layout_marginRight="3dp"
+            android:layout_marginTop="3dp"
+            android:layout_marginLeft="1dp"
+            android:layout_marginBottom="1dp"
             android:scaleType="centerCrop"
             android:visibility="gone" />
 
@@ -54,7 +60,10 @@
             android:id="@+id/img3"
             android:layout_width="@dimen/icon_tile_size"
             android:layout_height="@dimen/icon_tile_size"
-            android:padding="1dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginBottom="3dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginTop="1dp"
             android:scaleType="centerCrop"
             android:visibility="gone" />
 
@@ -62,7 +71,10 @@
             android:id="@+id/img4"
             android:layout_width="@dimen/icon_tile_size"
             android:layout_height="@dimen/icon_tile_size"
-            android:padding="1dp"
+            android:layout_marginRight="3dp"
+            android:layout_marginBottom="3dp"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="1dp"
             android:scaleType="centerCrop"
             android:visibility="gone" />
     </GridLayout>
@@ -82,7 +94,7 @@
             android:layout_height="wrap_content"
             android:layout_alignWithParentIfMissing="true"
             android:layout_gravity="center_vertical"
-            android:alpha="0.75"
+            android:alpha="0.54"
             android:ellipsize="marquee"
             android:fontFamily="sans-serif"
             android:gravity="center_vertical"
@@ -100,7 +112,7 @@
             android:layout_alignWithParentIfMissing="true"
             android:layout_below="@id/line1"
             android:layout_gravity="center_vertical"
-            android:alpha="0.40"
+            android:alpha="0.26"
             android:ellipsize="end"
             android:fontFamily="sans-serif"
             android:scrollHorizontally="true"
@@ -113,11 +125,13 @@
 
     <ImageView
         android:id="@+id/play_indicator"
+        style="@style/OverflowBackground"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_below="@id/duration"
-        android:layout_marginEnd="12dip"
+        android:layout_marginEnd="10dip"
+        android:layout_centerVertical="true"
         android:src="@drawable/ic_menu_moreoverflow_normal_holo_light" />
 
 </merge>

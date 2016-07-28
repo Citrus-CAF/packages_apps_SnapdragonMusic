@@ -222,6 +222,8 @@
     <string name="ringtone_menu_short">Use as ringtone</string>
     <!-- Toast after setting a song as phone ringtone -->
     <string name="ringtone_set">\"<xliff:g id="name" example="Alarm Bell">%s</xliff:g>\" set as phone ringtone.</string>
+    <!-- Toast after setting a song as phone ringtone fail-->
+    <string name="ringtone_set_fail">"set as phone ringtone fail."</string>
     <!-- Individual song context menu item -->
     <string name="ringtone_menu_1">Use as slot 1 ringtone</string>
     <string name="ringtone_menu_2">Use as slot 2 ringtone</string>
@@ -399,7 +401,7 @@
     <string name="action_one">One</string>
     <string name="action_two">Two</string>
     <string name="action_three">Three</string>
-    <string name="shuffle_all">Shuffle All</string>
+    <string name="shuffle_all">SHUFFLE ALL</string>
 
     <string name="no_music_found">No Music Found</string>
 
@@ -425,7 +427,7 @@
     <string name="can_not_create_my_favorite">Can not create or overrite "My Favorite" playlist</string>
 
     <!-- add by filemanager -->
-    <string name="add_by_filemanager">Add by filemanager</string>
+    <string name="add_by_filemanager">Add from Filemanager</string>
     <string name="add_file_failed">Unable to add this file as the format is not supported or not in media library</string>
 
     <!-- permission request -->

@@ -28,16 +28,15 @@
   IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
     <FrameLayout
         android:id="@+id/album_art_view"
         android:layout_width="fill_parent"
-        android:layout_height="0dp"
-        android:layout_below="@+id/header_layout"
-        android:layout_weight="10">
+        android:layout_height="match_parent"
+        android:layout_above="@+id/timer_view"
+        android:layout_below="@+id/header_layout">
 
         <FrameLayout
             android:id="@+id/current_queue_view"
@@ -50,7 +49,7 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:scaleType="centerCrop"
-                android:src="@drawable/albumart_mp_unknown" />
+                android:src="@drawable/album_cover_background" />
 
             <LinearLayout
                 android:id="@+id/lyric_panel"
@@ -64,24 +63,25 @@
 
             <ImageView
                 android:id="@+id/lyric"
+                style="@style/ClickBackground"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|left"
-                android:layout_marginBottom="21dp"
-                android:layout_marginLeft="27dp"
+                android:layout_marginBottom="26dp"
+                android:layout_marginLeft="32dp"
                 android:padding="5dp"
                 android:src="@drawable/ic_lyric_unselected" />
 
             <ImageView
                 android:id="@+id/favorite"
+                style="@style/ClickBackground"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|right"
-                android:layout_marginBottom="21dp"
-                android:layout_marginRight="27dp"
+                android:layout_marginBottom="26dp"
+                android:layout_marginRight="32dp"
                 android:padding="5dp"
-                android:src="@drawable/favorite_selected"
-                android:visibility="gone" />
+                android:src="@drawable/favorite_selected" />
         </FrameLayout>
 
         <SeekBar
@@ -102,16 +102,16 @@
     <RelativeLayout
         android:id="@+id/timer_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/album_art_view"
-        android:layout_weight="0.3"
-        android:paddingTop="10dip">
+        android:layout_height="16dp"
+        android:layout_above="@+id/control_layout"
+        android:layout_marginTop="10dip">
 
         <TextView
             android:id="@+id/currenttimer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:alpha="0.54"
+            android:textSize="12sp"
             android:fontFamily="sans-serif"
             android:paddingStart="8dp"
             android:textColor="#000000" />
@@ -122,27 +122,27 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:alpha="0.54"
+            android:textSize="12sp"
             android:fontFamily="sans-serif"
             android:paddingEnd="8dp"
             android:textColor="#000000" />
     </RelativeLayout>
 
     <LinearLayout
+        android:id="@+id/control_layout"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="64dp"
         android:layout_alignParentBottom="true"
-        android:layout_gravity="bottom"
-        android:layout_marginBottom="38dp"
-        android:layout_weight="0.2"
+        android:layout_marginBottom="20dp"
         android:orientation="horizontal">
 
         <ImageButton
             android:id="@+id/loop_view"
+            style="@style/ClickBackground"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
             android:src="@drawable/normal" />
 
         <RelativeLayout
@@ -155,12 +155,12 @@
 
             <com.android.music.RepeatingImageButton
                 android:id="@+id/previcon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/ClickBackground"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true"
-                android:background="@android:color/transparent"
-                android:paddingLeft="12dp"
+                android:layout_marginLeft="12dp"
                 android:src="@drawable/pre" />
 
             <ImageButton
@@ -169,28 +169,28 @@
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:layout_centerVertical="true"
-                android:background="@android:color/transparent"
+                android:background="@drawable/icon_play_pause_backgroud"
                 android:src="@drawable/play" />
 
             <com.android.music.RepeatingImageButton
                 android:id="@+id/nexticon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/ClickBackground"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
-                android:background="@android:color/transparent"
-                android:paddingRight="12dp"
+                android:layout_marginRight="12dp"
                 android:src="@drawable/nex" />
         </RelativeLayout>
 
         <ImageButton
             android:id="@+id/randomicon"
+            style="@style/ClickBackground"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_toEndOf="@+id/container"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
             android:src="@drawable/random" />
     </LinearLayout>
-</LinearLayout>
+</RelativeLayout>

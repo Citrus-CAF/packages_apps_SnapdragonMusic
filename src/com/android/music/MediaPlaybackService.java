@@ -1827,9 +1827,9 @@ public class MediaPlaybackService extends Service {
     private void updateNotification() {
         views = new RemoteViews(getPackageName(), R.layout.statusbar_appwidget_s);
         viewsLarge = new RemoteViews(getPackageName(), R.layout.statusbar_appwidget_l);
-        if (!getApplicationContext().getResources().getBoolean(R.bool.exit_in_notification)) {
-            views.setViewVisibility(R.id.exit, View.GONE);
-            viewsLarge.setViewVisibility(R.id.exit, View.GONE);
+        if (getApplicationContext().getResources().getBoolean(R.bool.exit_in_notification)) {
+            views.setViewVisibility(R.id.exit, View.VISIBLE);
+            viewsLarge.setViewVisibility(R.id.exit, View.VISIBLE);
         }
         Bitmap icon = MusicUtils.getArtwork(this, getAudioId(), getAlbumId(),
                 true);
@@ -1901,7 +1901,6 @@ public class MediaPlaybackService extends Service {
                 "com.android.music.PLAYBACK_VIEWER")
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), 0));
         status1.setSmallIcon(R.drawable.stat_notify_musicplayer);
-        status1.setDeleteIntent(exitPendingIntent);
         status = status1.build();
         status.bigContentView = viewsLarge;
         if (isPlaying()) {

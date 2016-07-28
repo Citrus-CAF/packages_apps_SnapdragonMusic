@@ -43,6 +43,7 @@
         android:textStyle="normal"
         android:textColor="@color/selector_lyric"
         android:textAllCaps="false"
+        android:alpha="0.35"
         android:minHeight="10dp"
         android:includeFontPadding="false"
         android:paddingTop="5dp"
