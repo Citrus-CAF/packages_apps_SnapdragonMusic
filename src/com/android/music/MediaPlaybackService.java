@@ -57,6 +57,7 @@ import android.media.RemoteControlClient.MetadataEditor;
 import android.net.Uri;
 import android.os.FileObserver;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
@@ -2941,8 +2942,8 @@ public class MediaPlaybackService extends Service {
     private class MultiPlayer {
         private CompatMediaPlayer mCurrentMediaPlayer = new CompatMediaPlayer();
         private CompatMediaPlayer mNextMediaPlayer;
-        private CompatMediaPlayer mLastMediaPlayer;
         private Handler mHandler;
+        private HandlerThread mPrepareNextHandlerThread;
         private Handler mSetNextMediaPlayerHandler = null;
         private Runnable mSetNextMediaPlayerRunnable = null;
         private boolean mIsInitialized = false;
@@ -2951,6 +2952,8 @@ public class MediaPlaybackService extends Service {
 
         public MultiPlayer() {
             mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
+            mPrepareNextHandlerThread = new HandlerThread("parpareNext");
+            mPrepareNextHandlerThread.start();
         }
 
         public void setDataSource(String path) {
@@ -3000,7 +3003,7 @@ public class MediaPlaybackService extends Service {
             return true;
         }
 
-        public void setNextDataSource(String path) {
+        public void setNextDataSource(final String path) {
             mIsComplete = false;
             if (mIsInitialized == false) {
                 return;
@@ -3016,21 +3019,15 @@ public class MediaPlaybackService extends Service {
             final CompatMediaPlayer mp = new CompatMediaPlayer();
             mp.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
             mp.setAudioSessionId(getAudioSessionId());
-            if (setDataSourceImpl(mp, path)) {
-                if (mSetNextMediaPlayerHandler == null) {
-                    mSetNextMediaPlayerHandler = new Handler();
-                }
-                if (mSetNextMediaPlayerRunnable != null) {
-                    mSetNextMediaPlayerHandler.removeCallbacks(mSetNextMediaPlayerRunnable);
-                }
-                if (mLastMediaPlayer != null) {
-                    mLastMediaPlayer.release();
-                }
-                mLastMediaPlayer = mp;
-                mSetNextMediaPlayerRunnable = new Runnable() {
+            if (mSetNextMediaPlayerHandler == null) {
+               mSetNextMediaPlayerHandler = new Handler(mPrepareNextHandlerThread.getLooper());
+            if (mSetNextMediaPlayerRunnable != null) {
+               mSetNextMediaPlayerHandler.removeCallbacks(mSetNextMediaPlayerRunnable);
+            }
+            mSetNextMediaPlayerRunnable = new Runnable() {
                     @Override
                     public void run() {
-                        mLastMediaPlayer = null;
+                        setDataSourceImpl(mp, path);
                         if (mIsSupposedToBePlaying
                             && mCurrentMediaPlayer != null
                             && mIsInitialized && mIsNextPrepared
@@ -3046,7 +3043,7 @@ public class MediaPlaybackService extends Service {
                         mIsNextPrepared = false;
                     }
                 };
-                mSetNextMediaPlayerHandler.postDelayed(mSetNextMediaPlayerRunnable, 300);
+               mSetNextMediaPlayerHandler.post(mSetNextMediaPlayerRunnable);
             } else {
                 // failed to open next, we'll transition the old fashioned way,
                 // which will skip over the faulty file

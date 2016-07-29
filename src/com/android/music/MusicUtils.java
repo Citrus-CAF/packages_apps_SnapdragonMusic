@@ -1247,6 +1247,9 @@ public class MusicUtils {
         if (uri != null) {
             InputStream in = null;
             try {
+                if (!isUriExisted(context, uri)) {
+                  throw new FileNotFoundException();
+                }
                 in = res.openInputStream(uri);
                 return BitmapFactory.decodeStream(in, null, sBitmapOptions);
             } catch (FileNotFoundException ex) {
@@ -1279,7 +1282,19 @@ public class MusicUtils {
 
         return null;
     }
-
+    private static boolean isUriExisted(Context context, Uri uri) {
+        if (uri != null) {
+            Cursor result = context.getContentResolver().query(uri, null, null, null, null);
+            if (result != null) {
+                if (result.getCount() == 0) {
+                    result.close();
+                    return false;
+                }
+                return true;
+            }
+        }
+        return false;
+    }
     // get album art for specified file
     private static final String sExternalMediaUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI.toString();
     private static Bitmap getArtworkFromFile(Context context, long songid, long albumid) {
@@ -1294,9 +1309,12 @@ public class MusicUtils {
         try {
             if (albumid < 0) {
                 if (sLastSong == songid) {
-                    return sCachedBitSong;
+                    return sCachedBitSong != null? sCachedBitSong : getDefaultArtwork(context);
                 }
                 Uri uri = Uri.parse("content://media/external/audio/media/" + songid + "/albumart");
+                if (isUriExisted(context, uri)) {
+                   throw new FileNotFoundException();
+                }
                 pfd = context.getContentResolver().openFileDescriptor(uri, "r");
                 if (pfd != null) {
                     FileDescriptor fd = pfd.getFileDescriptor();
@@ -1304,9 +1322,13 @@ public class MusicUtils {
                 }
             } else {
                 if (sLastAlbum == albumid) {
-                    return sCachedBitAlbum;
+                   return sCachedBitAlbum != null?
+                           sCachedBitAlbum : getDefaultArtwork(context);
                 }
                 Uri uri = ContentUris.withAppendedId(sArtworkUri, albumid);
+                if (isUriExisted(context, uri)) {
+                    throw new FileNotFoundException();
+                }
                 pfd = context.getContentResolver().openFileDescriptor(uri, "r");
                 if (pfd != null) {
                     FileDescriptor fd = pfd.getFileDescriptor();
@@ -1323,14 +1345,12 @@ public class MusicUtils {
             } catch (IOException e) {
             }
         }
-        if (bm != null) {
-            if (albumid < 0) {
-                sCachedBitSong = bm;
-                sLastSong = songid;
-            } else {
-                sCachedBitAlbum = bm;
-                sLastAlbum = albumid;
-            }
+        if (albumid < 0) {
+           sCachedBitSong = bm;
+           sLastSong = songid;
+        } else {
+           sCachedBitAlbum = bm;
+           sLastAlbum = albumid;
         }
         return bm;
     }
