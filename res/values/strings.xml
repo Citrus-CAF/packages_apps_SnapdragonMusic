@@ -433,5 +433,10 @@
     <string name="dialog_content">This application can\'t work without required permissions. Please grant the permissions in Settings.</string>
     <string name="dialog_button_quit">Quit</string>
     <string name="dialog_button_settings">Settings</string>
+
+    <string name="audio_preview_fail_security">Failed to open file with security issues.</string>
+    <string name="audio_preview_fail_io">Can\'t open file</string>
+    <string name="audio_preview_fail_illegal_state">Illegal state, failed to open file.</string>
+    <string name="audio_preview_fail_illegal_argument">Illegal argument, failed to open file.</string>
 </resources>
 
