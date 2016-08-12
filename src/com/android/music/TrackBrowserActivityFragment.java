@@ -2153,8 +2153,10 @@ public class TrackBrowserActivityFragment extends Fragment
                     mActivity.mTrackCursor = null;
                 }
                 mActivity.mTrackCursor = cursor;
-                super.changeCursor(cursor);
-                getColumnIndices(cursor);
+                if ((cursor != null && !cursor.isClosed()) || cursor == null) {
+                    super.changeCursor(cursor);
+                    getColumnIndices(cursor);
+                }
             } else {
                 cursor = null;
             }

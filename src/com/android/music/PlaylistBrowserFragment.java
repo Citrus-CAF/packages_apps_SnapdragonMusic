@@ -1230,8 +1230,10 @@ public class PlaylistBrowserFragment extends Fragment implements
                     mFragment.mPlaylistCursor = null;
                 }
                 mFragment.mPlaylistCursor = cursor;
-                super.changeCursor(cursor);
-                getColumnIndices(cursor);
+                if ((cursor != null && !cursor.isClosed()) || cursor == null) {
+                    super.changeCursor(cursor);
+                    getColumnIndices(cursor);
+                }
             }
         }
 

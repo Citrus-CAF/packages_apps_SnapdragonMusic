@@ -2138,8 +2138,10 @@ public class TrackBrowserFragment extends Fragment implements
                     mFragment.mTrackCursor = null;
                 }
                 mFragment.mTrackCursor = cursor;
-                super.changeCursor(cursor);
-                getColumnIndices(cursor);
+                if ((cursor != null && !cursor.isClosed()) || cursor == null) {
+                    super.changeCursor(cursor);
+                    getColumnIndices(cursor);
+                }
             }
         }
 
