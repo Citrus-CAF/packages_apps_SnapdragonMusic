@@ -498,7 +498,7 @@ public class FolderBrowserFragment extends Fragment
             mUnknownCount = context.getString(R.string.unknown_folder_count);
             Resources r = context.getResources();
             mNowPlaying = r.getDrawable(R.drawable.indicator_ic_mp_playing_list);
-            Bitmap b = BitmapFactory.decodeResource(r, R.drawable.albumart_mp_unknown_list);
+            Bitmap b = BitmapFactory.decodeResource(r, R.drawable.album_cover_background);
             mDefaultAlbumIcon = new BitmapDrawable(context.getResources(), b);
             mDefaultAlbumIcon.setFilterBitmap(false);
             mDefaultAlbumIcon.setDither(false);

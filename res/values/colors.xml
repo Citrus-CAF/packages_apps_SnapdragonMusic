@@ -24,9 +24,13 @@
     <color name="whitecheck">#FFFFFF</color>
     <color name="app_theme_color">#f57f17</color>
     <color name="seekbarcolor">#f4511e</color>
+    <color name="artist_background">#d3d3d3</color>
 
     <color name="wave_color">#f4511e</color>
     <color name="wave_color_inactive">#000000</color>
     <color name="lyric_selected_text">#fff4511e</color>
     <color name="black_translucence_text">#5a000000</color>
+    <color name="colorTouchHint">#FFFFFFFF</color>
+    <color name="toolbar_title_text">#ffffffff</color>
+    <color name="click_bg">#6621272B</color>
 </resources>

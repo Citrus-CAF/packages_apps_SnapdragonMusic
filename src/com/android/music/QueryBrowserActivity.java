@@ -106,6 +106,19 @@ public class QueryBrowserActivity extends ListActivity implements
         searchView.setSubmitButtonEnabled(false);
         searchView.setOnQueryTextListener(this);
 
+        searchMenuItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                finish();
+                return true;
+            }
+        });
+
         return true;
     }
 

@@ -48,10 +48,12 @@
         android:padding="@dimen/album_left_margin">
 
     <ImageView android:id="@+id/list_menu_button"
+        style="@style/OverflowBackground"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
+        android:layout_marginEnd="6dp"
         android:src="@drawable/ic_menu_moreoverflow_normal_holo_light"
         android:clickable="true"/>
 
@@ -60,7 +62,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_toStartOf="@id/list_menu_button"
-        android:paddingTop="@dimen/album_card_text_margin"
+        android:paddingTop="5dp"
+        android:paddingBottom="2dp"
         android:orientation="vertical">
     <!-- The height is set to half the height of the parent, which is 64 dip -->
     <TextView android:id="@+id/line1"
@@ -86,6 +89,7 @@
         android:paddingStart="@dimen/album_card_text_space"
         android:maxLength="25"
         android:paddingBottom="@dimen/album_card_text_margin"
+        android:layout_marginTop="8dp"
         android:scrollHorizontally="true"
         android:textColor="@color/album_text"
         android:textSize="@dimen/album_artist_name"

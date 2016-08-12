@@ -187,7 +187,7 @@ public class TrackBrowserFragment extends Fragment implements
         if (MusicUtils.isGroupByFolder() && mParent != -1) {
             mParentActivity.mToolbar.setNavigationContentDescription("drawer");
             mParentActivity.mToolbar
-                    .setNavigationIcon(R.drawable.ic_material_light_navigation_drawer);
+                    .setNavigationIcon(R.drawable.tool_bar_navigation_icon);
         }
     }
 
@@ -245,7 +245,12 @@ public class TrackBrowserFragment extends Fragment implements
         if (MusicUtils.isGroupByFolder() && mParent != -1 && mParentActivity.mToolbar != null) {
             mParentActivity.mToolbar.setNavigationContentDescription("back");
             mParentActivity.mToolbar
-                    .setNavigationIcon(R.drawable.ic_material_home_as_up_arrow);
+                    .setNavigationIcon(R.drawable.tool_bar_navigation_icon_back);
+        }
+        if (mPlaylist != null && mParentActivity.mToolbar != null) {
+            mParentActivity.mToolbar.setNavigationContentDescription("playlist");
+            mParentActivity.mToolbar
+                    .setNavigationIcon(R.drawable.tool_bar_navigation_icon_back);
         }
     }
 

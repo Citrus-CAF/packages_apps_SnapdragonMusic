@@ -22,7 +22,8 @@
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:padding="4dp"
-    android:background="#ffffff">
+    android:elevation="2dp"
+    android:background="@drawable/track_list_item_group_ripple">
 
     <!-- icon is used for albumart, the grabber in edit playlist mode, and
     the playlist icon in the list of playlists -->
@@ -30,7 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:id="@+id/iconLayout"
-        android:paddingStart="20dip"
+        android:paddingStart="16dip"
          >
         <ImageView android:id="@+id/icon"
             android:layout_width="48dp"
@@ -75,11 +76,13 @@
             android:layout_height="wrap_content" />
     </RelativeLayout>
     <ImageView android:id="@+id/play_indicator_child"
+        style="@style/OverflowBackground"
         android:layout_alignParentEnd="true"
         android:layout_below="@id/duration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="12dip"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="10dip"
         android:src="@drawable/ic_menu_moreoverflow_normal_holo_light" />
 
 </RelativeLayout>

@@ -37,13 +37,14 @@
 
     <ImageView
         android:id="@+id/album"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:paddingStart="8dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="12dp"
+        android:scaleType="fitXY"
         android:layout_gravity="center_vertical" />
     <LinearLayout android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:paddingStart="8dp"
+        android:paddingStart="12dp"
         android:orientation="vertical"
         android:layout_gravity="center_vertical"
         android:layout_weight="3" >
@@ -70,7 +71,7 @@
         android:marqueeRepeatLimit="marquee_forever"
         android:maxLength="28"
         android:textColor="#000000"
-        android:textSize="12sp" />
+        android:textSize="13sp" />
 </LinearLayout>
 
     <LinearLayout
@@ -82,6 +83,7 @@
 
         <ImageView
             android:id="@+id/nowplay_icon"
+            style="@style/ClickBackground"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -89,21 +91,23 @@
 
         <ImageButton
             android:id="@+id/animViewcurrPlaylist"
+            style="@style/ClickBackground"
             android:layout_width="36dip"
             android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
             android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp"
             android:src="@drawable/list"
             android:visibility="gone" />
 
         <ImageButton
             android:id="@+id/menu_overflow_audio_header"
+            style="@style/OverflowBackground"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginEnd="8dp"
             android:visibility="gone"
-            android:background="@android:color/transparent"
+            android:theme="@android:style/Theme.DeviceDefault.Light"
             android:src="@drawable/ic_menu_moreoverflow_normal_holo_light" />
     </LinearLayout>
 
