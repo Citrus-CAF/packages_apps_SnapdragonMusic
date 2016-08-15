@@ -622,7 +622,7 @@ public class FolderBrowserFragment extends Fragment
                     mFragment.mFilesCursor = null;
                 }
                 mFragment.mFilesCursor = cursor;
-                if ((cursor != null && cursor.isClosed()) || cursor == null) {
+                if ((cursor != null && !cursor.isClosed()) || cursor == null) {
                     getColumnIndices(cursor);
                     super.changeCursor(cursor);
                 }

@@ -772,7 +772,7 @@ public class AlbumBrowserFragment extends Fragment implements MusicUtils.Defs,
                     mFragment.mAlbumCursor = null;
                 }
                 mFragment.mAlbumCursor = cursor;
-                if ((cursor != null && cursor.isClosed()) || cursor == null) {
+                if ((cursor != null && !cursor.isClosed()) || cursor == null) {
                     getColumnIndices(cursor);
                     super.changeCursor(cursor);
                 }
