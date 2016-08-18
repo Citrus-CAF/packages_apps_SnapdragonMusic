@@ -141,7 +141,17 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
                 // an http URI, and there are different exceptions associated
                 // with failure to open each of those.
                 Log.d(TAG, "Failed to open file: " + ex);
-                Toast.makeText(this, R.string.playback_failed, Toast.LENGTH_SHORT).show();
+                int errorTipsId = R.string.playback_failed;
+                if (ex instanceof IOException) {
+                    errorTipsId = R.string.audio_preview_fail_io;
+                } else if (ex instanceof SecurityException) {
+                    errorTipsId = R.string.audio_preview_fail_security;
+                } else if (ex instanceof  IllegalStateException) {
+                    errorTipsId = R.string.audio_preview_fail_illegal_state;
+                } else if (ex instanceof  IllegalArgumentException) {
+                    errorTipsId = R.string.audio_preview_fail_illegal_argument;
+                }
+                Toast.makeText(this, errorTipsId, Toast.LENGTH_SHORT).show();
                 finish();
                 return;
             }
