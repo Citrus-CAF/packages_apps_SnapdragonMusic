@@ -276,14 +276,14 @@ public class PlaylistBrowserFragment extends Fragment implements
                     getFragmentManager()
                             .beginTransaction()
                             .replace(R.id.fragment_page, fragment,
-                                    "track_fragment").commit();
+                                    "track_fragment").commitAllowingStateLoss();
                 } else if (id == PODCASTS_PLAYLIST) {
                     args.putString("playlist", "podcasts");
                     fragment.setArguments(args);
                     getFragmentManager()
                             .beginTransaction()
                             .replace(R.id.fragment_page, fragment,
-                                    "track_fragment").commit();
+                                    "track_fragment").commitAllowingStateLoss();
                 } else {
                     // Obtain the real id for "My Favorite" Playlist
                     if (id == FAVORITE_PLAYLIST) {
@@ -295,7 +295,7 @@ public class PlaylistBrowserFragment extends Fragment implements
                     getFragmentManager()
                             .beginTransaction()
                             .replace(R.id.fragment_page, fragment,
-                                    "track_fragment").commit();
+                                    "track_fragment").commitAllowingStateLoss();
                 }
                 if (MusicUtils.isGroupByFolder()) {
                     MusicUtils.navigatingTabPosition = 4;
