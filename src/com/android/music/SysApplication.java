@@ -50,7 +50,7 @@ public class SysApplication extends Application {
     }
     // add Activity
     public void addActivity(Activity activity) {
-        mList.add(activity);
+        //mList.add(activity);
     }
 
     public void exit() {
