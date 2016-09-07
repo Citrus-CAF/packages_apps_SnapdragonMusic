@@ -1762,6 +1762,9 @@ public class MediaPlaybackService extends Service {
             return;
         }
 
+        if (mAudioManager == null) {
+            mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        }
         mAudioManager.requestAudioFocus(mAudioFocusListener, AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN);
         mAudioManager.registerMediaButtonEventReceiver(new ComponentName(this.getPackageName(),
@@ -2656,7 +2659,7 @@ public class MediaPlaybackService extends Service {
      * Returns the current playback position in milliseconds
      */
     public long position() {
-        if (mPlayer.isInitialized()) {
+        if (mPlayer != null && mPlayer.isInitialized()) {
             return mPlayer.position();
         }
         return -1;
@@ -2668,7 +2671,7 @@ public class MediaPlaybackService extends Service {
      * @param pos The position to seek to, in milliseconds
      */
     public long seek(long pos) {
-        if (mPlayer.isInitialized()) {
+        if (mPlayer != null && mPlayer.isInitialized()) {
             if (pos < 0) pos = 0;
             if (pos > mPlayer.duration()) pos = mPlayer.duration();
 
