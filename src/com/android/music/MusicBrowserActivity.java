@@ -258,7 +258,7 @@ public class MusicBrowserActivity extends MediaPlaybackActivity implements
                 if (mToolbar.getNavigationContentDescription().equals("drawer")) {
                     mDrawerLayout.openDrawer(Gravity.START);
                 }else {
-                    showScreen(3);
+                    showScreen(MusicUtils.navigatingTabPosition);
                     mToolbar.setNavigationContentDescription("drawer");
                     mToolbar
                     .setNavigationIcon(R.drawable.ic_material_light_navigation_drawer);
