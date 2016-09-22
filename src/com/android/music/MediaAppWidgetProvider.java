@@ -71,6 +71,10 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
             final RemoteViews views = new RemoteViews(context.getPackageName(), mWidgetLayoutId);
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, this.getClass()));
+            views.setViewVisibility(R.id.trackname, View.GONE);
+            views.setTextViewText(R.id.artist, context.getText(R.string.widget_initial_text));
+            views.setViewVisibility(R.id.album, View.GONE);
+            views.setImageViewResource(R.id.icon, R.drawable.album_cover_background);
             views.setImageViewResource(R.id.pause, R.drawable.notification_play);
             /* everytime pushUpdate(updateAppWidget) should do linkButtons, otherwise the buttons will not work */
             linkButtons(context, views, false /* not playing */);
