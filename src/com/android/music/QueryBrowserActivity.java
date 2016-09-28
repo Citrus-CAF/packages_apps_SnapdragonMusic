@@ -146,18 +146,20 @@ public class QueryBrowserActivity extends ListActivity implements
             } else if (path
                     .startsWith("content://media/external/audio/albums/")) {
                 // This is an album, show the songs on it
-                Intent i = new Intent(Intent.ACTION_PICK);
-                i.setDataAndType(Uri.EMPTY, "vnd.android.cursor.dir/track");
+                Intent i = new Intent(QueryBrowserActivity.this,
+                        MusicBrowserActivity.class);
                 i.putExtra("album", uri.getLastPathSegment());
+                MusicUtils.setIntPref(this, "activetab", 2);
                 startActivity(i);
                 finish();
                 return;
             } else if (path
                     .startsWith("content://media/external/audio/artists/")) {
                 // This is an artist, show the albums for that artist
-                Intent i = new Intent(Intent.ACTION_PICK);
-                i.setDataAndType(Uri.EMPTY, "vnd.android.cursor.dir/album");
+                Intent i = new Intent(QueryBrowserActivity.this,
+                        MusicBrowserActivity.class);
                 i.putExtra("artist", uri.getLastPathSegment());
+                MusicUtils.setIntPref(this, "activetab", 1);
                 startActivity(i);
                 finish();
                 return;
