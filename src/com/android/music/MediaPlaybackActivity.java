@@ -1849,10 +1849,17 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         public void handleMessage(Message msg) {
             switch (msg.what) {
             case ALBUM_ART_DECODED:
-                mAlbum.setImageBitmap((Bitmap) msg.obj);
-                mAlbum.getDrawable().setDither(true);
-                mAlbumIcon.setImageBitmap((Bitmap) msg.obj);
-                mAlbumIcon.getDrawable().setDither(true);
+                if (msg.obj != null && msg.obj instanceof Bitmap) {
+                    mAlbum.setImageBitmap((Bitmap) msg.obj);
+                    mAlbum.getDrawable().setDither(true);
+                    mAlbumIcon.setImageBitmap((Bitmap) msg.obj);
+                    mAlbumIcon.getDrawable().setDither(true);
+                } else {
+                    mAlbum.setImageResource(R.drawable.album_cover_background);
+                    mAlbum.getDrawable().setDither(true);
+                    mAlbumIcon.setImageResource(R.drawable.album_cover_background);
+                    mAlbumIcon.getDrawable().setDither(true);
+                }
                 break;
 
             case REFRESH:
