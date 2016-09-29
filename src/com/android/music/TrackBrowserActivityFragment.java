@@ -425,7 +425,7 @@ public class TrackBrowserActivityFragment extends Fragment
                     mTrackList.setCacheColorHint(0);
                     return;
                 } else {
-                    mImageView.setImageBitmap(MusicUtils.getDefaultArtwork(mParentActivity));
+                    mImageView.setImageResource(R.drawable.album_cover_background);
                 }
             } catch (Exception ex) {
             }

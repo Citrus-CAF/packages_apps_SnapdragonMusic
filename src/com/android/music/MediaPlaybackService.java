@@ -1837,8 +1837,13 @@ public class MediaPlaybackService extends Service {
         }
         Bitmap icon = MusicUtils.getArtwork(this, getAudioId(), getAlbumId(),
                 true);
-        views.setImageViewBitmap(R.id.icon, icon);
-        viewsLarge.setImageViewBitmap(R.id.icon, icon);
+        if (icon == null) {
+            views.setImageViewResource(R.id.icon, R.drawable.album_cover_background);
+            viewsLarge.setImageViewResource(R.id.icon, R.drawable.album_cover_background);
+        } else {
+            views.setImageViewBitmap(R.id.icon, icon);
+            viewsLarge.setImageViewBitmap(R.id.icon, icon);
+        }
         Intent prevIntent = new Intent(PREVIOUS_ACTION);
         PendingIntent prevPendingIntent = PendingIntent.getBroadcast(this,
                 0 /* no requestCode */, prevIntent, 0 /* no flags */);
