@@ -165,7 +165,11 @@ public class MediaAppWidgetProvider extends AppWidgetProvider {
         final RemoteViews views = new RemoteViews(service.getPackageName(), mWidgetLayoutId);
         Bitmap icon = MusicUtils.getArtwork(service, service.getAudioId(), service.getAlbumId(),
                 true);
-        views.setImageViewBitmap(R.id.icon, icon);
+        if (icon == null) {
+            views.setImageViewResource(R.id.icon, R.drawable.album_cover_background);
+        } else {
+            views.setImageViewBitmap(R.id.icon, icon);
+        }
 
         CharSequence titleName = service.getTrackName();
         CharSequence artistName = service.getArtistName();
