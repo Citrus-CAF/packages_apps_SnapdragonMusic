@@ -27,6 +27,7 @@ import android.content.IntentFilter;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
 //import android.drm.DrmManagerClientWrapper;
+import android.database.DataSetObserver;
 import android.drm.DrmRights;
 //import android.drm.DrmStore.DrmDeliveryType;
 import android.media.AudioManager;
@@ -35,6 +36,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -487,6 +489,7 @@ public class MusicPicker extends ListActivity
         mAdapter = new TrackListAdapter(this, listView,
                 R.layout.music_picker_item, new String[] {},
                 new int[] {});
+        mAdapter.registerDataSetObserver(mDataSetObservable);
 
         setListAdapter(mAdapter);
 
@@ -598,6 +601,9 @@ public class MusicPicker extends ListActivity
     @Override
     protected void onDestroy() {
         unregisterReceiver(mScanListener);
+        if (mAdapter != null) {
+            mAdapter.unregisterDataSetObserver(mDataSetObservable);
+        }
         super.onDestroy();
     }
 
@@ -790,5 +796,32 @@ public class MusicPicker extends ListActivity
                 finish();
                 break;
         }
+    }
+
+    private Handler mUiHandler = new Handler();
+    private Runnable mOkUpdater = new Runnable() {
+
+        @Override
+        public void run() {
+            if (!isFinishing()) {
+                //Okay Button should be disabled while ListView changing as empty
+                mOkayButton.setEnabled(getListView().getCount() != 0);
+            }
+        }
+    };
+
+    private DataSetObserver mDataSetObservable = new DataSetObserver() {
+
+        @Override
+        public void onChanged() {
+            updateOkButton();
+        }
+    };
+
+    private void updateOkButton() {
+        mUiHandler.removeCallbacks(mOkUpdater);
+        // Do not update immediately since DataSetObserver's onChanged()
+        // may be invoked a large number of times in a short time
+        mUiHandler.postDelayed(mOkUpdater, 300);
     }
 }
