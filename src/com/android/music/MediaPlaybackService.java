@@ -2959,7 +2959,7 @@ public class MediaPlaybackService extends Service {
         }
 
         public void setDataSource(String path) {
-            mIsInitialized = setDataSourceImpl(mCurrentMediaPlayer, path);
+            mIsInitialized = setDataSourceImpl(mCurrentMediaPlayer, path, false);
             if (mIsInitialized) {
                 setNextDataSource(null);
             }
@@ -2974,10 +2974,12 @@ public class MediaPlaybackService extends Service {
             }
         };
 
-        private boolean setDataSourceImpl(MediaPlayer player, String path) {
+        private boolean setDataSourceImpl(MediaPlayer player, String path, boolean isNext) {
             try {
                 player.reset();
-                player.setOnPreparedListener(mNextPreparedListener);
+                if (isNext) {
+                    player.setOnPreparedListener(mNextPreparedListener);
+                }
                 if (path.startsWith("content://")) {
                     player.setDataSource(MediaPlaybackService.this, Uri.parse(path));
                 } else {
@@ -3029,7 +3031,7 @@ public class MediaPlaybackService extends Service {
             mSetNextMediaPlayerRunnable = new Runnable() {
                     @Override
                     public void run() {
-                        setDataSourceImpl(mp, path);
+                        setDataSourceImpl(mp, path, true);
                         if (mIsSupposedToBePlaying
                             && mCurrentMediaPlayer != null
                             && mIsInitialized && mIsNextPrepared
