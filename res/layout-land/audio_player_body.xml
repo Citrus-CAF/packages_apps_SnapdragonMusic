@@ -75,7 +75,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginTop="36dp"
+            android:layout_marginTop="30dp"
             android:layout_toEndOf="@id/loop_view">
 
             <com.android.music.RepeatingImageButton
@@ -115,7 +115,7 @@
             android:layout_width="match_parent"
             android:layout_height="16dp"
             android:layout_below="@+id/album_art_view"
-            android:layout_marginTop="36dp">
+            android:layout_marginTop="30dp">
 
             <TextView
                 android:id="@+id/currenttimer"
