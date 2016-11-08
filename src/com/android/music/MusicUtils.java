@@ -168,7 +168,7 @@ public class MusicUtils {
 
     private static void addDateToCache(String artistName,
             Bitmap[] mAlbumArtsArray2) {
-        mArtCache.put(artistName, mAlbumArtsArray2);
+        MusicUtils.putIntoLruCache(artistName, mAlbumArtsArray2, mArtCache);
     }
 
     public static String makeAlbumsLabel(Context context, int numalbums,
@@ -1948,7 +1948,7 @@ public class MusicUtils {
                             .getString(artistCursor
                                     .getColumnIndexOrThrow(MediaStore.Audio.Artists.ARTIST));
 
-                    if (mArtCache.get(artistName) != null)
+                    if (getFromLruCache(artistName, mArtCache) != null)
                         continue;
 
                     childCursor = query(context,
@@ -2292,4 +2292,19 @@ public class MusicUtils {
         return ret;
     }
 
+    public static <K, V> V getFromLruCache(K key, LruCache<K, V> lruCache) {
+        if (key == null || lruCache == null){
+            return null;
+        }
+
+        return  lruCache.get(key);
+    }
+
+    public static <K, V> V putIntoLruCache(K key, V value, LruCache<K, V> lruCache) {
+        if (key == null || value == null || lruCache == null){
+            return null;
+        }
+
+        return  lruCache.put(key, value);
+    }
 }
