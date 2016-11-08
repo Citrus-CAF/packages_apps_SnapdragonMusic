@@ -749,10 +749,10 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
                 displayartist = mUnknownArtist;
                 vh.mImgHolder.setBackgroundDrawable(mDefaultArtistIcon);
             } else {
-                if (MusicUtils.mArtCache.get(displayartist) == null) {
+                Bitmap[] albumArts = MusicUtils.getFromLruCache(
+                        displayartist, MusicUtils.mArtCache);
+                if (albumArts == null) {
                 } else {
-                    Bitmap[] albumArts = MusicUtils.mArtCache
-                            .get(displayartist);
                     if (numalbums == 1) {
                         for (int i = 0; i < layout.length; i++) {
                             layout[i].setVisibility(View.GONE);

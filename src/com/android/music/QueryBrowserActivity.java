@@ -473,7 +473,8 @@ public class QueryBrowserActivity extends ListActivity implements
             }
             String artistname = cursor.getString(cursor
                     .getColumnIndexOrThrow(MediaStore.Audio.Artists.ARTIST));
-            Bitmap albumart[] = MusicUtils.mArtCache.get(artistname);
+            Bitmap albumart[] = MusicUtils.getFromLruCache(
+                    artistname, MusicUtils.mArtCache);
             if (albumart != null) {
                 if (albumart[0] != null) {
                     vh.icon.setImageBitmap(albumart[0]);
