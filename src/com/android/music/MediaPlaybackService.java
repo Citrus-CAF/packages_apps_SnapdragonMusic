@@ -2955,7 +2955,6 @@ public class MediaPlaybackService extends Service {
         private Runnable mSetNextMediaPlayerRunnable = null;
         private boolean mIsInitialized = false;
         private boolean mIsComplete = false;
-        private boolean mIsNextPrepared = false;
 
         public MultiPlayer() {
             mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
@@ -2975,7 +2974,21 @@ public class MediaPlaybackService extends Service {
             @Override
             public void onPrepared(MediaPlayer mp){
                 Log.d(LOGTAG, "next MediaPlayer Prepared");
-                mIsNextPrepared = true;
+
+                if (mCurrentMediaPlayer != mp
+                        && mIsSupposedToBePlaying
+                        && mCurrentMediaPlayer != null
+                        && mIsInitialized
+                        && mCurrentMediaPlayer.isPlaying()) {
+                    Log.d(LOGTAG, "setNextMediaPlayer");
+                    mCurrentMediaPlayer.setNextMediaPlayer(mp);
+                    if (mNextMediaPlayer != null) {
+                        mNextMediaPlayer.release();
+                    }
+                    mNextMediaPlayer = (CompatMediaPlayer)mp;
+                } else {
+                    mp.release();
+                }
             }
         };
 
@@ -3029,40 +3042,31 @@ public class MediaPlaybackService extends Service {
             mp.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
             mp.setAudioSessionId(getAudioSessionId());
             if (mSetNextMediaPlayerHandler == null) {
-               mSetNextMediaPlayerHandler = new Handler(mPrepareNextHandlerThread.getLooper());
+                mSetNextMediaPlayerHandler = new Handler(mPrepareNextHandlerThread.getLooper());
+            }
             if (mSetNextMediaPlayerRunnable != null) {
                mSetNextMediaPlayerHandler.removeCallbacks(mSetNextMediaPlayerRunnable);
             }
             mSetNextMediaPlayerRunnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        setDataSourceImpl(mp, path, true);
-                        if (mIsSupposedToBePlaying
-                            && mCurrentMediaPlayer != null
-                            && mIsInitialized && mIsNextPrepared
-                            && mCurrentMediaPlayer.isPlaying()) {
-                            mCurrentMediaPlayer.setNextMediaPlayer(mp);
-                            if (mNextMediaPlayer != null) {
-                                mNextMediaPlayer.release();
-                            }
-                            mNextMediaPlayer = mp;
-                        } else {
-                            mp.release();
-                        }
-                        mIsNextPrepared = false;
+                @Override
+                public void run() {
+                    if (!setDataSourceImpl(mp, path, true)) {
+                        // failed to open next, we'll transition the old fashioned way,
+                        // which will skip over the faulty file
+                        releaseCurrentAndNext(mp);
                     }
-                };
-               mSetNextMediaPlayerHandler.post(mSetNextMediaPlayerRunnable);
-            } else {
-                // failed to open next, we'll transition the old fashioned way,
-                // which will skip over the faulty file
-                if (mp != null) {
-                    mp.release();
                 }
-                if (mNextMediaPlayer != null) {
-                    mNextMediaPlayer.release();
-                    mNextMediaPlayer = null;
-                }
+            };
+            mSetNextMediaPlayerHandler.post(mSetNextMediaPlayerRunnable);
+        }
+
+        private void releaseCurrentAndNext(MediaPlayer current) {
+            if (current != null) {
+                current.release();
+            }
+            if (mNextMediaPlayer != null) {
+                mNextMediaPlayer.release();
+                mNextMediaPlayer = null;
             }
         }
 
