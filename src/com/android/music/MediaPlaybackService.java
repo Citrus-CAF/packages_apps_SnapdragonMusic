@@ -1791,6 +1791,13 @@ public class MediaPlaybackService extends Service {
             if (!mIsSupposedToBePlaying) {
                 mIsSupposedToBePlaying = true;
                 notifyChange(PLAYSTATE_CHANGED);
+            } else {
+                long pos = (mPlayer != null) ? position() : 0;
+                if (pos < 0) pos = 0;
+                mRemoteControlClient.setPlaybackState((isPlaying() ?
+                        RemoteControlClient.PLAYSTATE_PLAYING :
+                        RemoteControlClient.PLAYSTATE_PAUSED),
+                        pos, PLAYBACK_SPEED_1X);
             }
             updateNotification();
 
