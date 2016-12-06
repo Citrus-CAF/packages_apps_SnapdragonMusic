@@ -1313,13 +1313,13 @@ public class MediaPlaybackService extends Service {
             ed.putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, getArtistName());
             ed.putLong(MediaMetadataRetriever.METADATA_KEY_DURATION, duration());
             if ((mPlayList != null) && (mPlayPos >= 0) && (mPlayPos < mPlayList.length)) {
-                ed.putLong(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER,
+                ed.putLong(MediaMetadataRetriever.METADATA_KEY_DISC_NUMBER,
                                                             mPlayList[mPlayPos]);
             } else {
-                ed.putLong(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER,
+                ed.putLong(MediaMetadataRetriever.METADATA_KEY_DISC_NUMBER,
                                                                 INVALID_SONG_UID);
             }
-            ed.putLong(MediaMetadataRetriever.METADATA_KEY_DISC_NUMBER, mPlayPos);
+            ed.putLong(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER, mPlayPos);
             try {
                 ed.putLong(MediaMetadataRetriever.METADATA_KEY_NUM_TRACKS, mPlayListLen);
             } catch (IllegalArgumentException e) {
