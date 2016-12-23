@@ -102,7 +102,6 @@ import java.util.TimerTask;
 
 public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         ServiceConnection, OnCompletionListener, AbsListView.OnScrollListener{
-    private static final int USE_AS_RINGTONE = CHILD_MENU_BASE;
     private static final int SAVE_AS_PLAYLIST = CHILD_MENU_BASE + 2;
     private static final int CLEAR_PLAYLIST = CHILD_MENU_BASE + 4;
     private static final int INVALID_PLAYLIST_ID = -1;
