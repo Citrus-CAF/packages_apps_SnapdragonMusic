@@ -103,6 +103,8 @@ public class QueryBrowserActivity extends ListActivity implements
         searchMenuItem.expandActionView();
 
         SearchView searchView = (SearchView) searchMenuItem.getActionView();
+        ViewGroup.LayoutParams layoutParams = searchView.getLayoutParams();
+        layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
         searchView.setSubmitButtonEnabled(false);
         searchView.setOnQueryTextListener(this);
 
