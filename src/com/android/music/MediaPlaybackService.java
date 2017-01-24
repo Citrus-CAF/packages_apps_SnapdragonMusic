@@ -2980,6 +2980,11 @@ public class MediaPlaybackService extends Service {
             public void onPrepared(MediaPlayer mp){
                 Log.d(LOGTAG, "next MediaPlayer Prepared");
 
+                if (mp != null && mp == mCurrentMediaPlayer) {
+                    Log.d(LOGTAG, "Ignore to set next MediaPlayer as self");
+                    return;
+                }
+
                 if (mCurrentMediaPlayer != mp
                         && mIsSupposedToBePlaying
                         && mCurrentMediaPlayer != null
@@ -3198,7 +3203,11 @@ public class MediaPlaybackService extends Service {
         }
 
         public void setVolume(float vol) {
-            mCurrentMediaPlayer.setVolume(vol, vol);
+            try {
+                mCurrentMediaPlayer.setVolume(vol, vol);
+            } catch (Exception e) {
+                Log.d(LOGTAG, "setVolume failed: " + e);
+            }
         }
 
         public void setAudioSessionId(int sessionId) {
