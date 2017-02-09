@@ -313,9 +313,14 @@ public class TouchInterceptor extends ListView {
                 }
             } else if (vv.equals(first)) {
                 // processing the item that is being dragged
-                if (mDragPos == mSrcDragPos || getPositionForView(vv) == getCount() - 1) {
+                if (mDragPos == mSrcDragPos) {
                     // hovering over the original location
                     visibility = View.INVISIBLE;
+                } else if (getPositionForView(vv) == getCount() - 1) {
+                    // Children views will be set Visible in unExpandViews(), and it use
+                    // getChildAt(i) to get these children, but if we set INVISIBLE for last
+                    // item here, getChildAt() in unExpandViews() will return null(Why? I don't
+                    // know neither), and unExpandViews can not restore views' visibility
                 } else {
                     // not hovering over it
                     // Ideally the item would be completely gone, but neither
