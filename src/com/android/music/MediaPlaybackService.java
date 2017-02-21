@@ -362,8 +362,10 @@ public class MediaPlaybackService extends Service {
                     break;
                 case TRACK_ENDED:
                     if (mRepeatMode == REPEAT_CURRENT) {
-                        seek(0);
-                        play();
+                        if (isPlaying()) {
+                            seek(0);
+                            play();
+                         }
                     } else {
                         gotoNext(false);
                     }
