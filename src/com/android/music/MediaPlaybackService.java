@@ -1753,12 +1753,6 @@ public class MediaPlaybackService extends Service {
      * Starts playback of a previously opened file.
      */
     public void play() {
-
-        if (MusicUtils.isTelephonyCallInProgress(this)) {
-            Log.d(LOGTAG, "CS/CSVT Call is in progress, can't play music");
-            return;
-        }
-
         if (mAudioManager == null) {
             mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             mAudioManager.registerRemoteControlClient(mRemoteControlClient);
