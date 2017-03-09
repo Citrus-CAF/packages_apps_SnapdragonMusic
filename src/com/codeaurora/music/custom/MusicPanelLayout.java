@@ -851,7 +851,7 @@ public class MusicPanelLayout extends ViewGroup {
 
         @Override
         public boolean captureView(View child, int pointerId) {
-            if (mIsCanNotDrag) {
+            if (mIsCanNotDrag || BoardState.HIDDEN == mSlipState) {
                 return false;
             } else {
                 return child == mSlippingView;
