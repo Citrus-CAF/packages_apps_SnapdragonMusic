@@ -47,11 +47,21 @@ import java.util.List;
 public class PermissionActivity extends Activity{
     private static final String PERVIOUS_INTENT = "pervious_intent";
     private static final String REQUEST_PERMISSIONS = "request_permissions";
+    private static final String KEY_FROM_PREVIEW = "from_preview";
     private static final String PACKAGE_URL_SCHEME = "package:";
     private static final int REQUEST_CODE = 100;
     private String[] mRequestedPermissons;
     private Intent mPreviousIntent;
+    private boolean mIsFromPreview = false;
 
+    public static void startFromPreview(Activity activity, String[] permissions, int requestCode) {
+        Intent intent = new Intent();
+        intent.setClass(activity, PermissionActivity.class);
+        intent.putExtra(REQUEST_PERMISSIONS, permissions);
+        intent.putExtra(PERVIOUS_INTENT, activity.getIntent());
+        intent.putExtra(KEY_FROM_PREVIEW, true);
+        activity.startActivityForResult(intent, requestCode);
+    }
 
     public static boolean checkAndRequestPermission(Activity activity, String[] permissions) {
         String[] neededPermissions = checkRequestedPermission(activity, permissions);
@@ -72,6 +82,7 @@ public class PermissionActivity extends Activity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mPreviousIntent = (Intent)getIntent().getExtras().get(PERVIOUS_INTENT);
+        mIsFromPreview = getIntent().getBooleanExtra(KEY_FROM_PREVIEW, false);
         mRequestedPermissons = getIntent().getStringArrayExtra(REQUEST_PERMISSIONS);
         if (savedInstanceState == null && mRequestedPermissons != null) {
             String[] neededPermissions =
@@ -82,7 +93,7 @@ public class PermissionActivity extends Activity{
         }
     }
 
-    private static String[] checkRequestedPermission(Activity activity, String[] permissionName) {
+    public static String[] checkRequestedPermission(Activity activity, String[] permissionName) {
         boolean isPermissionGranted = true;
         List<String> needRequestPermission = new ArrayList<String>();
         for (String tmp : permissionName) {
@@ -112,7 +123,13 @@ public class PermissionActivity extends Activity{
         }
         if(isAllPermissionsGranted) {
             if (mPreviousIntent != null)
-                startActivity(mPreviousIntent);
+                if (mIsFromPreview){
+                    startActivity(mPreviousIntent);
+                    setResult(Activity.RESULT_OK);
+                } else {
+                    if (mPreviousIntent != null)
+                    startActivity(mPreviousIntent);
+                }
             finish();
         } else {
             showMissingPermissionDialog();
@@ -126,6 +143,9 @@ public class PermissionActivity extends Activity{
         builder.setNegativeButton(R.string.dialog_button_quit,
         new DialogInterface.OnClickListener() {
             @Override public void onClick(DialogInterface dialog, int which) {
+                if (mIsFromPreview){
+                    setResult(Activity.RESULT_CANCELED);
+                }
                 finish();
             }
         });

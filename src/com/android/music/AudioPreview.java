@@ -93,9 +93,6 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
 
     @Override
     public void onCreate(Bundle icicle) {
-        if (PermissionActivity.checkAndRequestPermission(this, REQUIRED_PERMISSIONS)) {
-            SysApplication.getInstance().exit();
-        }
         super.onCreate(icicle);
 
         mAudioPreview = this;
@@ -129,139 +126,7 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         mProgressRefresher = new Handler();
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-        PreviewPlayer player = (PreviewPlayer) getLastNonConfigurationInstance();
-        if (player == null) {
-            mPlayer = new PreviewPlayer();
-            mPlayer.setActivity(this);
-            try {
-                mPlayer.setDataSourceAndPrepare(mUri);
-            } catch (Exception ex) {
-                // catch generic Exception, since we may be called with a media
-                // content URI, another content provider's URI, a file URI,
-                // an http URI, and there are different exceptions associated
-                // with failure to open each of those.
-                Log.d(TAG, "Failed to open file: " + ex);
-                int errorTipsId = R.string.playback_failed;
-                if (ex instanceof IOException) {
-                    errorTipsId = R.string.audio_preview_fail_io;
-                } else if (ex instanceof SecurityException) {
-                    errorTipsId = R.string.audio_preview_fail_security;
-                } else if (ex instanceof  IllegalStateException) {
-                    errorTipsId = R.string.audio_preview_fail_illegal_state;
-                } else if (ex instanceof  IllegalArgumentException) {
-                    errorTipsId = R.string.audio_preview_fail_illegal_argument;
-                }
-                Toast.makeText(this, errorTipsId, Toast.LENGTH_SHORT).show();
-                finish();
-                return;
-            }
-        } else {
-            mPlayer = player;
-            mPlayer.setActivity(this);
-            if (mPlayer.isPrepared()) {
-                showPostPrepareUI();
-            }
-        }
-
-        AsyncQueryHandler mAsyncQueryHandler = new AsyncQueryHandler(getContentResolver()) {
-            @Override
-            protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
-                if (cursor != null && cursor.moveToFirst()) {
-
-                    int titleIdx = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
-                    int artistIdx = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
-                    int idIdx = cursor.getColumnIndex(MediaStore.Audio.Media._ID);
-                    int displaynameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                    int uriIdx = cursor.getColumnIndex(COLUMN_MEDIAPROVIDER_URI);
-                    if (uriIdx >=0 && cursor.getString(uriIdx) != null) {
-                        mMediaUri = Uri.parse(cursor.getString(uriIdx));
-                    }
-
-                    if (idIdx >=0) {
-                        mMediaId = cursor.getLong(idIdx);
-                    }
-                    
-                    if (titleIdx >= 0) {
-                        String title = cursor.getString(titleIdx);
-                        mTextLine1.setText(title);
-                        if (artistIdx >= 0) {
-                            String artist = cursor.getString(artistIdx);
-                            if(artist == null || artist.equals(MediaStore.UNKNOWN_STRING)) {
-                                artist = getString(R.string.unknown_artist_name);
-                            }
-                            mTextLine2.setText(artist);
-                        }
-                    } else if (displaynameIdx >= 0) {
-                        String name = cursor.getString(displaynameIdx);
-                        mTextLine1.setText(name);
-                    } else {
-                        // Couldn't find anything to display, what to do now?
-                        Log.w(TAG, "Cursor had no names for us");
-                    }
-                } else {
-                    Log.w(TAG, "empty cursor");
-                }
-
-                // Show DRM lock icon on audio preview screen
-                String data = "";
-                try {
-                    int dataIdx = cursor
-                            .getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
-                    data = cursor.getString(dataIdx);
-                } catch (Exception e) {
-                    Log.i(TAG, "_data column not found");
-                }
-                boolean isDrm = !TextUtils.isEmpty(data)
-                        && (data.endsWith(".dm") || data.endsWith(".dcf"));
-                if (isDrm) {
-                    mImageViewDrmIcon.setVisibility(View.VISIBLE);
-                } else {
-                    mImageViewDrmIcon.setVisibility(View.GONE);
-                }
-
-                if (cursor != null) {
-                    cursor.close();
-                }
-                setNames();
-            }
-        };
-
-        if (scheme.equals(ContentResolver.SCHEME_CONTENT)) {
-            if (mUri.getAuthority() == MediaStore.AUTHORITY) {
-                // try to get title and artist from the media content provider
-                mAsyncQueryHandler.startQuery(0, null, mUri, new String [] {
-                        MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST},
-                        null, null, null);
-            } else {
-                final String authority = mUri.getAuthority();
-                // hide option menu if the uri may not be opened by music app
-                if (authority.contains("attachmentprovider") || authority.contains("mms")) {
-                    mMediaId = -1;
-                    if (mPlayer != null && mPlayer.isPrepared()) {
-                        setNames();
-                    }
-                } else {
-                    // Try to get the display name from another content provider.
-                    // Don't specifically ask for the display name though, since the
-                    // provider might not actually support that column.
-                    mAsyncQueryHandler.startQuery(0, null, mUri, null, null, null, null);
-                }
-            }
-        } else if (scheme.equals("file")) {
-            // check if this file is in the media database (clicking on a download
-            // in the download manager might follow this path
-            String path = mUri.getPath();
-            mAsyncQueryHandler.startQuery(0, null,  MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    new String [] {MediaStore.Audio.Media._ID,
-                        MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST},
-                    MediaStore.Audio.Media.DATA + "=?", new String [] {path}, null);
-        } else {
-            // We can't get metadata from the file/stream itself yet, because
-            // that API is hidden, so instead we display the URI being played
-            if (mPlayer.isPrepared()) {
-                setNames();
-            }
-        }
+        checkAndHandlePermission();
     }
 
     @Override
@@ -349,7 +214,6 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     @Override
     public void onUserLeaveHint() {
         stopPlayback();
-        finish();
         super.onUserLeaveHint();
     }
 
@@ -651,4 +515,167 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
         return mAudioPreview;
     }
 
+    private static final int REQUEST_CODE_PERMISSION = 100;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (REQUEST_CODE_PERMISSION == requestCode) {
+            if (Activity.RESULT_OK == resultCode) {
+                initData();
+            } else {
+                finish();
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void checkAndHandlePermission() {
+        String[] neededPermissions = PermissionActivity.checkRequestedPermission(this,
+                REQUIRED_PERMISSIONS);
+        if (neededPermissions.length == 0) {
+            initData();
+        } else {
+            PermissionActivity.startFromPreview(this, REQUIRED_PERMISSIONS,
+                    REQUEST_CODE_PERMISSION);
+        }
+    }
+
+    private void initData() {
+        String scheme = mUri.getScheme();
+
+        PreviewPlayer player = (PreviewPlayer) getLastNonConfigurationInstance();
+        if (player == null) {
+            mPlayer = new PreviewPlayer();
+            mPlayer.setActivity(this);
+            try {
+                mPlayer.setDataSourceAndPrepare(mUri);
+            } catch (Exception ex) {
+                // catch generic Exception, since we may be called with a media
+                // content URI, another content provider's URI, a file URI,
+                // an http URI, and there are different exceptions associated
+                // with failure to open each of those.
+                Log.d(TAG, "Failed to open file: " + ex);
+                int errorTipsId = R.string.playback_failed;
+                if (ex instanceof IOException) {
+                    errorTipsId = R.string.audio_preview_fail_io;
+                } else if (ex instanceof SecurityException) {
+                    errorTipsId = R.string.audio_preview_fail_security;
+                } else if (ex instanceof  IllegalStateException) {
+                    errorTipsId = R.string.audio_preview_fail_illegal_state;
+                } else if (ex instanceof  IllegalArgumentException) {
+                    errorTipsId = R.string.audio_preview_fail_illegal_argument;
+                }
+                Toast.makeText(this, errorTipsId, Toast.LENGTH_SHORT).show();
+                finish();
+                return;
+            }
+        } else {
+            mPlayer = player;
+            mPlayer.setActivity(this);
+            if (mPlayer.isPrepared()) {
+                showPostPrepareUI();
+            }
+        }
+
+        AsyncQueryHandler mAsyncQueryHandler = new AsyncQueryHandler(getContentResolver()) {
+            @Override
+            protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+                if (cursor != null && cursor.moveToFirst()) {
+
+                    int titleIdx = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
+                    int artistIdx = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
+                    int idIdx = cursor.getColumnIndex(MediaStore.Audio.Media._ID);
+                    int displaynameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    int uriIdx = cursor.getColumnIndex(COLUMN_MEDIAPROVIDER_URI);
+                    if (uriIdx >=0 && cursor.getString(uriIdx) != null) {
+                        mMediaUri = Uri.parse(cursor.getString(uriIdx));
+                    }
+
+                    if (idIdx >=0) {
+                        mMediaId = cursor.getLong(idIdx);
+                    }
+
+                    if (titleIdx >= 0) {
+                        String title = cursor.getString(titleIdx);
+                        mTextLine1.setText(title);
+                        if (artistIdx >= 0) {
+                            String artist = cursor.getString(artistIdx);
+                            if(artist == null || artist.equals(MediaStore.UNKNOWN_STRING)) {
+                                artist = getString(R.string.unknown_artist_name);
+                            }
+                            mTextLine2.setText(artist);
+                        }
+                    } else if (displaynameIdx >= 0) {
+                        String name = cursor.getString(displaynameIdx);
+                        mTextLine1.setText(name);
+                    } else {
+                        // Couldn't find anything to display, what to do now?
+                        Log.w(TAG, "Cursor had no names for us");
+                    }
+                } else {
+                    Log.w(TAG, "empty cursor");
+                }
+
+                // Show DRM lock icon on audio preview screen
+                String data = "";
+                try {
+                    int dataIdx = cursor
+                            .getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
+                    data = cursor.getString(dataIdx);
+                } catch (Exception e) {
+                    Log.i(TAG, "_data column not found");
+                }
+                boolean isDrm = !TextUtils.isEmpty(data)
+                        && (data.endsWith(".dm") || data.endsWith(".dcf"));
+                if (isDrm) {
+                    mImageViewDrmIcon.setVisibility(View.VISIBLE);
+                } else {
+                    mImageViewDrmIcon.setVisibility(View.GONE);
+                }
+
+                if (cursor != null) {
+                    cursor.close();
+                }
+                setNames();
+            }
+        };
+
+        if (scheme.equals(ContentResolver.SCHEME_CONTENT)) {
+            if (mUri.getAuthority() == MediaStore.AUTHORITY) {
+                // try to get title and artist from the media content provider
+                mAsyncQueryHandler.startQuery(0, null, mUri, new String [] {
+                                MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST},
+                        null, null, null);
+            } else {
+                final String authority = mUri.getAuthority();
+                // hide option menu if the uri may not be opened by music app
+                if (authority.contains("attachmentprovider") || authority.contains("mms")) {
+                    mMediaId = -1;
+                    if (mPlayer != null && mPlayer.isPrepared()) {
+                        setNames();
+                    }
+                } else {
+                    // Try to get the display name from another content provider.
+                    // Don't specifically ask for the display name though, since the
+                    // provider might not actually support that column.
+                    mAsyncQueryHandler.startQuery(0, null, mUri, null, null, null, null);
+                }
+            }
+        } else if (scheme.equals("file")) {
+            // check if this file is in the media database (clicking on a download
+            // in the download manager might follow this path
+            String path = mUri.getPath();
+            mAsyncQueryHandler.startQuery(0, null,  MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    new String [] {MediaStore.Audio.Media._ID,
+                            MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.ARTIST},
+                    MediaStore.Audio.Media.DATA + "=?", new String [] {path}, null);
+        } else {
+            // We can't get metadata from the file/stream itself yet, because
+            // that API is hidden, so instead we display the URI being played
+            if (mPlayer.isPrepared()) {
+                setNames();
+            }
+        }
+    }
 }
