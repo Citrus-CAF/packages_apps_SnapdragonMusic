@@ -3032,10 +3032,13 @@ public class MediaPlaybackService extends Service {
             }
             player.setOnCompletionListener(listener);
             player.setOnErrorListener(errorListener);
-            Intent i = new Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION);
-            i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
-            i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, getPackageName());
-            sendBroadcast(i);
+            int sessionId = getAudioSessionId();
+            if (sessionId >= 0) {
+                Intent i = new Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION);
+                i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
+                i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, getPackageName());
+                sendBroadcast(i);
+            }
             return true;
         }
 
@@ -3220,7 +3223,12 @@ public class MediaPlaybackService extends Service {
         }
 
         public int getAudioSessionId() {
-            return mCurrentMediaPlayer.getAudioSessionId();
+            try {
+                return mCurrentMediaPlayer.getAudioSessionId();
+            } catch (Exception e) {
+                Log.d(LOGTAG, "getAudioSessionId failed: " + e);
+                return -1;
+            }
         }
     }
 
