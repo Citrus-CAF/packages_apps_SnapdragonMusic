@@ -970,6 +970,11 @@ public class MediaPlaybackService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (!mIsReadGranted) {
+            Toast.makeText(getApplicationContext(),
+                    R.string.dialog_content, Toast.LENGTH_LONG).show();
+            return START_STICKY;
+        }
         mServiceStartId = startId;
         mDelayedStopHandler.removeCallbacksAndMessages(null);
 
