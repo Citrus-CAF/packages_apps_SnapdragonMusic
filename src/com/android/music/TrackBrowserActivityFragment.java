@@ -934,7 +934,7 @@ public class TrackBrowserActivityFragment extends Fragment
         mSub = menu.getMenu().addSubMenu(0, ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
         MusicUtils.makePlaylistMenu(mParentActivity, mSub);
         menu.getMenu().add(0, DELETE_ITEM, 0, R.string.delete_item);
-        MusicUtils.addSetRingtonMenu(menu.getMenu(),mParentActivity);
+        MusicUtils.addSetRingtonMenu(menu.getMenu());
         menu.getMenu().add(0, SHARE, 0, R.string.share);
         menu.getMenu().add(0, DETAILS, 0, R.string.details);
     }

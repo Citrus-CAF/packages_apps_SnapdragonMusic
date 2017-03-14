@@ -2232,30 +2232,8 @@ public class MusicUtils {
                 || state == TelephonyManager.CALL_STATE_RINGING);
     }
 
-    public static void addSetRingtonMenu(Menu menu, Context context) {
-        if (context == null) return;
-        TelephonyManager telephonyManager =
-                (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        int phoneCount = telephonyManager.getPhoneCount();
-        if (phoneCount > 1) {
-            int[] ringtones = { Defs.USE_AS_RINGTONE, Defs.USE_AS_RINGTONE_2 };
-            int[] menuStrings = { R.string.ringtone_menu_1,
-                    R.string.ringtone_menu_2 };
-            int[] menuSimNameStrings = { R.string.ringtone_menu_sim_name_1,
-                    R.string.ringtone_menu_sim_name_2 };
-            for (int i = 0; i < phoneCount; i++) {
-                String menuItem;
-                SubscriptionInfo info =
-                        SubscriptionManager.from(context).
-                                getActiveSubscriptionInfoForSimSlotIndex(i);
-                if (info != null) {
-                    menuItem = context.getString(menuSimNameStrings[i], info.getDisplayName());
-                    menu.add(0, ringtones[i], 0, menuItem);
-                }
-            }
-        } else if (telephonyManager.getSimState() == TelephonyManager.SIM_STATE_READY) {
-            menu.add(0, Defs.USE_AS_RINGTONE, 0, R.string.ringtone_menu);
-        }
+    public static void addSetRingtonMenu(Menu menu) {
+        menu.add(0, Defs.USE_AS_RINGTONE, 0, R.string.ringtone_menu);
     }
 
     public static int getSystemPropertyInt(String key) {
