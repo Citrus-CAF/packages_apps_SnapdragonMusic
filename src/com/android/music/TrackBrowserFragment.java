@@ -2039,7 +2039,7 @@ public class TrackBrowserFragment extends Fragment implements
                     MusicUtils.makePlaylistMenu(mFragment.getActivity(), mSubMenu);
                     popup.getMenu()
                             .add(0, DELETE_ITEM, 0, R.string.delete_item);
-                    MusicUtils.addSetRingtonMenu(popup.getMenu(), mParentActivity);
+                    MusicUtils.addSetRingtonMenu(popup.getMenu());
                     popup.getMenu().add(0, SHARE, 0, R.string.share);
                     popup.getMenu().add(0, DETAILS, 0, R.string.details);
 

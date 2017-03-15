@@ -821,7 +821,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             SubMenu sub = popup.getMenu().addSubMenu(0,
                     ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
             MusicUtils.makePlaylistMenu(MediaPlaybackActivity.this, sub);
-            MusicUtils.addSetRingtonMenu(popup.getMenu(), mActivity);
+            MusicUtils.addSetRingtonMenu(popup.getMenu());
             Intent i = new Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL);
             if (getPackageManager().resolveActivity(i, 0) != null) {
                 popup.getMenu().add(0, EFFECTS_PANEL, 0, R.string.effectspanel);

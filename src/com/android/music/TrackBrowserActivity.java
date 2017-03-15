@@ -721,16 +721,7 @@ public class TrackBrowserActivity extends ListActivity
             menu.add(0, REMOVE, 0, R.string.remove_from_playlist);
         }
 
-        if (TelephonyManager.getDefault().isMultiSimEnabled()) {
-            int[] ringtones = { USE_AS_RINGTONE, USE_AS_RINGTONE_2 };
-            int[] menuStrings = { R.string.ringtone_menu_1,
-                                  R.string.ringtone_menu_2 };
-            for (int i = 0; i < TelephonyManager.getDefault().getPhoneCount(); i++) {
-                menu.add(0, ringtones[i], 0, menuStrings[i]);
-            }
-        } else {
-            menu.add(0, USE_AS_RINGTONE, 0, R.string.ringtone_menu);
-        }
+        menu.add(0, USE_AS_RINGTONE, 0, R.string.ringtone_menu);
 
         menu.add(0, DELETE_ITEM, 0, R.string.delete_item);
         AdapterContextMenuInfo mi = (AdapterContextMenuInfo) menuInfoIn;
