@@ -102,7 +102,6 @@ import java.util.TimerTask;
 
 public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         ServiceConnection, OnCompletionListener, AbsListView.OnScrollListener{
-    private static final int USE_AS_RINGTONE = CHILD_MENU_BASE;
     private static final int SAVE_AS_PLAYLIST = CHILD_MENU_BASE + 2;
     private static final int CLEAR_PLAYLIST = CHILD_MENU_BASE + 4;
     private static final int INVALID_PLAYLIST_ID = -1;
@@ -822,7 +821,7 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
             SubMenu sub = popup.getMenu().addSubMenu(0,
                     ADD_TO_PLAYLIST, 0, R.string.add_to_playlist);
             MusicUtils.makePlaylistMenu(MediaPlaybackActivity.this, sub);
-            MusicUtils.addSetRingtonMenu(popup.getMenu(), mActivity);
+            MusicUtils.addSetRingtonMenu(popup.getMenu());
             Intent i = new Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL);
             if (getPackageManager().resolveActivity(i, 0) != null) {
                 popup.getMenu().add(0, EFFECTS_PANEL, 0, R.string.effectspanel);

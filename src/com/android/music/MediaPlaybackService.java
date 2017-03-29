@@ -204,9 +204,6 @@ public class MediaPlaybackService extends Service {
     private boolean mQueueIsSaveable = true;
     // used to track what type of audio focus loss caused the playback to pause
     private boolean mPausedByTransientLossOfFocus = false;
-    private SetBrowsedPlayerMonitor mSetBrowsedPlayerMonitor;
-    private SetPlayItemMonitor mSetPlayItemMonitor;
-    private GetNowPlayingEntriesMonitor mGetNowPlayingEntriesMonitor;
     public static final byte ATTRIBUTE_ALL = -1;
     public static final byte ERROR_NOTSUPPORTED = -1;
     public static final byte ATTRIBUTE_EQUALIZER = 1;
@@ -362,8 +359,10 @@ public class MediaPlaybackService extends Service {
                     break;
                 case TRACK_ENDED:
                     if (mRepeatMode == REPEAT_CURRENT) {
-                        seek(0);
-                        play();
+                        if (isPlaying()) {
+                            seek(0);
+                            play();
+                         }
                     } else {
                         gotoNext(false);
                     }
@@ -385,10 +384,8 @@ public class MediaPlaybackService extends Service {
                             pause(false);
                             break;
                         case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                            if(isPlaying()) {
-                                mPausedByTransientLossOfFocus = true;
-                            }
-                            pause();
+                            mMediaplayerHandler.removeMessages(FADEUP);
+                            mMediaplayerHandler.sendEmptyMessage(FADEDOWN);
                             break;
                         case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                             Log.v(LOGTAG, "AudioFocus: received AUDIOFOCUS_LOSS_TRANSIENT");
@@ -606,15 +603,6 @@ public class MediaPlaybackService extends Service {
         // Needs to be done in this thread, since otherwise ApplicationContext.getPowerManager() crashes.
         mPlayer = new MultiPlayer();
         mPlayer.setHandler(mMediaplayerHandler);
-
-        mSetBrowsedPlayerMonitor = new SetBrowsedPlayerMonitor();
-        mRemoteControlClient.setBrowsedPlayerUpdateListener(mSetBrowsedPlayerMonitor);
-
-        mSetPlayItemMonitor = new SetPlayItemMonitor();
-        mRemoteControlClient.setPlayItemListener(mSetPlayItemMonitor);
-
-        mGetNowPlayingEntriesMonitor = new GetNowPlayingEntriesMonitor();
-        mRemoteControlClient.setNowPlayingEntriesUpdateListener(mGetNowPlayingEntriesMonitor);
 
         reloadQueue();
         notifyChange(QUEUE_CHANGED);
@@ -970,6 +958,11 @@ public class MediaPlaybackService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (!mIsReadGranted) {
+            Toast.makeText(getApplicationContext(),
+                    R.string.dialog_content, Toast.LENGTH_LONG).show();
+            return START_STICKY;
+        }
         mServiceStartId = startId;
         mDelayedStopHandler.removeCallbacksAndMessages(null);
 
@@ -1041,70 +1034,6 @@ public class MediaPlaybackService extends Service {
         return true;
     }
 
-    private void getNowPlayingEntries() {
-        Log.i(LOGTAG,  "getNowPlayingEntries: num of items: " + mPlayListLen);
-        if (mPlayList == null) {
-            Log.i(LOGTAG,"getNowPlayingEntries: mPlayListLen is null");
-            return;
-        }
-        synchronized (mPlayList) {
-            long [] nowPlayingList = new long[mPlayListLen];
-            for (int count = 0; count < mPlayListLen; count++) {
-                nowPlayingList[count] = mPlayList[count];
-            }
-            mRemoteControlClient.updateNowPlayingEntries(nowPlayingList);
-        }
-    }
-
-    private void setBrowsedPlayer() {
-        Log.i(LOGTAG,  "setBrowsedPlayer");
-        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        Log.i(LOGTAG, "URI: " + uri);
-        mRemoteControlClient.updateFolderInfoBrowsedPlayer(uri.toString());
-    }
-
-    private void playItem(int scope, long playItemUid) {
-        boolean success = false;
-        Log.i(LOGTAG,  "playItem uid: " + playItemUid + " scope: " + scope);
-        if (playItemUid < 0) {
-            mRemoteControlClient.playItemResponse(success);
-            return;
-        } else if (scope == SCOPE_FILE_SYSTEM) {
-            success = openItem(playItemUid);
-        } else if (scope == SCOPE_NOW_PLAYING) {
-            for (int index = 0; index < mPlayListLen; index++) {
-                if (mPlayList[index] == playItemUid) {
-                    Log.i(LOGTAG, "Now Playing list contains UID at " + index);
-                    success = true;
-                    break;
-                }
-            }
-            if (success) {
-                success = openItem(playItemUid);
-            }
-        }
-        mRemoteControlClient.playItemResponse(success);
-    }
-
-    private boolean openItem (long playItemUid) {
-        boolean isSuccess = false;
-        if (mPlayListLen == 0) {
-            Log.e(LOGTAG, "Playlist Length = 0");
-            return isSuccess;
-        }
-        stop(false);
-        mCurrentTrackInfo = getTrackInfoFromId(playItemUid);
-        if (mCurrentTrackInfo != null) {
-            long [] list = new long[] { playItemUid };
-            enqueue(list, NOW);
-            Log.i(LOGTAG, "Opened UID: " + playItemUid);
-            isSuccess = true;
-        } else {
-            Log.e(LOGTAG, "Cursor could not be fetched");
-        }
-        return isSuccess;
-    }
-
     private Handler mDelayedStopHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -1118,24 +1047,6 @@ public class MediaPlaybackService extends Service {
             // party-shuffle or because the play-position changed)
             saveQueue(true);
             stopSelf(mServiceStartId);
-        }
-    };
-
-    private Handler mAvrcpHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case SET_BROWSED_PLAYER:
-                    setBrowsedPlayer();
-                    break;
-                case SET_PLAY_ITEM:
-                    playItem(msg.arg1, ((Long)msg.obj).longValue());
-                    break;
-                case GET_NOW_PLAYING_ENTRIES:
-                    getNowPlayingEntries();
-                    break;
-                default:
-            }
         }
     };
 
@@ -1301,11 +1212,7 @@ public class MediaPlaybackService extends Service {
         sendStickyBroadcast(i);
 
         if (what.equals(PLAYSTATE_CHANGED)) {
-            long pos = (mPlayer != null) ? position() : 0;
-            if (pos < 0) pos = 0;
-            mRemoteControlClient.setPlaybackState((isPlaying() ?
-                    RemoteControlClient.PLAYSTATE_PLAYING : RemoteControlClient.PLAYSTATE_PAUSED),
-                    pos, PLAYBACK_SPEED_1X);
+            updatePlaybackState(false);
         } else if (what.equals(META_CHANGED)) {
             RemoteControlClient.MetadataEditor ed = mRemoteControlClient.editMetadata(true);
             ed.putString(MediaMetadataRetriever.METADATA_KEY_TITLE, getTrackName());
@@ -1330,8 +1237,6 @@ public class MediaPlaybackService extends Service {
                 ed.putBitmap(MetadataEditor.BITMAP_KEY_ARTWORK, b);
             }
             ed.apply();
-        } else if (what.equals(QUEUE_CHANGED)) {
-            mRemoteControlClient.updateNowPlayingContentChange();
         }
 
         if (what.equals(QUEUE_CHANGED)) {
@@ -1582,6 +1487,7 @@ public class MediaPlaybackService extends Service {
             if (mPlayListLen == 0) {
                 return;
             }
+            updatePlaybackState(true);
             stop(false);
 
             mCurrentTrackInfo = getTrackInfoFromId(mPlayList[mPlayPos]);
@@ -1756,20 +1662,14 @@ public class MediaPlaybackService extends Service {
      * Starts playback of a previously opened file.
      */
     public void play() {
-
-        if (MusicUtils.isTelephonyCallInProgress(this)) {
-            Log.d(LOGTAG, "CS/CSVT Call is in progress, can't play music");
-            return;
-        }
-
         if (mAudioManager == null) {
             mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            mAudioManager.registerRemoteControlClient(mRemoteControlClient);
         }
         mAudioManager.requestAudioFocus(mAudioFocusListener, AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN);
         mAudioManager.registerMediaButtonEventReceiver(new ComponentName(this.getPackageName(),
                 MediaButtonIntentReceiver.class.getName()));
-        mAudioManager.registerRemoteControlClient(mRemoteControlClient);
 
         if (mPlayer.isInitialized()) {
             // if we are at the end of the song, playing it again.
@@ -1792,6 +1692,7 @@ public class MediaPlaybackService extends Service {
                 mIsSupposedToBePlaying = true;
                 notifyChange(PLAYSTATE_CHANGED);
             }
+
             updateNotification();
 
         } else if (mPlayListLen <= 0) {
@@ -1800,6 +1701,9 @@ public class MediaPlaybackService extends Service {
             // something.
             setShuffleMode(SHUFFLE_AUTO);
         }
+
+        //update the playback status to RCC
+        updatePlaybackState(false);
 
         if (views != null && viewsLarge != null && status != null) {
             // Reset notification play function to pause function
@@ -2295,33 +2199,6 @@ public class MediaPlaybackService extends Service {
         }
         return false;
     }
-
-    private class SetBrowsedPlayerMonitor implements
-                        RemoteControlClient.OnSetBrowsedPlayerListener{
-        @Override
-        public void onSetBrowsedPlayer() {
-            Log.d(LOGTAG, "onSetBrowsedPlayer");
-            mAvrcpHandler.obtainMessage(SET_BROWSED_PLAYER).sendToTarget();
-        }
-    };
-
-    private class SetPlayItemMonitor implements
-                        RemoteControlClient.OnSetPlayItemListener{
-        @Override
-        public void onSetPlayItem(int scope, long uid) {
-            Log.d(LOGTAG, "onSetPlayItem");
-            mAvrcpHandler.obtainMessage(SET_PLAY_ITEM, scope, 0, new Long(uid)).sendToTarget();
-        }
-    };
-
-    private class GetNowPlayingEntriesMonitor implements
-                        RemoteControlClient.OnGetNowPlayingEntriesListener{
-        @Override
-        public void onGetNowPlayingEntries() {
-            Log.d(LOGTAG, "onGetNowPlayingEntries");
-            mAvrcpHandler.obtainMessage(GET_NOW_PLAYING_ENTRIES).sendToTarget();
-        }
-    };
 
     // A simple variation of Random that makes sure that the
     // value it returns is not equal to the value it returned
@@ -2879,8 +2756,22 @@ public class MediaPlaybackService extends Service {
             case SHUFFLE_NONE:
                 return VALUE_SHUFFLEMODE_OFF;
             case SHUFFLE_NORMAL:
+                /*
+                 * Repeat_current mode cannot support shuttle mode,
+                 * so need sync its setting value to shuttle off.
+                */
+                if (getRepeatMode() == REPEAT_CURRENT) {
+                   return VALUE_SHUFFLEMODE_OFF;
+                }
                 return VALUE_SHUFFLEMODE_ALL;
             case SHUFFLE_AUTO:
+                /*
+                 * Repeat_current mode cannot support shuttle mode,
+                 * so need sync its setting value to shuttle off.
+                */
+                if (getRepeatMode() == REPEAT_CURRENT) {
+                   return VALUE_SHUFFLEMODE_OFF;
+                }
                 return VALUE_SHUFFLEMODE_ALL;
             default:
                 return VALUE_SHUFFLEMODE_OFF;
@@ -2955,7 +2846,6 @@ public class MediaPlaybackService extends Service {
         private Runnable mSetNextMediaPlayerRunnable = null;
         private boolean mIsInitialized = false;
         private boolean mIsComplete = false;
-        private boolean mIsNextPrepared = false;
 
         public MultiPlayer() {
             mCurrentMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
@@ -2975,7 +2865,26 @@ public class MediaPlaybackService extends Service {
             @Override
             public void onPrepared(MediaPlayer mp){
                 Log.d(LOGTAG, "next MediaPlayer Prepared");
-                mIsNextPrepared = true;
+
+                if (mp != null && mp == mCurrentMediaPlayer) {
+                    Log.d(LOGTAG, "Ignore to set next MediaPlayer as self");
+                    return;
+                }
+
+                if (mCurrentMediaPlayer != mp
+                        && mIsSupposedToBePlaying
+                        && mCurrentMediaPlayer != null
+                        && mIsInitialized
+                        && mCurrentMediaPlayer.isPlaying()) {
+                    Log.d(LOGTAG, "setNextMediaPlayer");
+                    mCurrentMediaPlayer.setNextMediaPlayer(mp);
+                    if (mNextMediaPlayer != null) {
+                        mNextMediaPlayer.release();
+                    }
+                    mNextMediaPlayer = (CompatMediaPlayer)mp;
+                } else {
+                    mp.release();
+                }
             }
         };
 
@@ -3005,10 +2914,13 @@ public class MediaPlaybackService extends Service {
             }
             player.setOnCompletionListener(listener);
             player.setOnErrorListener(errorListener);
-            Intent i = new Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION);
-            i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
-            i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, getPackageName());
-            sendBroadcast(i);
+            int sessionId = getAudioSessionId();
+            if (sessionId >= 0) {
+                Intent i = new Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION);
+                i.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, getAudioSessionId());
+                i.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, getPackageName());
+                sendBroadcast(i);
+            }
             return true;
         }
 
@@ -3029,40 +2941,31 @@ public class MediaPlaybackService extends Service {
             mp.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
             mp.setAudioSessionId(getAudioSessionId());
             if (mSetNextMediaPlayerHandler == null) {
-               mSetNextMediaPlayerHandler = new Handler(mPrepareNextHandlerThread.getLooper());
+                mSetNextMediaPlayerHandler = new Handler(mPrepareNextHandlerThread.getLooper());
+            }
             if (mSetNextMediaPlayerRunnable != null) {
                mSetNextMediaPlayerHandler.removeCallbacks(mSetNextMediaPlayerRunnable);
             }
             mSetNextMediaPlayerRunnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        setDataSourceImpl(mp, path, true);
-                        if (mIsSupposedToBePlaying
-                            && mCurrentMediaPlayer != null
-                            && mIsInitialized && mIsNextPrepared
-                            && mCurrentMediaPlayer.isPlaying()) {
-                            mCurrentMediaPlayer.setNextMediaPlayer(mp);
-                            if (mNextMediaPlayer != null) {
-                                mNextMediaPlayer.release();
-                            }
-                            mNextMediaPlayer = mp;
-                        } else {
-                            mp.release();
-                        }
-                        mIsNextPrepared = false;
+                @Override
+                public void run() {
+                    if (!setDataSourceImpl(mp, path, true)) {
+                        // failed to open next, we'll transition the old fashioned way,
+                        // which will skip over the faulty file
+                        releaseCurrentAndNext(mp);
                     }
-                };
-               mSetNextMediaPlayerHandler.post(mSetNextMediaPlayerRunnable);
-            } else {
-                // failed to open next, we'll transition the old fashioned way,
-                // which will skip over the faulty file
-                if (mp != null) {
-                    mp.release();
                 }
-                if (mNextMediaPlayer != null) {
-                    mNextMediaPlayer.release();
-                    mNextMediaPlayer = null;
-                }
+            };
+            mSetNextMediaPlayerHandler.post(mSetNextMediaPlayerRunnable);
+        }
+
+        private void releaseCurrentAndNext(MediaPlayer current) {
+            if (current != null) {
+                current.release();
+            }
+            if (mNextMediaPlayer != null) {
+                mNextMediaPlayer.release();
+                mNextMediaPlayer = null;
             }
         }
 
@@ -3104,6 +3007,7 @@ public class MediaPlaybackService extends Service {
         MediaPlayer.OnCompletionListener listener = new MediaPlayer.OnCompletionListener() {
             public void onCompletion(MediaPlayer mp) {
                 mIsComplete = true;
+                updatePlaybackState(false);
                 if (mp == mCurrentMediaPlayer && mNextMediaPlayer != null) {
                     if (mPlayPos == mNextPlayPos) {
                         mCurrentTrackInfo = getTrackInfoFromId(mPlayList[mNextPlayPos]);
@@ -3189,7 +3093,11 @@ public class MediaPlaybackService extends Service {
         }
 
         public void setVolume(float vol) {
-            mCurrentMediaPlayer.setVolume(vol, vol);
+            try {
+                mCurrentMediaPlayer.setVolume(vol, vol);
+            } catch (Exception e) {
+                Log.d(LOGTAG, "setVolume failed: " + e);
+            }
         }
 
         public void setAudioSessionId(int sessionId) {
@@ -3197,7 +3105,12 @@ public class MediaPlaybackService extends Service {
         }
 
         public int getAudioSessionId() {
-            return mCurrentMediaPlayer.getAudioSessionId();
+            try {
+                return mCurrentMediaPlayer.getAudioSessionId();
+            } catch (Exception e) {
+                Log.d(LOGTAG, "getAudioSessionId failed: " + e);
+                return -1;
+            }
         }
     }
 
@@ -3381,4 +3294,19 @@ public class MediaPlaybackService extends Service {
     }
 
     private final IBinder mBinder = new ServiceStub(this);
+
+    private void updatePlaybackState(boolean pause) {
+        long pos = (mPlayer != null) ? position() : 0;
+        if (pos < 0) pos = 0;
+
+        int state = RemoteControlClient.PLAYSTATE_PAUSED;
+        if (pause) {
+            state = RemoteControlClient.PLAYSTATE_PAUSED;
+        } else {
+            state = isPlaying() ?
+                    RemoteControlClient.PLAYSTATE_PLAYING :
+                    RemoteControlClient.PLAYSTATE_PAUSED;
+        }
+        mRemoteControlClient.setPlaybackState(state, pos, PLAYBACK_SPEED_1X);
+    }
 }
