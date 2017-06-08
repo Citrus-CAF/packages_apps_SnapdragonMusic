@@ -1196,7 +1196,7 @@ public class PlaylistBrowserFragment extends Fragment implements
                     }
                     if (parentActivity.getResources()
                             .getBoolean(R.bool.add_playlist_by_filemanager)) {
-                        if (id != RECENTLY_ADDED_PLAYLIST) {
+                        if (id != RECENTLY_ADDED_PLAYLIST && id != ALL_SONGS_PLAYLIST) {
                             popup.getMenu().add(0, ADD_BY_FILEMANAGER, 0,
                                     R.string.add_by_filemanager);
                         }
