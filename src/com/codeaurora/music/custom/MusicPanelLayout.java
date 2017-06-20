@@ -379,7 +379,9 @@ public class MusicPanelLayout extends ViewGroup {
         }
 
         if (mSlippingView.getVisibility() != VISIBLE) {
-            if (!MusicUtils.isPlaying()) {
+            // If onMeasure() run before onServiceConnected(), the sService will be null here,
+            // but actually there is audio playing
+            if (MusicUtils.shouldHideNowPlayingBar()) {
                 mSlipState = BoardState.HIDDEN;
             }
         }
