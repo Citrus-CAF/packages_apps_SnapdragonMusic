@@ -1828,6 +1828,10 @@ public class MusicUtils {
         return false;
     }
 
+    public static boolean shouldHideNowPlayingBar() {
+        return (sService != null) && !isPlaying();
+    }
+
     public static boolean isGroupByFolder() {
         return mGroupByFolder;
     }
