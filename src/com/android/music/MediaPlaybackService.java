@@ -568,9 +568,6 @@ public class MediaPlaybackService extends Service {
         stopForeground(true);
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        int vol = MusicUtils.getSystemPropertyInt("persist.power.music.volume");
-        if (vol >= 0 && vol <= 15)
-            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, vol, 0);
         ComponentName rec = new ComponentName(getPackageName(),
                 MediaButtonIntentReceiver.class.getName());
         mAudioManager.registerMediaButtonEventReceiver(rec);
@@ -784,7 +781,7 @@ public class MediaPlaybackService extends Service {
         }
         ed.putInt("repeatmode", mRepeatMode);
         ed.putInt("shufflemode", mShuffleMode);
-        SharedPreferencesCompat.apply(ed);
+        ed.apply();
 
         //Log.i("@@@@ service", "saved state in " + (System.currentTimeMillis() - start) + " ms");
     }
@@ -1540,21 +1537,19 @@ public class MediaPlaybackService extends Service {
     }
 
     private void setNextTrack() {
-        if(!MusicUtils.getSystemPropertyBoolean("audio.gapless.playback.disable")) {
-            mNextPlayPos = getNextPosition(false);
+        mNextPlayPos = getNextPosition(false);
 
-            // remove the tail which is the next track
-            // from history vector in shuffle mode.
-            int histsize = mHistory.size();
-            if (histsize > 0 && mShuffleMode == SHUFFLE_NORMAL) {
-                mHistory.remove(histsize - 1);
-            }
-            if (mNextPlayPos >= 0) {
-                long id = mPlayList[mNextPlayPos];
-                mPlayer.setNextDataSource(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI + "/" + id);
-            } else {
-                mPlayer.setNextDataSource(null);
-            }
+        // remove the tail which is the next track
+        // from history vector in shuffle mode.
+        int histsize = mHistory.size();
+        if (histsize > 0 && mShuffleMode == SHUFFLE_NORMAL) {
+            mHistory.remove(histsize - 1);
+        }
+        if (mNextPlayPos >= 0) {
+            long id = mPlayList[mNextPlayPos];
+            mPlayer.setNextDataSource(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI + "/" + id);
+        } else {
+            mPlayer.setNextDataSource(null);
         }
     }
 
@@ -3123,13 +3118,7 @@ public class MediaPlaybackService extends Service {
         private OnCompletionListener mCompletion;
 
         public CompatMediaPlayer() {
-            try {
-                MediaPlayer.class.getMethod("setNextMediaPlayer", MediaPlayer.class);
-                mCompatMode = false;
-            } catch (NoSuchMethodException e) {
-                mCompatMode = true;
-                super.setOnCompletionListener(this);
-            }
+            mCompatMode = false;
         }
 
         public void setNextMediaPlayer(MediaPlayer next) {

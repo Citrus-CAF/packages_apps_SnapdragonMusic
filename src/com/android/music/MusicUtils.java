@@ -1376,7 +1376,7 @@ public class MusicUtils {
             context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);
         Editor ed = prefs.edit();
         ed.putInt(name, value);
-        SharedPreferencesCompat.apply(ed);
+        ed.apply();
     }
 
     static void setRingtone(Context context, long id, int sub_id) {
@@ -2238,42 +2238,6 @@ public class MusicUtils {
 
     public static void addSetRingtonMenu(Menu menu) {
         menu.add(0, Defs.USE_AS_RINGTONE, 0, R.string.ringtone_menu);
-    }
-
-    public static int getSystemPropertyInt(String key) {
-        int ret = -1;
-        try {
-            Class<?> systemProperties = Class.forName("android.os.SystemProperties");
-            Method getInt = systemProperties.getMethod("getInt", String.class, int.class);
-            ret = (int) getInt.invoke(null, "persist.power.music.volume", -1);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-        return ret;
-    }
-
-    public static boolean getSystemPropertyBoolean(String key) {
-        boolean ret = false;
-        try{
-            Class<?> systemProperties = Class.forName("android.os.SystemProperties");
-            Method getBoolean = systemProperties.getMethod("getBoolean",String.class,boolean.class);
-            ret = (boolean)getBoolean.invoke(null, key, false);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-        return ret;
     }
 
     public static <K, V> V getFromLruCache(K key, LruCache<K, V> lruCache) {

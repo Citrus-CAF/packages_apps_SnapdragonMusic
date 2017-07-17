@@ -26,6 +26,9 @@ LOCAL_AAPT_FLAGS := \
         --extra-packages android.support.v7.appcompat \
         --extra-packages android.support.design
 
+LOCAL_PROPRIETARY_MODULE := true
+LOCAL_MODULE_OWNER := qti
+
 include $(BUILD_PACKAGE)
 
 # Use the folloing include to make our test apk.

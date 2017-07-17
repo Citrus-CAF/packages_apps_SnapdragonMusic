@@ -140,17 +140,7 @@ public class TouchInterceptor extends ListView {
                     mDragPointY = y - item.getTop();
                     mXOffset = ((int)ev.getRawX()) - x;
                     mYOffset = ((int)ev.getRawY()) - y;
-                    boolean layoutRtl = false;
-                    try {
-                        Method isLayoutRtl = ListView.class.getMethod("isLayoutRtl");
-                        layoutRtl = (boolean) isLayoutRtl.invoke(this);
-                    } catch (NoSuchMethodException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
+                    boolean layoutRtl = (View.LAYOUT_DIRECTION_RTL == getLayoutDirection());
                     if (layoutRtl){
                         // The right side of the item is the grabber for dragging the item
                         if (x > item.getRight() - 64){
