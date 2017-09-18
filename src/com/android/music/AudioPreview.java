@@ -215,6 +215,10 @@ public class AudioPreview extends Activity implements OnPreparedListener, OnErro
     public void onUserLeaveHint() {
         stopPlayback();
         super.onUserLeaveHint();
+        // stopPlayback will set mPlayer as null, while mPlayer is null,
+        // onKeyDown will return directly but not call finish
+        // So, we should invoke finish here but not depends on onKeyDown
+        finish();
     }
 
     public void onPrepared(MediaPlayer mp) {

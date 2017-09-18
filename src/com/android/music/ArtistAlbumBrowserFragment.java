@@ -177,6 +177,9 @@ public class ArtistAlbumBrowserFragment extends Fragment implements
             mCurrentArtistId = icicle.getString("selectedartist");
             mCurrentArtistName = icicle.getString("selectedartistname");
         }
+        // The fragment is cached in FragmentsFactory, when it is loaded,
+        // it may not be a new instance, so its isExpanded may keep old value
+        isExpanded = false;
         mToken = MusicUtils.bindToService(mActivity, this);
 
     }
